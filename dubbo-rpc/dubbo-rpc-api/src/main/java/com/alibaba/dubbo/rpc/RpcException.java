@@ -32,8 +32,16 @@ public final class RpcException extends RuntimeException {
     public static final int BIZ_EXCEPTION = 3;
     public static final int FORBIDDEN_EXCEPTION = 4;
     public static final int SERIALIZATION_EXCEPTION = 5;
+    public static final int MOCK_EXCEPTION = 6;
+    public static final int BAD_RESPONSE = 7;
+    public static final int BAD_REQUEST = 8;
+    public static final int SERVICE_NOT_FOUND = 9;
     private static final long serialVersionUID = 7815426752583648734L;
     private int code; // RpcException cannot be extended, use error code for exception type to keep compatibility
+
+    public static final RpcException MOCKEXCEPTION = new RpcException(MOCK_EXCEPTION);
+
+    private Throwable fallbackExe;
 
     public RpcException() {
         super();
@@ -69,6 +77,16 @@ public final class RpcException extends RuntimeException {
     public RpcException(int code, Throwable cause) {
         super(cause);
         this.code = code;
+    }
+
+    public RpcException(String message, Throwable cause, Throwable fallback) {
+        super(message, cause);
+        this.code = UNKNOWN_EXCEPTION;
+        this.fallbackExe = fallback;
+    }
+
+    public boolean isMock() {
+        return code == MOCK_EXCEPTION;
     }
 
     public int getCode() {

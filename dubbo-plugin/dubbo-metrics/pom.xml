@@ -17,24 +17,32 @@ limitations under the License.
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>dubbo-parent</artifactId>
         <groupId>com.alibaba</groupId>
+        <artifactId>dubbo-plugin</artifactId>
         <version>2.6.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>dubbo-plugin</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>dubbo-metrics</artifactId>
+    <packaging>jar</packaging>
 
-    <name>dubbo-plugin</name>
-    <description>The registry module of dubbo project</description>
-    <modules>
-        <module>dubbo-qos</module>
-        <module>dubbo-metrics</module>
-        <module>dubbo-fallback</module>
-    </modules>
+    <name>dubbo-metrics</name>
+
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <skip_maven_deploy>true</skip_maven_deploy>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dubbo-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dubbo-rpc-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>
