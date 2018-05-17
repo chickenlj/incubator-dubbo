@@ -79,7 +79,7 @@ public class HttpProtocol extends AbstractProxyProtocol {
         final String path = url.getAbsolutePath();
         skeletonMap.put(path, createExporter(impl, type));
         // duplicate exporter for generic invoke
-        skeletonMap.put(path, createExporter(impl, GenericService.class));
+        skeletonMap.put(path + "/generic", createExporter(impl, GenericService.class));
         return new Runnable() {
             @Override
             public void run() {
