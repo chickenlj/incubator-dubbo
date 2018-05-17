@@ -17,9 +17,9 @@
 package com.alibaba.dubbo.config;
 
 import com.alibaba.dubbo.common.Constants;
+import com.alibaba.dubbo.common.utils.ProtocolUtils;
 import com.alibaba.dubbo.config.support.Parameter;
 import com.alibaba.dubbo.rpc.InvokerListener;
-import com.alibaba.dubbo.rpc.support.ProtocolUtils;
 
 /**
  * AbstractConsumerConfig

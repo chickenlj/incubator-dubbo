@@ -16,7 +16,8 @@
  */
 package com.alibaba.dubbo.demo.consumer;
 
-import com.alibaba.dubbo.demo.DemoService;
+import com.alibaba.dubbo.rpc.service.GenericService;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class Consumer {
@@ -27,7 +28,7 @@ public class Consumer {
         System.setProperty("java.net.preferIPv4Stack", "true");
         ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"META-INF/spring/dubbo-demo-consumer.xml"});
         context.start();
-        DemoService demoService = (DemoService) context.getBean("demoService"); // get remote service proxy
+       /* DemoService demoService = (DemoService) context.getBean("demoService"); // get remote service proxy
 
         while (true) {
             try {
@@ -38,8 +39,19 @@ public class Consumer {
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
             }
+        }*/
 
+        GenericService genericService = (GenericService) context.getBean("demoService"); // get remote service proxy
 
+        while (true) {
+            try {
+                Thread.sleep(1000);
+                Object hello = genericService.$invoke("sayHello", new String[]{"java.lang.String"}, new Object[]{"world"}); // call remote method
+                System.out.println(hello); // get result
+
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
         }
 
     }

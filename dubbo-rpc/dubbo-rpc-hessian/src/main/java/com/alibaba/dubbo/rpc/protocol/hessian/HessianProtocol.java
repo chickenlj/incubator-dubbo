@@ -18,12 +18,13 @@ package com.alibaba.dubbo.rpc.protocol.hessian;
 
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.URL;
+import com.alibaba.dubbo.remoting.http.AbstractHttpHandler;
 import com.alibaba.dubbo.remoting.http.HttpBinder;
-import com.alibaba.dubbo.remoting.http.HttpHandler;
 import com.alibaba.dubbo.remoting.http.HttpServer;
 import com.alibaba.dubbo.rpc.RpcContext;
 import com.alibaba.dubbo.rpc.RpcException;
 import com.alibaba.dubbo.rpc.protocol.AbstractProxyProtocol;
+import com.alibaba.dubbo.rpc.service.GenericService;
 
 import com.caucho.hessian.HessianException;
 import com.caucho.hessian.client.HessianConnectionException;
@@ -73,8 +74,9 @@ public class HessianProtocol extends AbstractProxyProtocol {
             serverMap.put(addr, server);
         }
         final String path = url.getAbsolutePath();
-        HessianSkeleton skeleton = new HessianSkeleton(impl, type);
-        skeletonMap.put(path, skeleton);
+        skeletonMap.put(path, createSkeleton(impl, type));
+        // duplicate export for generic invoke
+        skeletonMap.put(path + "/generic", createSkeleton(impl, GenericService.class));
         return new Runnable() {
             @Override
             public void run() {
@@ -137,13 +139,16 @@ public class HessianProtocol extends AbstractProxyProtocol {
         }
     }
 
-    private class HessianHandler implements HttpHandler {
+    private <T> HessianSkeleton createSkeleton(final T impl, Class<?> type) {
+        return new HessianSkeleton(impl, type);
+    }
+
+    private class HessianHandler extends AbstractHttpHandler {
 
         @Override
         public void handle(HttpServletRequest request, HttpServletResponse response)
                 throws IOException, ServletException {
-            String uri = request.getRequestURI();
-            HessianSkeleton skeleton = skeletonMap.get(uri);
+            HessianSkeleton skeleton = skeletonMap.get(getPath(request));
             if (!request.getMethod().equalsIgnoreCase("POST")) {
                 response.setStatus(500);
             } else {

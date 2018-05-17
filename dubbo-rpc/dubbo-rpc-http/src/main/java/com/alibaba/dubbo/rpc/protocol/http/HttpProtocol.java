@@ -18,12 +18,13 @@ package com.alibaba.dubbo.rpc.protocol.http;
 
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.URL;
+import com.alibaba.dubbo.remoting.http.AbstractHttpHandler;
 import com.alibaba.dubbo.remoting.http.HttpBinder;
-import com.alibaba.dubbo.remoting.http.HttpHandler;
 import com.alibaba.dubbo.remoting.http.HttpServer;
 import com.alibaba.dubbo.rpc.RpcContext;
 import com.alibaba.dubbo.rpc.RpcException;
 import com.alibaba.dubbo.rpc.protocol.AbstractProxyProtocol;
+import com.alibaba.dubbo.rpc.service.GenericService;
 
 import org.springframework.remoting.RemoteAccessException;
 import org.springframework.remoting.httpinvoker.HttpComponentsHttpInvokerRequestExecutor;
@@ -74,16 +75,11 @@ public class HttpProtocol extends AbstractProxyProtocol {
             server = httpBinder.bind(url, new InternalHandler());
             serverMap.put(addr, server);
         }
-        final HttpInvokerServiceExporter httpServiceExporter = new HttpInvokerServiceExporter();
-        httpServiceExporter.setServiceInterface(type);
-        httpServiceExporter.setService(impl);
-        try {
-            httpServiceExporter.afterPropertiesSet();
-        } catch (Exception e) {
-            throw new RpcException(e.getMessage(), e);
-        }
+
         final String path = url.getAbsolutePath();
-        skeletonMap.put(path, httpServiceExporter);
+        skeletonMap.put(path, createExporter(impl, type));
+        // duplicate exporter for generic invoke
+        skeletonMap.put(path, createExporter(impl, GenericService.class));
         return new Runnable() {
             @Override
             public void run() {
@@ -139,13 +135,24 @@ public class HttpProtocol extends AbstractProxyProtocol {
         return super.getErrorCode(e);
     }
 
-    private class InternalHandler implements HttpHandler {
+    private <T> HttpInvokerServiceExporter createExporter(final T impl, Class<?> type) {
+        final HttpInvokerServiceExporter httpServiceExporter = new HttpInvokerServiceExporter();
+        httpServiceExporter.setServiceInterface(type);
+        httpServiceExporter.setService(impl);
+        try {
+            httpServiceExporter.afterPropertiesSet();
+        } catch (Exception e) {
+            throw new RpcException(e.getMessage(), e);
+        }
+        return httpServiceExporter;
+    }
+
+    private class InternalHandler extends AbstractHttpHandler {
 
         @Override
         public void handle(HttpServletRequest request, HttpServletResponse response)
                 throws IOException, ServletException {
-            String uri = request.getRequestURI();
-            HttpInvokerServiceExporter skeleton = skeletonMap.get(uri);
+            HttpInvokerServiceExporter skeleton = skeletonMap.get(getPath(request));
             if (!request.getMethod().equalsIgnoreCase("POST")) {
                 response.setStatus(500);
             } else {

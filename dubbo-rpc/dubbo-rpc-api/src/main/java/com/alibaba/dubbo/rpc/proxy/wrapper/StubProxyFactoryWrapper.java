@@ -101,6 +101,11 @@ public class StubProxyFactoryWrapper implements ProxyFactory {
     }
 
     @Override
+    public <T> T getProxy(Invoker<T> invoker, boolean alwaysGeneric) throws RpcException {
+        return proxyFactory.getProxy(invoker, alwaysGeneric);
+    }
+
+    @Override
     public <T> Invoker<T> getInvoker(T proxy, Class<T> type, URL url) throws RpcException {
         return proxyFactory.getInvoker(proxy, type, url);
     }
