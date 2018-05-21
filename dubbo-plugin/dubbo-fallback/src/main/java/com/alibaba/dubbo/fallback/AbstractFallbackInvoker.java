@@ -7,11 +7,11 @@ import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcException;
 import com.alibaba.dubbo.rpc.RpcResult;
 
-public abstract class AbstractMockInvoker<T> implements Invoker<T> {
+public abstract class AbstractFallbackInvoker<T> implements FallbackInvoker<T> {
 
     private Invoker<T> invoker;
 
-    public AbstractMockInvoker(Invoker<T> invoker) {
+    public AbstractFallbackInvoker(Invoker<T> invoker) {
         this.invoker = invoker;
     }
 
@@ -83,8 +83,6 @@ public abstract class AbstractMockInvoker<T> implements Invoker<T> {
             throw new RpcException("Circuit opened and fallback not available.", cause, null);
         }
     }
-
-    protected abstract Result getFallback() throws RpcException;
 
     private void markSuccess() {
 

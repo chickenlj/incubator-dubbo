@@ -11,12 +11,12 @@ import java.util.concurrent.ConcurrentMap;
  */
 public abstract class AbstractFallbackFactory implements FallbackFactory {
 
-    private ConcurrentMap<String, AbstractMockInvoker<?>> fallbackInvokerMap = new ConcurrentHashMap<String, AbstractMockInvoker<?>>();
+    private ConcurrentMap<String, AbstractFallbackInvoker<?>> fallbackInvokerMap = new ConcurrentHashMap<String, AbstractFallbackInvoker<?>>();
 
     @Override
     public Invoker<?> getInvoker(Invoker<?> invoker) {
         String key = invoker.getUrl().toFullString();
-        AbstractMockInvoker<?> mockInvoker = fallbackInvokerMap.get(key);
+        AbstractFallbackInvoker<?> mockInvoker = fallbackInvokerMap.get(key);
         if (mockInvoker == null) {
             fallbackInvokerMap.put(key, createInvoker(invoker));
             mockInvoker = fallbackInvokerMap.get(key);
@@ -25,5 +25,5 @@ public abstract class AbstractFallbackFactory implements FallbackFactory {
     }
 
 
-    abstract AbstractMockInvoker<?> createInvoker(Invoker<?> invoker);
+    abstract AbstractFallbackInvoker<?> createInvoker(Invoker<?> invoker);
 }

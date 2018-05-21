@@ -8,7 +8,7 @@ import com.alibaba.dubbo.rpc.Invoker;
  */
 public class DubboFallbackFactory extends AbstractFallbackFactory {
     @Override
-    AbstractMockInvoker<?> createInvoker(Invoker<?> invoker) {
+    AbstractFallbackInvoker<?> createInvoker(Invoker<?> invoker) {
         return null;
     }
 }

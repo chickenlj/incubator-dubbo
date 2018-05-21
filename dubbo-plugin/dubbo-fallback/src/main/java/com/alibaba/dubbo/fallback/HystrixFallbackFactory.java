@@ -8,7 +8,7 @@ import com.alibaba.dubbo.rpc.Invoker;
  */
 public class HystrixFallbackFactory extends AbstractFallbackFactory {
     @Override
-    AbstractMockInvoker<?> createInvoker(Invoker<?> invoker) {
-        return new HystrixMockInvoker<>(invoker);
+    AbstractFallbackInvoker<?> createInvoker(Invoker<?> invoker) {
+        return new HystrixFallbackInvoker(invoker);
     }
 }

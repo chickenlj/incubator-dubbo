@@ -1,9 +1,11 @@
 package com.alibaba.dubbo.fallback;
 
+import com.alibaba.dubbo.common.extension.ExtensionLoader;
 import com.alibaba.dubbo.rpc.Invocation;
 import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcException;
+import com.alibaba.dubbo.rpc.support.MockInvoker;
 
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 
@@ -11,9 +13,9 @@ import com.netflix.hystrix.exception.HystrixRuntimeException;
  * @author ken.lj
  * @date 2018/2/27
  */
-public class HystrixMockInvoker<T> extends AbstractMockInvoker<T> {
+public class HystrixFallbackInvoker<T> extends AbstractFallbackInvoker<T> {
 
-    public HystrixMockInvoker(Invoker<T> invoker) {
+    public HystrixFallbackInvoker(Invoker<T> invoker) {
         super(invoker);
     }
 
@@ -21,7 +23,8 @@ public class HystrixMockInvoker<T> extends AbstractMockInvoker<T> {
     public Result invoke(Invocation invocation) throws RpcException {
         Result result = null;
         try {
-            HystrixCommandExt hystrixCommand = new HystrixCommandExt(invoker, mockInvoker, invocation);
+            MockInvoker<?> mockinvoker = (ExtensionLoader.getExtensionLoader(MockHandler.class).getAdaptiveExtension().parseMock(this.getUrl());
+            HystrixCommandExt hystrixCommand = new HystrixCommandExt(this.getInvoker(), mockinvoker, invocation);
             result = hystrixCommand.execute();
         } catch (Exception e) {
             if (e instanceof HystrixRuntimeException) {
@@ -52,7 +55,7 @@ public class HystrixMockInvoker<T> extends AbstractMockInvoker<T> {
     }
 
     @Override
-    protected T getFallback() throws RpcException {
+    protected Result getFallback() throws RpcException {
         return null;
     }
 }

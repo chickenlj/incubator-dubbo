@@ -1,6 +1,5 @@
 package com.alibaba.dubbo.fallback;
 
-import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.rpc.Filter;
 import com.alibaba.dubbo.rpc.Invocation;
@@ -24,7 +23,14 @@ public class FallbackFilter implements Filter {
         URL url = invoker.getUrl();
         Result result = null;
 
-        String value = url.getMethodParameter(invocation.getMethodName(), Constants.MOCK_KEY, Boolean.FALSE.toString()).trim();
+        if (FallbackUtils.needMock(url)) {// mock=true, 注意mock:force等的处理
+//            String value = url.getMethodParameter(invocation.getMethodName(), Constants.MOCK_KEY, Boolean.FALSE.toString()).trim();
+            Invoker<?> fallbackInvoker = fallbackFactory.getInvoker(invoker);
+
+            result = fallbackInvoker.invoke(invocation);
+        } else { // 如果没提供fallback等配置，直接绕过熔断等
+            result = invoker.invoke(invocation);
+        }
 
         return result;
     }
