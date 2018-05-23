@@ -55,5 +55,10 @@ limitations under the License.
             <artifactId>hystrix-core</artifactId>
             <version>1.5.12</version>
         </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dubbo-metrics</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

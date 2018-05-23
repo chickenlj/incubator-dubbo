@@ -13,6 +13,13 @@ public abstract class AbstractFallbackFactory implements FallbackFactory {
 
     private ConcurrentMap<String, AbstractFallbackInvoker<?>> fallbackInvokerMap = new ConcurrentHashMap<String, AbstractFallbackInvoker<?>>();
 
+    /**
+     * 对于spi的场景，map缓存是不是不应该使用？
+     * fullstring用hashcode可以更高效吗
+     *
+     * @param invoker
+     * @return
+     */
     @Override
     public Invoker<?> getInvoker(Invoker<?> invoker) {
         String key = invoker.getUrl().toFullString();

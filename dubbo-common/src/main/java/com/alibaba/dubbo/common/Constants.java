@@ -633,6 +633,31 @@ public class Constants {
 
     public static final boolean DEFAULT_HESSIAN_OVERLOAD_METHOD = false;
 
+    public static final String CIRCUITENABLED_KEY = "circuitenabled";
+
+    public static final String FORCEOPEN_KEY = "forceopen";
+
+    public static final String FORCECLOSE_KEY = "forceclose";
+
+    public static final String ERRORPERCENTAGE_KEY = "errorpercentage";
+
+    public static final int DEFAULT_ERRORPERCENTAGE = 50;
+
+    public static final String REQUESTVOLUME_KEY = "requestvolume";
+
+    public static final int DEFAULT_REQUESTVOLUME = 20;
+
+    public static final String SLEEPWINDOW_KEY = "sleepwindow";
+
+    public static final long DEFAULT_SLEEPWINDOW = 5 * 1000;
+
+    public static final String FALLBACKACTIVES_KEY = "fallbackactives";
+
+    public static final int DEFAULT_FALLBACKACTIVES = 200;
+
+    public static final String BIZ_EXCEPTION_KEY = "bizexception";
+
+    public static final String MOCKENABLED_KEY = "mockenabled";
     /*
      * private Constants(){ }
      */

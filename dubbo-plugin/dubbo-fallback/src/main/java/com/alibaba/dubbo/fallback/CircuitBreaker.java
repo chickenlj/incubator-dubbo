@@ -11,5 +11,4 @@ public interface CircuitBreaker {
     boolean isOpen();
 
     void markSuccess();
-
 }

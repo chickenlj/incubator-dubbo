@@ -9,7 +9,6 @@ import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcException;
 import com.alibaba.dubbo.rpc.RpcResult;
 import com.alibaba.dubbo.rpc.service.GenericService;
-import com.alibaba.dubbo.rpc.support.MockInvoker;
 import com.alibaba.dubbo.rpc.support.RpcUtils;
 
 import com.netflix.hystrix.HystrixCommand;
@@ -32,13 +31,13 @@ public class HystrixCommandExt extends HystrixCommand<Result> {
      * HystrixPlugins.getInstance().registerPropertiesStrategy(NocacheHystrixPropertiesStrategy.getInstance()); }
      */
 
-    private MockInvoker<?> mockInvoker;
+    private Invoker<?> mockInvoker;
 
     private Invoker<?> invoker;
 
     private Invocation invocation;
 
-    protected HystrixCommandExt(Invoker<?> invoker, MockInvoker<?> mockInvoker, Invocation invocation) {
+    protected HystrixCommandExt(Invoker<?> invoker, Invoker<?> mockInvoker, Invocation invocation) {
         // groupkey commandkey
         super(Setter
                 .withGroupKey(HystrixCommandGroupKey.Factory.asKey(invoker.getInterface().getName()))
@@ -143,7 +142,7 @@ public class HystrixCommandExt extends HystrixCommand<Result> {
     }
 
     private static String getCommandkey(Invoker<?> invoker, Invocation invocation) {
-        return invoker.getUrl().getCommandKey() + "." + RpcUtils.getMethodName(invocation);
+        return invoker.getUrl().getServiceKey() + "." + RpcUtils.getMethodName(invocation);
     }
 
     private static boolean getCircuitEnabled(Invoker<?> invoker, Invocation invocation) {
@@ -210,7 +209,7 @@ public class HystrixCommandExt extends HystrixCommand<Result> {
     }
 
     private static boolean handleBusinessException(Invoker<?> invoker, Invocation invocation) {
-        return invoker.getUrl().getMethodParameter(invocation.getMethodName(), Constants.BUSINESS_EXCEPTION_MOCK_KEY, false);
+        return invoker.getUrl().getMethodParameter(invocation.getMethodName(), Constants.BIZ_EXCEPTION_KEY, false);
     }
 
     private static boolean getFallbackenabled(Invoker<?> invoker, Invocation invocation) {
