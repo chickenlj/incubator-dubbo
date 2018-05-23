@@ -6,7 +6,6 @@ import com.alibaba.dubbo.rpc.Invocation;
 import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcException;
-import com.alibaba.dubbo.rpc.RpcResult;
 
 /**
  * @author ken.lj
@@ -26,7 +25,7 @@ public class DubboFallbackInvoker<T> extends AbstractFallbackInvoker<T> {
         Throwable cause = null;
         RpcException rpcFallbackException = null;
 
-        if (!circuitbreaker.isAllowed(url, invocation)) { // value.startsWith("force")算作强制熔断
+        /*if (!circuitbreaker.isAllowed(url, invocation)) { // value.startsWith("force")算作强制熔断
             logger.error();
             metrics.markShortCircuited();
             return getFallback();
@@ -72,11 +71,12 @@ public class DubboFallbackInvoker<T> extends AbstractFallbackInvoker<T> {
                 throw (RpcException) cause;
             }
             throw new RpcException(cause);
-        }
+        }*/
+        return null;
     }
 
     public Result getFallbackOrThrowException(URL url, Invocation invocation, Exception cause) throws RpcException {
-        if (circuitbreaker.isFallbackEnabled(url, invocation)) {
+       /* if (circuitbreaker.isFallbackEnabled(url, invocation)) {
             try {
                 metrics.incrFallbackConcurrent();
                 result = getFallback();
@@ -92,7 +92,8 @@ public class DubboFallbackInvoker<T> extends AbstractFallbackInvoker<T> {
             }
         } else {
             throw new RpcException("Circuit opened and fallback disabled. ", cause, null);
-        }
+        }*/
+        return getFallback();
     }
 
     @Override

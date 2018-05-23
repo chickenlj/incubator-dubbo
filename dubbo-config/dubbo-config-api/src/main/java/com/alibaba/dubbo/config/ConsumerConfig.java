@@ -31,6 +31,10 @@ public class ConsumerConfig extends AbstractReferenceConfig {
     // networking framework client uses: netty, mina, etc.
     private String client;
 
+    private String fallback;
+
+    private String mocktype;
+
     @Override
     public void setTimeout(Integer timeout) {
         super.setTimeout(timeout);
@@ -55,5 +59,21 @@ public class ConsumerConfig extends AbstractReferenceConfig {
 
     public void setClient(String client) {
         this.client = client;
+    }
+
+    public String getFallback() {
+        return fallback;
+    }
+
+    public void setFallback(String fallback) {
+        this.fallback = fallback;
+    }
+
+    public String getMocktype() {
+        return mocktype;
+    }
+
+    public void setMocktype(String mocktype) {
+        this.mocktype = mocktype;
     }
 }

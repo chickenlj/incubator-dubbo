@@ -1,0 +1,1 @@
+fallback=com.alibaba.dubbo.fallback.FallbackFilter
