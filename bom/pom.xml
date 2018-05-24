@@ -285,6 +285,16 @@
             </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
+                <artifactId>dubbo-fallback</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>dubbo-metrics</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
                 <artifactId>hessian-lite</artifactId>
                 <version>3.2.2</version>
             </dependency>
