@@ -41,9 +41,10 @@ public class CacheFilter implements Filter {
         this.cacheFactory = cacheFactory;
     }
 
+    @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
         if (cacheFactory != null && ConfigUtils.isNotEmpty(invoker.getUrl().getMethodParameter(invocation.getMethodName(), Constants.CACHE_KEY))) {
-            Cache cache = cacheFactory.getCache(invoker.getUrl().addParameter(Constants.METHOD_KEY, invocation.getMethodName()));
+            Cache cache = cacheFactory.getCache(invoker.getUrl(), invocation);
             if (cache != null) {
                 String key = StringUtils.toArgumentString(invocation.getArguments());
                 Object value = cache.get(key);
@@ -51,7 +52,7 @@ public class CacheFilter implements Filter {
                     return new RpcResult(value);
                 }
                 Result result = invoker.invoke(invocation);
-                if (!result.hasException()) {
+                if (!result.hasException() && result.getValue() != null) {
                     cache.put(key, result.getValue());
                 }
                 return result;

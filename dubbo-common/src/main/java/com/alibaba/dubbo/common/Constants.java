@@ -633,6 +633,8 @@ public class Constants {
 
     public static final boolean DEFAULT_HESSIAN_OVERLOAD_METHOD = false;
 
+    public static final String MULTICAST = "multicast";
+
     public static final String CIRCUITENABLED_KEY = "circuitenabled";
 
     public static final String FORCEOPEN_KEY = "forceopen";
