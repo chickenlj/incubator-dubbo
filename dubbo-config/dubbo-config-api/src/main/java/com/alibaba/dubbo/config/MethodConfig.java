@@ -88,6 +88,7 @@ public class MethodConfig extends AbstractMethodConfig {
     }
 
     public Integer getStat() {
+
         return stat;
     }
 

@@ -17,6 +17,11 @@
 package com.alibaba.dubbo.common.utils;
 
 import com.alibaba.dubbo.common.Constants;
+import com.alibaba.dubbo.common.config.CompositeConfiguration;
+import com.alibaba.dubbo.common.config.Configuration;
+import com.alibaba.dubbo.common.config.InmemoryConfiguration;
+import com.alibaba.dubbo.common.config.PropertiesConfiguration;
+import com.alibaba.dubbo.common.config.SystemConfiguration;
 import com.alibaba.dubbo.common.extension.ExtensionLoader;
 import com.alibaba.dubbo.common.logger.Logger;
 import com.alibaba.dubbo.common.logger.LoggerFactory;
@@ -34,6 +39,43 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ConfigUtils {
+
+    private static volatile CompositeConfiguration configuration;
+    private static Object lock = new Object();
+
+    public static Configuration getConfiguration() {
+        if (configuration != null) {
+            return configuration;
+        }
+
+        synchronized (lock) {
+            if (configuration != null) {
+                return configuration;
+            }
+            // TODO load as SPI may be better
+            Configuration system = new SystemConfiguration();
+            Configuration properties = new PropertiesConfiguration();
+            configuration = new CompositeConfiguration(system, properties);
+        }
+        return configuration;
+    }
+
+    public static Configuration getConfiguration(InmemoryConfiguration inmomery) {
+        if (configuration != null) {
+            return configuration;
+        }
+
+        synchronized (lock) {
+            if (configuration != null) {
+                return configuration;
+            }
+            // TODO load as SPI may be better
+            Configuration system = new SystemConfiguration();
+            Configuration properties = new PropertiesConfiguration();
+            configuration = new CompositeConfiguration(system, inmomery, properties);
+        }
+        return configuration;
+    }
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigUtils.class);
     private static Pattern VARIABLE_PATTERN = Pattern.compile(
