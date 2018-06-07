@@ -17,29 +17,28 @@
 package com.alibaba.dubbo.common.config;
 
 /**
- *
+ * This is an abstraction specially customized for the sequence Dubbo retrieves properties.
  */
-public class SystemConfiguration extends AbstractPrefixConfiguration {
+public abstract class AbstractPrefixConfiguration extends AbstractConfiguration {
 
-    public SystemConfiguration(String prefix, String id) {
-        super(prefix, id);
-    }
+    private String id;
+    private String prefix;
 
-    public SystemConfiguration() {
-        this(null, null);
-    }
-
-    @Override
-    protected Object getInternalProperty(String key) {
-        return System.getProperty(key);
+    public AbstractPrefixConfiguration(String prefix, String id) {
+        super();
+        this.prefix = prefix;
+        this.id = id;
     }
 
     @Override
-    public boolean containsKey(String key) {
-        String value = System.getProperty(key);
-        if (value == null) {
-            return false;
+    public final Object getProperty(String key, Object defaultValue) {
+        Object value = getInternalProperty(key);
+        if (value == null && id != null) {
+            value = getInternalProperty(prefix + id + "." + key);
+            if (value == null) {
+                value = getInternalProperty(prefix + key);
+            }
         }
-        return true;
+        return value;
     }
 }

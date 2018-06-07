@@ -23,7 +23,7 @@ import java.io.Serializable;
 /**
  * @export
  */
-public class ArgumentConfig implements Serializable {
+public class ArgumentConfig extends AbstractConfig implements Serializable {
 
     private static final long serialVersionUID = -2165482463925213595L;
 

@@ -102,7 +102,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     // the scope for referring/exporting a service, if it's local, it means searching in current JVM only.
     private String scope;
 
-    protected void checkRegistry() {
+    public void checkRegistry() {
         // for backward compatibility
         if (registries == null || registries.isEmpty()) {
             String address = ConfigUtils.getProperty("dubbo.registry.address");
@@ -131,7 +131,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     }
 
     @SuppressWarnings("deprecation")
-    protected void checkApplication() {
+    public void checkApplication() {
         // for backward compatibility
         if (application == null) {
             String applicationName = ConfigUtils.getProperty("dubbo.application.name");
@@ -156,7 +156,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         }
     }
 
-    protected List<URL> loadRegistries(boolean provider) {
+    public List<URL> loadRegistries(boolean provider) {
         checkRegistry();
         List<URL> registryList = new ArrayList<URL>();
         if (registries != null && !registries.isEmpty()) {
@@ -201,7 +201,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         return registryList;
     }
 
-    protected URL loadMonitor(URL registryURL) {
+    public URL loadMonitor(URL registryURL) {
         if (monitor == null) {
             String monitorAddress = ConfigUtils.getProperty("dubbo.monitor.address");
             String monitorProtocol = ConfigUtils.getProperty("dubbo.monitor.protocol");
@@ -277,7 +277,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         }
     }
 
-    protected void checkStubAndMock(Class<?> interfaceClass) {
+    public void checkStubAndMock(Class<?> interfaceClass) {
         if (ConfigUtils.isNotEmpty(local)) {
             Class<?> localClass = ConfigUtils.isDefault(local) ? ReflectUtils.forName(interfaceClass.getName() + "Local") : ReflectUtils.forName(local);
             if (!interfaceClass.isAssignableFrom(localClass)) {

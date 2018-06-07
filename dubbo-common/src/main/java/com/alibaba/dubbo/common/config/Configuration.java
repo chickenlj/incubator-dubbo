@@ -39,4 +39,36 @@ public interface Configuration {
      * format, default value otherwise.
      */
     String getString(String key, String defaultValue);
+
+    /**
+     * Gets a property from the configuration. This is the most basic get
+     * method for retrieving values of properties. In a typical implementation
+     * of the {@code Configuration} interface the other get methods (that
+     * return specific data types) will internally make use of this method. On
+     * this level variable substitution is not yet performed. The returned
+     * object is an internal representation of the property value for the passed
+     * in key. It is owned by the {@code Configuration} object. So a caller
+     * should not modify this object. It cannot be guaranteed that this object
+     * will stay constant over time (i.e. further update operations on the
+     * configuration may change its internal state).
+     *
+     * @param key property to retrieve
+     * @return the value to which this configuration maps the specified key, or
+     * null if the configuration contains no mapping for this key.
+     */
+    Object getProperty(String key);
+
+    Object getProperty(String key, Object defaultValue);
+
+    /**
+     * Check if the configuration contains the specified key.
+     *
+     * @param key the key whose presence in this configuration is to be tested
+     * @return {@code true} if the configuration contains a value for this
+     * key, {@code false} otherwise
+     */
+    boolean containsKey(String key);
+
+
+
 }

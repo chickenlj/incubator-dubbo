@@ -19,5 +19,27 @@ package com.alibaba.dubbo.common.config;
 /**
  *
  */
-public class EnvironmentConfiguration extends AbstractConfiguration {
+public class EnvironmentConfiguration extends AbstractPrefixConfiguration {
+
+    public EnvironmentConfiguration(String prefix, String id) {
+        super(prefix, id);
+    }
+
+    public EnvironmentConfiguration() {
+        this(null, null);
+    }
+
+    @Override
+    protected Object getInternalProperty(String key) {
+        return System.getenv(key);
+    }
+
+    @Override
+    public boolean containsKey(String key) {
+        String value = System.getenv(key);
+        if (value == null) {
+            return false;
+        }
+        return true;
+    }
 }

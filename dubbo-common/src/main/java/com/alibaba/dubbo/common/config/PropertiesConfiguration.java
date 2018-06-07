@@ -20,7 +20,6 @@ import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.logger.Logger;
 import com.alibaba.dubbo.common.logger.LoggerFactory;
 import com.alibaba.dubbo.common.utils.ClassHelper;
-import com.alibaba.dubbo.common.utils.ConfigUtils;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -34,83 +33,59 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
+ * This is not a implementation suitable for all cases, specially customized for Dubbo framework.
  */
-public class PropertiesConfiguration extends AbstractConfiguration {
-    private static final Logger logger = LoggerFactory.getLogger(ConfigUtils.class);
-    private static Pattern VARIABLE_PATTERN = Pattern.compile(
-            "\\$\\s*\\{?\\s*([\\._0-9a-zA-Z]+)\\s*\\}?");
-    private static volatile Properties PROPERTIES;
-    private static int PID = -1;
+public class PropertiesConfiguration extends AbstractPrefixConfiguration {
 
-    public static String replaceProperty(String expression, Map<String, String> params) {
-        if (expression == null || expression.length() == 0 || expression.indexOf('$') < 0) {
-            return expression;
-        }
-        Matcher matcher = VARIABLE_PATTERN.matcher(expression);
-        StringBuffer sb = new StringBuffer();
-        while (matcher.find()) {
-            String key = matcher.group(1);
-            String value = System.getProperty(key);
-            if (value == null && params != null) {
-                value = params.get(key);
-            }
-            if (value == null) {
-                value = "";
-            }
-            matcher.appendReplacement(sb, Matcher.quoteReplacement(value));
-        }
-        matcher.appendTail(sb);
-        return sb.toString();
-    }
+    private static final Logger logger = LoggerFactory.getLogger(PropertiesConfiguration.class);
 
-    public static Properties getProperties() {
-        if (PROPERTIES == null) {
-            synchronized (ConfigUtils.class) {
-                if (PROPERTIES == null) {
-                    String path = System.getProperty(Constants.DUBBO_PROPERTIES_KEY);
+    private Properties properties;
+
+    public PropertiesConfiguration(String prefix, String id) {
+        super(prefix, id);
+        if (properties == null) {
+            if (properties == null) {
+                String path = System.getProperty(Constants.DUBBO_PROPERTIES_KEY);
+                if (path == null || path.length() == 0) {
+                    path = System.getenv(Constants.DUBBO_PROPERTIES_KEY);
                     if (path == null || path.length() == 0) {
-                        path = System.getenv(Constants.DUBBO_PROPERTIES_KEY);
-                        if (path == null || path.length() == 0) {
-                            path = Constants.DEFAULT_DUBBO_PROPERTIES;
-                        }
+                        path = Constants.DEFAULT_DUBBO_PROPERTIES;
                     }
-                    PROPERTIES = loadProperties(path, false, true);
                 }
+                properties = loadProperties(path, false, true);
             }
         }
-        return PROPERTIES;
     }
 
-    public static void setProperties(Properties properties) {
-        PROPERTIES = properties;
+    public PropertiesConfiguration() {
+        this(null, null);
     }
 
-    public static void addProperties(Properties properties) {
+    @Override
+    public boolean containsKey(String key) {
+        return properties.containsKey(key);
+    }
+
+    @Override
+    protected Object getInternalProperty(String key) {
+        return replaceProperty(this.properties.getProperty(key, null), (Map) this.properties);
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
+
+    public void addProperties(Properties properties) {
         if (properties != null) {
-            getProperties().putAll(properties);
+            this.properties.putAll(properties);
         }
     }
 
-    public static String getProperty(String key) {
-        return getProperty(key, null);
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public static String getProperty(String key, String defaultValue) {
-        String value = System.getProperty(key);
-        if (value != null && value.length() > 0) {
-            return value;
-        }
-        Properties properties = getProperties();
-        return replaceProperty(properties.getProperty(key, defaultValue), (Map) properties);
-    }
-
-    public static Properties loadProperties(String fileName) {
+    public Properties loadProperties(String fileName) {
         return loadProperties(fileName, false, false);
     }
 
-    public static Properties loadProperties(String fileName, boolean allowMultiFile) {
+    public Properties loadProperties(String fileName, boolean allowMultiFile) {
         return loadProperties(fileName, allowMultiFile, false);
     }
 
@@ -126,7 +101,7 @@ public class PropertiesConfiguration extends AbstractConfiguration {
      * </ul>
      * @throws IllegalStateException not allow multi-file, but multi-file exsit on class path.
      */
-    public static Properties loadProperties(String fileName, boolean allowMultiFile, boolean optional) {
+    private Properties loadProperties(String fileName, boolean allowMultiFile, boolean optional) {
         Properties properties = new Properties();
         if (fileName.startsWith("/")) {
             try {
@@ -201,4 +176,29 @@ public class PropertiesConfiguration extends AbstractConfiguration {
 
         return properties;
     }
+
+    private static Pattern VARIABLE_PATTERN = Pattern.compile(
+            "\\$\\s*\\{?\\s*([\\._0-9a-zA-Z]+)\\s*\\}?");
+
+    public String replaceProperty(String expression, Map<String, String> params) {
+        if (expression == null || expression.length() == 0 || expression.indexOf('$') < 0) {
+            return expression;
+        }
+        Matcher matcher = VARIABLE_PATTERN.matcher(expression);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            String key = matcher.group(1);
+            String value = System.getProperty(key);
+            if (value == null && params != null) {
+                value = params.get(key);
+            }
+            if (value == null) {
+                value = "";
+            }
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(value));
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
+
 }

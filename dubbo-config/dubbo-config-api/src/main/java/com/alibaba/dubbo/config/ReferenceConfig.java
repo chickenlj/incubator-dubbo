@@ -114,7 +114,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         appendAnnotation(Reference.class, reference);
     }
 
-    private static void checkAndConvertImplicitConfig(MethodConfig method, Map<String, String> map, Map<Object, Object> attributes) {
+    public static void checkAndConvertImplicitConfig(MethodConfig method, Map<String, String> map, Map<Object, Object> attributes) {
         //check config conflict
         if (Boolean.FALSE.equals(method.isReturn()) && (method.getOnreturn() != null || method.getOnthrow() != null)) {
             throw new IllegalStateException("method config error : return attribute must be set true when onreturn or onthrow has been setted.");
@@ -454,6 +454,10 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         return interfaceClass;
     }
 
+    public void checkInterfaceAndMethods() {
+        this.checkInterfaceAndMethods(interfaceClass, methods);
+    }
+
     /**
      * @param interfaceClass
      * @see #setInterface(Class)
@@ -544,4 +548,27 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         return buf.toString();
     }
 
+    public boolean isDestroyed() {
+        return destroyed;
+    }
+
+    public T getRef() {
+        return ref;
+    }
+
+    public void setRef(T ref) {
+        this.ref = ref;
+    }
+
+    public boolean isInitialized() {
+        return initialized;
+    }
+
+    public void setInitialized(boolean initialized) {
+        this.initialized = initialized;
+    }
+
+    public void setDestroyed(boolean destroyed) {
+        this.destroyed = destroyed;
+    }
 }

@@ -319,7 +319,11 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         ApplicationModel.initProviderModel(getUniqueServiceName(), providerModel);
     }
 
-    private void checkRef() {
+    public void checkInterfaceAndMethods() {
+        checkInterfaceAndMethods(interfaceClass, methods);
+    }
+
+    public void checkRef() {
         // reference should not be null, and is the implementation of the given interface
         if (ref == null) {
             throw new IllegalStateException("ref not allow null!");
@@ -540,7 +544,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
     }
 
-    protected Class getServiceClass(T ref) {
+    public Class getServiceClass(T ref) {
         return ref.getClass();
     }
 
@@ -554,7 +558,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
      * @param map
      * @return
      */
-    private String findConfigedHosts(ProtocolConfig protocolConfig, List<URL> registryURLs, Map<String, String> map) {
+    public String findConfigedHosts(ProtocolConfig protocolConfig, List<URL> registryURLs, Map<String, String> map) {
         boolean anyhost = false;
 
         String hostToBind = getValueFromConfig(protocolConfig, Constants.DUBBO_IP_TO_BIND);
@@ -632,7 +636,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
      * @param name
      * @return
      */
-    private Integer findConfigedPorts(ProtocolConfig protocolConfig, String name, Map<String, String> map) {
+    public Integer findConfigedPorts(ProtocolConfig protocolConfig, String name, Map<String, String> map) {
         Integer portToBind = null;
 
         // parse bind port from environment
@@ -704,7 +708,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         appendProperties(provider);
     }
 
-    private void checkProtocol() {
+    public void checkProtocol() {
         if ((protocols == null || protocols.isEmpty())
                 && provider != null) {
             setProtocols(provider.getProtocols());
@@ -850,5 +854,13 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             buf.append(":").append(version);
         }
         return buf.toString();
+    }
+
+    public void setExported(boolean exported) {
+        this.exported = exported;
+    }
+
+    public void setUnexported(boolean unexported) {
+        this.unexported = unexported;
     }
 }

@@ -16,17 +16,67 @@
  */
 package com.alibaba.dubbo.common.config;
 
-/**
- *
- */
-public class AbstractConfiguration implements Configuration {
+public abstract class AbstractConfiguration implements Configuration {
+
     @Override
     public String getString(String key) {
-        return null;
+        return convert(String.class, key, null);
     }
 
     @Override
     public String getString(String key, String defaultValue) {
-        return null;
+        return convert(String.class, key, defaultValue);
+    }
+
+    @Override
+    public final Object getProperty(String key) {
+        return getProperty(key, null);
+    }
+
+    @Override
+    public Object getProperty(String key, Object defaultValue) {
+        Object value = getInternalProperty(key);
+        if (value == null) {
+            value = defaultValue;
+        }
+        return value;
+    }
+
+    protected abstract Object getInternalProperty(String key);
+
+    private <T> T convert(Class<T> cls, String key, T defaultValue) {
+        // we only process String properties for now
+        String value = (String) getProperty(key);
+
+        Object obj = value;
+        if (cls.isInstance(value)) {
+            return cls.cast(value);
+        }
+
+        if (String.class.equals(cls)) {
+            return cls.cast(value);
+        }
+
+        if (Boolean.class.equals(cls) || Boolean.TYPE.equals(cls)) {
+            obj = Boolean.valueOf(value);
+        } else if (Number.class.isAssignableFrom(cls) || cls.isPrimitive()) {
+            if (Integer.class.equals(cls) || Integer.TYPE.equals(cls)) {
+                obj = Integer.valueOf(value);
+            } else if (Long.class.equals(cls) || Long.TYPE.equals(cls)) {
+                obj = Long.valueOf(value);
+            } else if (Byte.class.equals(cls) || Byte.TYPE.equals(cls)) {
+                obj = Byte.valueOf(value);
+            } else if (Short.class.equals(cls) || Short.TYPE.equals(cls)) {
+                obj = Short.valueOf(value);
+            } else if (Float.class.equals(cls) || Float.TYPE.equals(cls)) {
+                obj = Float.valueOf(value);
+            } else if (Double.class.equals(cls) || Double.TYPE.equals(cls)) {
+                obj = Double.valueOf(value);
+            }
+        } else if (cls.isEnum()) {
+            obj = Enum.valueOf(cls.asSubclass(Enum.class), value);
+        }
+
+        return cls.cast(obj);
     }
 }

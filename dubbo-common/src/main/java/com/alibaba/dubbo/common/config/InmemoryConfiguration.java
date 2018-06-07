@@ -16,28 +16,61 @@
  */
 package com.alibaba.dubbo.common.config;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  *
  */
 public class InmemoryConfiguration extends AbstractConfiguration {
 
-    private Object prop;
+    /**
+     * stores the configuration key-value pairs
+     */
+    private Map<String, Object> store = new LinkedHashMap<>();
 
-    public InmemoryConfiguration(Object prop) {
-        this.prop = prop;
+    public InmemoryConfiguration(String prefix, String key, Object value) {
+        store.put(prefix + key, value);
+    }
+
+    public InmemoryConfiguration() {
+    }
+
+    /**
+     * Replace previous value if there is one
+     *
+     * @param key
+     * @param value
+     */
+    public void addProperty(String key, Object value) {
+        store.put(key, value);
+    }
+
+    public void addPropertys(Map<String, Object> properties) {
+        store.putAll(properties);
     }
 
     @Override
     public String getString(String key) {
-        return (String) prop;
+        return (String) store.get(key);
     }
 
     @Override
     public String getString(String key, String defaultValue) {
-        if (prop != null) {
-            return (String) prop;
+        if (store.containsKey(key)) {
+            return (String) store.get(key);
         }
         return defaultValue;
+    }
+
+    @Override
+    public boolean containsKey(String key) {
+        return store.containsKey(key);
+    }
+
+    @Override
+    protected Object getInternalProperty(String key) {
+        return store.get(key);
     }
 
 }

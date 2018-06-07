@@ -16,8 +16,10 @@
  */
 package com.alibaba.dubbo.common.config;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -35,8 +37,33 @@ public class CompositeConfiguration extends AbstractConfiguration {
 
     public CompositeConfiguration(Configuration... configurations) {
         if (configurations != null && configurations.length > 0) {
-
+            Arrays.stream(configurations).filter(config -> {
+                return !configList.contains(config);
+            }).forEach(configList::add);
         }
     }
 
+    @Override
+    protected Object getInternalProperty(String key) {
+        Configuration firstMatchingConfiguration = null;
+        for (Configuration config : configList) {
+            if (config.containsKey(key)) {
+                firstMatchingConfiguration = config;
+                break;
+            }
+        }
+        if (firstMatchingConfiguration != null) {
+            return firstMatchingConfiguration.getProperty(key);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public boolean containsKey(String key) {
+        List<Configuration> subConfigList = configList.stream().filter(config -> {
+            return config.containsKey(key);
+        }).collect(Collectors.toList());
+        return subConfigList.size() > 0;
+    }
 }

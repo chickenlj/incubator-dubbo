@@ -16,7 +16,15 @@
  */
 package org.apache.dubbo.bootstrap;
 
+import com.alibaba.dubbo.config.ApplicationConfig;
+import com.alibaba.dubbo.config.ConsumerConfig;
 import com.alibaba.dubbo.config.DubboShutdownHook;
+import com.alibaba.dubbo.config.ModuleConfig;
+import com.alibaba.dubbo.config.MonitorConfig;
+import com.alibaba.dubbo.config.ProtocolConfig;
+import com.alibaba.dubbo.config.ProviderConfig;
+import com.alibaba.dubbo.config.ReferenceConfig;
+import com.alibaba.dubbo.config.RegistryConfig;
 import com.alibaba.dubbo.config.ServiceConfig;
 
 import java.util.ArrayList;
@@ -28,16 +36,28 @@ import java.util.List;
  */
 public class DubboBootstrap {
 
-    /**
-     * The list of ServiceConfig
-     */
-    private List<ServiceConfig> serviceConfigList;
+    public static final DubboBootstrap bootstrap = new DubboBootstrap();
 
     /**
      * Whether register the shutdown hook during start?
      */
     private final boolean registerShutdownHookOnStart;
-
+    private transient volatile boolean exported;
+    private transient volatile boolean unexported;
+    private volatile ExportHelper exportHelper;
+    private volatile ReferHelper referHelper;
+    /**
+     * The list of ServiceConfig
+     */
+    private List<ServiceConfig> serviceConfigList;
+    private List<ReferenceConfig> referenceConfigList;
+    private ApplicationConfig application;
+    private List<RegistryConfig> registries;
+    private ConsumerConfig consumer;
+    private ProviderConfig provider;
+    private List<ProtocolConfig> protocols;
+    private MonitorConfig monitor;
+    private ModuleConfig module;
     /**
      * The shutdown hook used when Dubbo is running under embedded environment
      */
@@ -57,13 +77,54 @@ public class DubboBootstrap {
         this.registerShutdownHookOnStart = registerShutdownHookOnStart;
     }
 
+    public DubboBootstrap applicationConfig(ApplicationConfig applicationConfig) {
+        this.application = applicationConfig;
+        return this;
+    }
+
+    public DubboBootstrap consumerConfig(ConsumerConfig consumerConfig) {
+        this.consumer = consumerConfig;
+        return this;
+    }
+
+    public DubboBootstrap providerConfig(ProviderConfig providerConfig) {
+        this.provider = providerConfig;
+        return this;
+    }
+
+    public DubboBootstrap registryConfigs(List<RegistryConfig> registryConfigs) {
+        this.registries = registryConfigs;
+        return this;
+    }
+
+    public DubboBootstrap registryConfig(RegistryConfig registryConfig) {
+        this.registries.add(registryConfig);
+        return this;
+    }
+
+    public DubboBootstrap protocolConfig(List<ProtocolConfig> protocolConfigs) {
+        this.protocols = protocolConfigs;
+        return this;
+    }
+
+    public DubboBootstrap moduleConfig(ModuleConfig moduleConfig) {
+        this.module = moduleConfig;
+        return this;
+    }
+
     /**
      * Register service config to bootstrap, which will be called during {@link DubboBootstrap#stop()}
+     *
      * @param serviceConfig the service
      * @return the bootstrap instance
      */
     public DubboBootstrap registerServiceConfig(ServiceConfig serviceConfig) {
         serviceConfigList.add(serviceConfig);
+        return this;
+    }
+
+    public DubboBootstrap registerReferenceConfig(ReferenceConfig referenceConfig) {
+        referenceConfigList.add(referenceConfig);
         return this;
     }
 
@@ -75,15 +136,13 @@ public class DubboBootstrap {
             // we need to remove it explicitly
             removeShutdownHook();
         }
-        for (ServiceConfig serviceConfig: serviceConfigList) {
-            serviceConfig.export();
-        }
+        export();
+        refer();
     }
 
     public void stop() {
-        for (ServiceConfig serviceConfig: serviceConfigList) {
-            serviceConfig.unexport();
-        }
+        unexport();
+        unrefer();
         shutdownHook.destroyAll();
         if (registerShutdownHookOnStart) {
             removeShutdownHook();
@@ -93,19 +152,120 @@ public class DubboBootstrap {
     /**
      * Register the shutdown hook
      */
-    public void registerShutdownHook() {
+    public DubboBootstrap registerShutdownHook() {
         Runtime.getRuntime().addShutdownHook(shutdownHook);
+        return this;
     }
 
     /**
      * Remove this shutdown hook
      */
-    public void removeShutdownHook() {
+    public DubboBootstrap removeShutdownHook() {
         try {
             Runtime.getRuntime().removeShutdownHook(shutdownHook);
-        }
-        catch (IllegalStateException ex) {
+        } catch (IllegalStateException ex) {
             // ignore - VM is already shutting down
         }
+        return this;
+    }
+
+    public synchronized void export() {
+        if (exportHelper == null) {
+            exportHelper = new ExportHelper(this);
+        }
+        serviceConfigList.forEach(serviceConfig -> {
+            exportHelper.setServiceConfig(serviceConfig);
+            exportHelper.export();
+        });
+    }
+
+    public synchronized void export(ServiceConfig serviceConfig) {
+        if (exportHelper == null) {
+            exportHelper = new ExportHelper(this);
+        }
+        exportHelper.setServiceConfig(serviceConfig);
+        exportHelper.export();
+    }
+
+    public synchronized void refer() {
+        if (referHelper == null) {
+            referHelper = new ReferHelper(this);
+        }
+        referenceConfigList.forEach(referenceConfig -> {
+            referHelper.setReferenceConfig(referenceConfig);
+            referHelper.refer();
+        });
+    }
+
+    public synchronized Object refer(ReferenceConfig referenceConfig) {
+        if (referHelper == null) {
+            referHelper = new ReferHelper(this);
+        }
+        referHelper.setReferenceConfig(referenceConfig);
+        return referHelper.refer();
+    }
+
+    public synchronized void unexport() {
+        if (exportHelper == null) {
+            return;
+        }
+        exportHelper.unexport();
+    }
+
+    public synchronized void unexport(ServiceConfig serviceConfig) {
+        if (exportHelper == null) {
+            exportHelper = new ExportHelper(this);
+        }
+        exportHelper.unexport(serviceConfig);
+    }
+
+    public synchronized void unrefer() {
+        if (referHelper == null) {
+            return;
+        }
+        referHelper.unrefer();
+    }
+
+    public synchronized void unrefer(ReferenceConfig referenceConfig) {
+        if (referHelper == null) {
+            referHelper = new ReferHelper(this);
+        }
+        referHelper.unrefer(referenceConfig);
+    }
+
+    public List<ServiceConfig> getServiceConfigList() {
+        return serviceConfigList;
+    }
+
+    public List<ReferenceConfig> getReferenceConfigList() {
+        return referenceConfigList;
+    }
+
+    public ApplicationConfig getApplication() {
+        return application;
+    }
+
+    public List<RegistryConfig> getRegistries() {
+        return registries;
+    }
+
+    public ConsumerConfig getConsumer() {
+        return consumer;
+    }
+
+    public ProviderConfig getProvider() {
+        return provider;
+    }
+
+    public List<ProtocolConfig> getProtocols() {
+        return protocols;
+    }
+
+    public MonitorConfig getMonitor() {
+        return monitor;
+    }
+
+    public ModuleConfig getModule() {
+        return module;
     }
 }

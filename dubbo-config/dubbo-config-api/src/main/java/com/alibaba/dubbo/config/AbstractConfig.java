@@ -61,6 +61,7 @@ public abstract class AbstractConfig implements Serializable {
     private static final Pattern PATTERN_KEY = Pattern.compile("[*,\\-._0-9a-zA-Z]+");
     private static final Map<String, String> legacyProperties = new HashMap<String, String>();
     private static final String[] SUFFIXES = new String[]{"Config", "Bean"};
+    private volatile Map<String, Object> metaData;
 
     static {
         legacyProperties.put("dubbo.protocol.name", "dubbo.service.protocol");
@@ -239,11 +240,11 @@ public abstract class AbstractConfig implements Serializable {
         }
     }
 
-    protected static void appendAttributes(Map<Object, Object> parameters, Object config) {
+    public static void appendAttributes(Map<Object, Object> parameters, Object config) {
         appendAttributes(parameters, config, null);
     }
 
-    protected static void appendAttributes(Map<Object, Object> parameters, Object config, String prefix) {
+    public static void appendAttributes(Map<Object, Object> parameters, Object config, String prefix) {
         if (config == null) {
             return;
         }
@@ -482,6 +483,85 @@ public abstract class AbstractConfig implements Serializable {
             logger.warn(t.getMessage(), t);
             return super.toString();
         }
+    }
+
+    /**
+     * Should be called after Config was fully initialized.
+     *
+     * @param prefix
+     * @return
+     */
+    public Map<String, Object> getMetaData(String prefix) {
+        if (metaData != null) {
+            return metaData;
+        }
+        synchronized (this) {
+            if (metaData != null) {
+                return metaData;
+            }
+            metaData = new HashMap<>();
+            Method[] methods = this.getClass().getMethods();
+            for (Method method : methods) {
+                try {
+                    String name = method.getName();
+                    if ((name.startsWith("get") || name.startsWith("is"))
+                            && !"getClass".equals(name)
+                            && Modifier.isPublic(method.getModifiers())
+                            && method.getParameterTypes().length == 0
+                            && isPrimitive(method.getReturnType())) {
+                        Parameter parameter = method.getAnnotation(Parameter.class);
+                        if (method.getReturnType() == Object.class || parameter != null && parameter.excluded()) {
+                            continue;
+                        }
+                        int i = name.startsWith("get") ? 3 : 2;
+                        String prop = StringUtils.camelToSplitName(name.substring(i, i + 1).toLowerCase() + name.substring(i + 1), ".");
+                        String key;
+                        if (parameter != null && parameter.key().length() > 0) {
+                            key = parameter.key();
+                        } else {
+                            key = prop;
+                        }
+                        Object value = method.invoke(this);
+                        String str = String.valueOf(value).trim();
+                        if (value != null && str.length() > 0) {
+                            if (parameter != null && parameter.escaped()) {
+                                str = URL.encode(str);
+                            }
+                        /*if (parameter != null && parameter.append()) {
+                            String pre = parameters.get(Constants.DEFAULT_KEY + "." + key);
+                            if (pre != null && pre.length() > 0) {
+                                str = pre + "," + str;
+                            }
+                            pre = parameters.get(key);
+                            if (pre != null && pre.length() > 0) {
+                                str = pre + "," + str;
+                            }
+                        }*/
+                            if (prefix != null && prefix.length() > 0) {
+                                key = prefix + "." + key;
+                            }
+                            metaData.put(key, str);
+                        } else if (parameter != null && parameter.required()) {
+                            throw new IllegalStateException(this.getClass().getSimpleName() + "." + key + " == null");
+                        }
+                    } else if ("getParameters".equals(name)
+                            && Modifier.isPublic(method.getModifiers())
+                            && method.getParameterTypes().length == 0
+                            && method.getReturnType() == Map.class) {
+                        Map<String, String> map = (Map<String, String>) method.invoke(this, new Object[0]);
+                        if (map != null && map.size() > 0) {
+                            String pre = (prefix != null && prefix.length() > 0 ? prefix + "." : "");
+                            for (Map.Entry<String, String> entry : map.entrySet()) {
+                                metaData.put(pre + entry.getKey().replace('-', '.'), entry.getValue());
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    throw new IllegalStateException(e.getMessage(), e);
+                }
+            }
+        }
+        return metaData;
     }
 
 }
