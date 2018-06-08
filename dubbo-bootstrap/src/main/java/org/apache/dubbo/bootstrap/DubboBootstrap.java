@@ -36,14 +36,12 @@ import java.util.List;
  */
 public class DubboBootstrap {
 
-    public static final DubboBootstrap bootstrap = new DubboBootstrap();
-
     /**
      * Whether register the shutdown hook during start?
      */
-    private final boolean registerShutdownHookOnStart;
-    private transient volatile boolean exported;
-    private transient volatile boolean unexported;
+    private volatile boolean registerShutdownHookOnStart;
+    private volatile boolean exported;
+    private volatile boolean unexported;
     private volatile ExportHelper exportHelper;
     private volatile ReferHelper referHelper;
     /**
@@ -72,7 +70,7 @@ public class DubboBootstrap {
     }
 
     public DubboBootstrap(boolean registerShutdownHookOnStart, DubboShutdownHook shutdownHook) {
-        this.serviceConfigList = new ArrayList<ServiceConfig>();
+        this.serviceConfigList = new ArrayList<>();
         this.shutdownHook = shutdownHook;
         this.registerShutdownHookOnStart = registerShutdownHookOnStart;
     }
@@ -109,6 +107,11 @@ public class DubboBootstrap {
 
     public DubboBootstrap moduleConfig(ModuleConfig moduleConfig) {
         this.module = moduleConfig;
+        return this;
+    }
+
+    public DubboBootstrap monitorConfig(MonitorConfig monitorConfig) {
+        this.monitor = monitorConfig;
         return this;
     }
 
@@ -267,5 +270,9 @@ public class DubboBootstrap {
 
     public ModuleConfig getModule() {
         return module;
+    }
+
+    public void setRegisterShutdownHookOnStart(boolean register) {
+        this.registerShutdownHookOnStart = register;
     }
 }
