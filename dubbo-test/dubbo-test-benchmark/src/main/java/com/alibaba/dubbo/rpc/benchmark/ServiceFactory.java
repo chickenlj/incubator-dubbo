@@ -17,7 +17,8 @@
 package com.alibaba.dubbo.rpc.benchmark;
 
 import com.alibaba.dubbo.config.ApplicationConfig;
-import com.alibaba.dubbo.config.ReferenceConfig;
+
+import org.apache.dubbo.config.ReferenceConfig;
 
 import java.util.concurrent.ConcurrentHashMap;
 

@@ -17,7 +17,8 @@
 package com.alibaba.dubbo.config.model;
 
 import com.alibaba.dubbo.common.Constants;
-import com.alibaba.dubbo.config.ReferenceConfig;
+
+import org.apache.dubbo.config.ReferenceConfig;
 
 import java.lang.reflect.Method;
 

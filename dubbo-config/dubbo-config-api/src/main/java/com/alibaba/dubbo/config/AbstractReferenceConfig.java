@@ -20,11 +20,13 @@ import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.utils.ConfigUtils;
 import com.alibaba.dubbo.config.support.Parameter;
 
+import org.apache.dubbo.config.ReferenceConfig;
+
 /**
  * AbstractConsumerConfig
  *
  * @export
- * @see com.alibaba.dubbo.config.ReferenceConfig
+ * @see ReferenceConfig
  */
 public abstract class AbstractReferenceConfig extends AbstractInterfaceConfig {
 

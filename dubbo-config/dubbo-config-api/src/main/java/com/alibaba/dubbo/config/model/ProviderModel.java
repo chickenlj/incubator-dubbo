@@ -16,7 +16,7 @@
  */
 package com.alibaba.dubbo.config.model;
 
-import com.alibaba.dubbo.config.ServiceConfig;
+import org.apache.dubbo.config.ServiceConfig;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

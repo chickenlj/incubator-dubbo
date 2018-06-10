@@ -19,6 +19,8 @@ package com.alibaba.dubbo.config;
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.config.support.Parameter;
 
+import org.apache.dubbo.config.ServiceConfig;
+
 import java.util.Arrays;
 
 /**
@@ -26,7 +28,7 @@ import java.util.Arrays;
  *
  * @export
  * @see com.alibaba.dubbo.config.ProtocolConfig
- * @see com.alibaba.dubbo.config.ServiceConfig
+ * @see ServiceConfig
  */
 public class ProviderConfig extends AbstractServiceConfig {
 

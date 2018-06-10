@@ -22,11 +22,11 @@ import com.alibaba.dubbo.config.MonitorConfig;
 import com.alibaba.dubbo.config.ProtocolConfig;
 import com.alibaba.dubbo.config.ProviderConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
-import com.alibaba.dubbo.config.ServiceConfig;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.dubbo.config.spring.extension.SpringExtensionFactory;
 
 import org.apache.dubbo.bootstrap.Bootstraps;
+import org.apache.dubbo.bootstrap.ServiceConfigExporter;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.BeanNameAware;
@@ -48,7 +48,7 @@ import java.util.Map;
  *
  * @export
  */
-public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean, DisposableBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent>, BeanNameAware {
+public class ServiceBean<T> extends ServiceConfigExporter<T> implements InitializingBean, DisposableBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent>, BeanNameAware {
 
     private static final long serialVersionUID = 213195494150089726L;
 
@@ -122,7 +122,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
             if (logger.isInfoEnabled()) {
                 logger.info("The service ready on spring started. service: " + getInterface());
             }
-            Bootstraps.bootstrap().export(this);
+            Bootstraps.bootstrap().registerServiceConfig(this);
         }
     }
 

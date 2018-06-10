@@ -16,7 +16,7 @@
  */
 package com.alibaba.dubbo.config.model;
 
-import com.alibaba.dubbo.config.ReferenceConfig;
+import org.apache.dubbo.config.ReferenceConfig;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ public class ConsumerModel {
 
     private final Map<Method, ConsumerMethodModel> methodModels = new IdentityHashMap<Method, ConsumerMethodModel>();
 
-    public ConsumerModel(String serviceName,ReferenceConfig metadata, Object proxyObject, Method[] methods) {
+    public ConsumerModel(String serviceName, ReferenceConfig metadata, Object proxyObject, Method[] methods) {
         this.serviceName = serviceName;
         this.metadata = metadata;
         this.proxyObject = proxyObject;

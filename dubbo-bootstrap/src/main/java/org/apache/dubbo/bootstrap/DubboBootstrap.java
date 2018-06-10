@@ -22,9 +22,7 @@ import com.alibaba.dubbo.config.ModuleConfig;
 import com.alibaba.dubbo.config.MonitorConfig;
 import com.alibaba.dubbo.config.ProtocolConfig;
 import com.alibaba.dubbo.config.ProviderConfig;
-import com.alibaba.dubbo.config.ReferenceConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
-import com.alibaba.dubbo.config.ServiceConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,15 +37,12 @@ public class DubboBootstrap {
      * Whether register the shutdown hook during start?
      */
     private volatile boolean registerShutdownHookOnStart;
-    private volatile boolean exported;
-    private volatile boolean unexported;
-    private volatile ExportHelper exportHelper;
-    private volatile ReferHelper referHelper;
     /**
      * The list of ServiceConfig
      */
-    private List<ServiceConfig> serviceConfigList;
-    private List<ReferenceConfig> referenceConfigList;
+    private List<ServiceConfigExporter> serviceConfigList;
+    private List<ReferenceConfigRefer> referenceConfigList;
+
     private ApplicationConfig application;
     private List<RegistryConfig> registries;
     private ConsumerConfig consumer;
@@ -121,12 +116,12 @@ public class DubboBootstrap {
      * @param serviceConfig the service
      * @return the bootstrap instance
      */
-    public DubboBootstrap registerServiceConfig(ServiceConfig serviceConfig) {
+    public DubboBootstrap registerServiceConfig(ServiceConfigExporter serviceConfig) {
         serviceConfigList.add(serviceConfig);
         return this;
     }
 
-    public DubboBootstrap registerReferenceConfig(ReferenceConfig referenceConfig) {
+    public DubboBootstrap registerReferenceConfig(ReferenceConfigRefer referenceConfig) {
         referenceConfigList.add(referenceConfig);
         return this;
     }
@@ -173,75 +168,35 @@ public class DubboBootstrap {
     }
 
     public synchronized void export() {
-        if (exportHelper == null) {
-            exportHelper = new ExportHelper(this);
-        }
-        serviceConfigList.forEach(serviceConfig -> {
-            exportHelper.setServiceConfig(serviceConfig);
-            exportHelper.export();
-        });
+        serviceConfigList.forEach(ServiceConfigExporter::export);
     }
 
-    public synchronized void export(ServiceConfig serviceConfig) {
-        if (exportHelper == null) {
-            exportHelper = new ExportHelper(this);
-        }
-        exportHelper.setServiceConfig(serviceConfig);
-        exportHelper.export();
+    public synchronized void export(ServiceConfigExporter serviceConfigExporter) {
+        serviceConfigExporter.export();
     }
 
     public synchronized void refer() {
-        if (referHelper == null) {
-            referHelper = new ReferHelper(this);
-        }
-        referenceConfigList.forEach(referenceConfig -> {
-            referHelper.setReferenceConfig(referenceConfig);
-            referHelper.refer();
-        });
+        referenceConfigList.forEach(ReferenceConfigRefer::refer);
     }
 
-    public synchronized Object refer(ReferenceConfig referenceConfig) {
-        if (referHelper == null) {
-            referHelper = new ReferHelper(this);
-        }
-        referHelper.setReferenceConfig(referenceConfig);
-        return referHelper.refer();
+    public synchronized Object refer(ReferenceConfigRefer referenceConfigRefer) {
+        return referenceConfigRefer.refer();
     }
 
     public synchronized void unexport() {
-        if (exportHelper == null) {
-            return;
-        }
-        exportHelper.unexport();
+        serviceConfigList.forEach(ServiceConfigExporter::unexport);
     }
 
-    public synchronized void unexport(ServiceConfig serviceConfig) {
-        if (exportHelper == null) {
-            exportHelper = new ExportHelper(this);
-        }
-        exportHelper.unexport(serviceConfig);
+    public synchronized void unexport(ServiceConfigExporter serviceConfigExporter) {
+        serviceConfigExporter.unexport();
     }
 
     public synchronized void unrefer() {
-        if (referHelper == null) {
-            return;
-        }
-        referHelper.unrefer();
+        referenceConfigList.forEach(ReferenceConfigRefer::unrefer);
     }
 
-    public synchronized void unrefer(ReferenceConfig referenceConfig) {
-        if (referHelper == null) {
-            referHelper = new ReferHelper(this);
-        }
-        referHelper.unrefer(referenceConfig);
-    }
-
-    public List<ServiceConfig> getServiceConfigList() {
-        return serviceConfigList;
-    }
-
-    public List<ReferenceConfig> getReferenceConfigList() {
-        return referenceConfigList;
+    public synchronized void unrefer(ReferenceConfigRefer referenceConfig) {
+        referenceConfig.unrefer();
     }
 
     public ApplicationConfig getApplication() {
@@ -274,13 +229,5 @@ public class DubboBootstrap {
 
     public void setRegisterShutdownHookOnStart(boolean register) {
         this.registerShutdownHookOnStart = register;
-    }
-
-    public ExportHelper getExportHelper() {
-        return exportHelper;
-    }
-
-    public ReferHelper getReferHelper() {
-        return referHelper;
     }
 }

@@ -17,11 +17,12 @@
 package com.alibaba.dubbo.config.invoker;
 
 import com.alibaba.dubbo.common.URL;
-import com.alibaba.dubbo.config.ServiceConfig;
 import com.alibaba.dubbo.rpc.Invocation;
 import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcException;
+
+import org.apache.dubbo.config.ServiceConfig;
 
 public class DelegateProviderMetaDataInvoker<T> implements Invoker {
     protected final Invoker<T> invoker;

@@ -32,7 +32,7 @@ import com.alibaba.dubbo.config.ConsumerConfig;
 import com.alibaba.dubbo.config.MethodConfig;
 import com.alibaba.dubbo.config.ModuleConfig;
 import com.alibaba.dubbo.config.MonitorConfig;
-import com.alibaba.dubbo.config.ReferenceConfig;
+import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.dubbo.config.model.ApplicationModel;
 import com.alibaba.dubbo.config.model.ConsumerModel;
 import com.alibaba.dubbo.rpc.Invoker;
@@ -62,53 +62,67 @@ import static com.alibaba.dubbo.common.utils.NetUtils.isInvalidLocalHost;
 /**
  *
  */
-public class ReferHelper {
-    private static final Logger logger = LoggerFactory.getLogger(ReferHelper.class);
+public class ReferenceConfigRefer<T> extends org.apache.dubbo.config.ReferenceConfig<T> {
+    public static final Logger logger = LoggerFactory.getLogger(ReferenceConfigRefer.class);
 
     private static final Protocol refprotocol = ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension();
     private static final Cluster cluster = ExtensionLoader.getExtensionLoader(Cluster.class).getAdaptiveExtension();
     private static final ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
     private final List<URL> urls = new ArrayList<>();
-    private final Map<ReferenceConfig, Invoker<?>> invokers = new HashMap<>();
-    private final Map<ReferenceConfig, Object> refs = new HashMap<>();
+    // interface proxy reference
+    private transient volatile T ref;
+    private transient volatile Invoker<?> invoker;
+    private transient volatile boolean initialized;
+    private transient volatile boolean destroyed;
 
     private DubboBootstrap bootstrap;
-    private ReferenceConfig referenceConfig;
 
-    public ReferHelper(DubboBootstrap bootstrap) {
+    public ReferenceConfigRefer() {
+    }
+
+    public ReferenceConfigRefer(Reference reference) {
+        super(reference);
+    }
+
+    public void setBootstrap(DubboBootstrap bootstrap) {
         this.bootstrap = bootstrap;
     }
 
-    public void setReferenceConfig(ReferenceConfig referenceConfig) {
-        this.referenceConfig = referenceConfig;
+    public synchronized T refer() {
+        if (destroyed) {
+            throw new IllegalStateException("Already destroyed!");
+        }
+        if (ref == null) {
+            doRefer();
+        }
+        return ref;
     }
 
-    public Object refer() {
-        refs.computeIfAbsent(referenceConfig, rc -> doRefer());
-        return refs.get(referenceConfig);
+    public synchronized T get() {
+        return refer();
     }
 
-    private Object doRefer() {
-        initReferenceConfig();
-        referenceConfig.setInitialized(true);
-        String interfaceName = referenceConfig.getInterface();
+    private void doRefer() {
+        if (initialized) {
+            return;
+        }
+        initialized = true;
         if (interfaceName == null || interfaceName.length() == 0) {
             throw new IllegalStateException("<dubbo:reference interface=\"\" /> interface not allow null!");
         }
-        ConsumerConfig consumer = referenceConfig.getConsumer();
-        if (referenceConfig.getGeneric() == null && consumer.getGeneric() != null) {
-            referenceConfig.setGeneric(consumer.getGeneric());
+        if (getGeneric() == null && getConsumer() != null) {
+            setGeneric(getConsumer().getGeneric());
         }
-        if (ProtocolUtils.isGeneric(referenceConfig.getGeneric())) {
-            referenceConfig.setInterface(GenericService.class);
+        if (ProtocolUtils.isGeneric(getGeneric())) {
+            interfaceClass = GenericService.class;
         } else {
             try {
-                referenceConfig.setInterface(Class.forName(interfaceName, true, Thread.currentThread()
-                        .getContextClassLoader()));
+                interfaceClass = Class.forName(interfaceName, true, Thread.currentThread()
+                        .getContextClassLoader());
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException(e.getMessage(), e);
             }
-            referenceConfig.checkInterfaceAndMethods();
+            checkInterfaceAndMethods(interfaceClass, methods);
         }
         String resolve = System.getProperty(interfaceName);
         String resolveFile = null;
@@ -139,7 +153,7 @@ public class ReferHelper {
             }
         }
         if (resolve != null && resolve.length() > 0) {
-            referenceConfig.setUrl(resolve);
+            url = resolve;
             if (logger.isWarnEnabled()) {
                 if (resolveFile != null) {
                     logger.warn("Using default dubbo resolve file " + resolveFile + " replace " + interfaceName + "" + resolve + " to p2p invoke remote service.");
@@ -148,6 +162,38 @@ public class ReferHelper {
                 }
             }
         }
+        if (consumer != null) {
+            if (application == null) {
+                application = consumer.getApplication();
+            }
+            if (module == null) {
+                module = consumer.getModule();
+            }
+            if (registries == null) {
+                registries = consumer.getRegistries();
+            }
+            if (monitor == null) {
+                monitor = consumer.getMonitor();
+            }
+        }
+        if (module != null) {
+            if (registries == null) {
+                registries = module.getRegistries();
+            }
+            if (monitor == null) {
+                monitor = module.getMonitor();
+            }
+        }
+        if (application != null) {
+            if (registries == null) {
+                registries = application.getRegistries();
+            }
+            if (monitor == null) {
+                monitor = application.getMonitor();
+            }
+        }
+        checkApplication();
+        checkStubAndMock(interfaceClass);
         Map<String, String> map = new HashMap<String, String>();
         Map<Object, Object> attributes = new HashMap<Object, Object>();
         map.put(Constants.SIDE_KEY, Constants.CONSUMER_SIDE);
@@ -156,10 +202,8 @@ public class ReferHelper {
         if (ConfigUtils.getPid() > 0) {
             map.put(Constants.PID_KEY, String.valueOf(ConfigUtils.getPid()));
         }
-
-        Class<?> interfaceClass = referenceConfig.getInterfaceClass();
-        if (!referenceConfig.isGeneric()) {
-            String revision = Version.getVersion(interfaceClass, referenceConfig.getVersion());
+        if (!isGeneric()) {
+            String revision = Version.getVersion(interfaceClass, version);
             if (revision != null && revision.length() > 0) {
                 map.put("revision", revision);
             }
@@ -173,25 +217,23 @@ public class ReferHelper {
             }
         }
         map.put(Constants.INTERFACE_KEY, interfaceName);
-        map.putAll(BootstrapUtils.configToMap(referenceConfig.getApplication(), null));
-        map.putAll(BootstrapUtils.configToMap(referenceConfig.getModule(), null));
-        map.putAll(BootstrapUtils.configToMap(referenceConfig.getConsumer(), Constants.DEFAULT_KEY));
-        map.putAll(BootstrapUtils.configToMap(referenceConfig, null));
+        map.putAll(BootstrapUtils.configToMap(application, null));
+        map.putAll(BootstrapUtils.configToMap(module, null));
+        map.putAll(BootstrapUtils.configToMap(consumer, Constants.DEFAULT_KEY));
+        map.putAll(BootstrapUtils.configToMap(this, null));
         String prefix = StringUtils.getServiceKey(map);
-
-        List<MethodConfig> methodConfigs = referenceConfig.getMethods();
-        if (methodConfigs != null && !methodConfigs.isEmpty()) {
-            for (MethodConfig methodConfig : methodConfigs) {
-                map.putAll(BootstrapUtils.configToMap(methodConfig, methodConfig.getName()));
-                String retryKey = methodConfig.getName() + ".retry";
+        if (methods != null && !methods.isEmpty()) {
+            for (MethodConfig method : methods) {
+                map.putAll(BootstrapUtils.configToMap(method, method.getName()));
+                String retryKey = method.getName() + ".retry";
                 if (map.containsKey(retryKey)) {
                     String retryValue = map.remove(retryKey);
                     if ("false".equals(retryValue)) {
-                        map.put(methodConfig.getName() + ".retries", "0");
+                        map.put(method.getName() + ".retries", "0");
                     }
                 }
-                referenceConfig.appendAttributes(attributes, methodConfig, prefix + "." + methodConfig.getName());
-                referenceConfig.checkAndConvertImplicitConfig(methodConfig, map, attributes);
+                appendAttributes(attributes, method, prefix + "." + method.getName());
+                checkAndConvertImplicitConfig(method, map, attributes);
             }
         }
 
@@ -205,19 +247,16 @@ public class ReferHelper {
 
         //attributes are stored by system context.
         StaticContext.getSystemContext().putAll(attributes);
-        Object proxy = createProxy(map);
-        // TODO
-        ConsumerModel consumerModel = new ConsumerModel(referenceConfig.getUniqueServiceName(), referenceConfig, proxy, interfaceClass.getMethods());
-        ApplicationModel.initConsumerModel(referenceConfig.getUniqueServiceName(), consumerModel);
-        return proxy;
+        ref = createProxy(map);
+        ConsumerModel consumerModel = new ConsumerModel(getUniqueServiceName(), this, ref, interfaceClass.getMethods());
+        ApplicationModel.initConsumerModel(getUniqueServiceName(), consumerModel);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
-    private Object createProxy(Map<String, String> map) {
+    private T createProxy(Map<String, String> map) {
         URL tmpUrl = new URL("temp", "localhost", 0, map);
         final boolean isJvmRefer;
-        String url = referenceConfig.getUrl();
-        if (referenceConfig.isInjvm() == null) {
+        if (isInjvm() == null) {
             if (url != null && url.length() > 0) { // if a url is specified, don't do local reference
                 isJvmRefer = false;
             } else if (InjvmProtocol.getInjvmProtocol().isInjvmRefer(tmpUrl)) {
@@ -227,14 +266,12 @@ public class ReferHelper {
                 isJvmRefer = false;
             }
         } else {
-            isJvmRefer = referenceConfig.isInjvm().booleanValue();
+            isJvmRefer = isInjvm().booleanValue();
         }
 
-        Class<?> interfaceClass = referenceConfig.getInterfaceClass();
-        Invoker<?> invoker = null;
         if (isJvmRefer) {
-            URL dubboUrl = new URL(Constants.LOCAL_PROTOCOL, NetUtils.LOCALHOST, 0, interfaceClass.getName()).addParameters(map);
-            invoker = refprotocol.refer(interfaceClass, dubboUrl);
+            URL url = new URL(Constants.LOCAL_PROTOCOL, NetUtils.LOCALHOST, 0, interfaceClass.getName()).addParameters(map);
+            invoker = refprotocol.refer(interfaceClass, url);
             if (logger.isInfoEnabled()) {
                 logger.info("Using injvm service " + interfaceClass.getName());
             }
@@ -243,22 +280,22 @@ public class ReferHelper {
                 String[] us = Constants.SEMICOLON_SPLIT_PATTERN.split(url);
                 if (us != null && us.length > 0) {
                     for (String u : us) {
-                        URL dubboUrl = URL.valueOf(u);
-                        if (dubboUrl.getPath() == null || dubboUrl.getPath().length() == 0) {
-                            dubboUrl = dubboUrl.setPath(referenceConfig.getInterface());
+                        URL url = URL.valueOf(u);
+                        if (url.getPath() == null || url.getPath().length() == 0) {
+                            url = url.setPath(interfaceName);
                         }
-                        if (Constants.REGISTRY_PROTOCOL.equals(dubboUrl.getProtocol())) {
-                            urls.add(dubboUrl.addParameterAndEncoded(Constants.REFER_KEY, StringUtils.toQueryString(map)));
+                        if (Constants.REGISTRY_PROTOCOL.equals(url.getProtocol())) {
+                            urls.add(url.addParameterAndEncoded(Constants.REFER_KEY, StringUtils.toQueryString(map)));
                         } else {
-                            urls.add(ClusterUtils.mergeUrl(dubboUrl, map));
+                            urls.add(ClusterUtils.mergeUrl(url, map));
                         }
                     }
                 }
             } else { // assemble URL from register center's configuration
-                List<URL> us = BootstrapUtils.loadRegistries(referenceConfig, false);
+                List<URL> us = BootstrapUtils.loadRegistries(this, false);
                 if (us != null && !us.isEmpty()) {
                     for (URL u : us) {
-                        URL monitorUrl = BootstrapUtils.loadMonitor(referenceConfig, u);
+                        URL monitorUrl = BootstrapUtils.loadMonitor(this, u);
                         if (monitorUrl != null) {
                             map.put(Constants.MONITOR_KEY, URL.encode(monitorUrl.toFullString()));
                         }
@@ -266,7 +303,7 @@ public class ReferHelper {
                     }
                 }
                 if (urls.isEmpty()) {
-                    throw new IllegalStateException("No such any registry to reference " + referenceConfig.getInterface() + " on the consumer " + NetUtils.getLocalHost() + " use dubbo version " + Version.getVersion() + ", please config <dubbo:registry address=\"...\" /> to your spring config.");
+                    throw new IllegalStateException("No such any registry to reference " + interfaceName + " on the consumer " + NetUtils.getLocalHost() + " use dubbo version " + Version.getVersion() + ", please config <dubbo:registry address=\"...\" /> to your spring config.");
                 }
             }
 
@@ -275,10 +312,10 @@ public class ReferHelper {
             } else {
                 List<Invoker<?>> invokers = new ArrayList<Invoker<?>>();
                 URL registryURL = null;
-                for (URL dubboUrl : urls) {
-                    invokers.add(refprotocol.refer(interfaceClass, dubboUrl));
-                    if (Constants.REGISTRY_PROTOCOL.equals(dubboUrl.getProtocol())) {
-                        registryURL = dubboUrl; // use last registry url
+                for (URL url : urls) {
+                    invokers.add(refprotocol.refer(interfaceClass, url));
+                    if (Constants.REGISTRY_PROTOCOL.equals(url.getProtocol())) {
+                        registryURL = url; // use last registry url
                     }
                 }
                 if (registryURL != null) { // registry url is available
@@ -291,90 +328,118 @@ public class ReferHelper {
             }
         }
 
-        Boolean c = referenceConfig.isCheck();
-        if (c == null && referenceConfig.getConsumer() != null) {
-            c = referenceConfig.getConsumer().isCheck();
+        Boolean c = check;
+        if (c == null && consumer != null) {
+            c = consumer.isCheck();
         }
         if (c == null) {
             c = true; // default true
         }
         if (c && !invoker.isAvailable()) {
-            throw new IllegalStateException("Failed to check the status of the service " + referenceConfig.getInterface() + ". No provider available for the service " + (referenceConfig.getVersion() == null ? "" : referenceConfig.getGroup() + "/") + referenceConfig.getInterface() + (referenceConfig.getVersion() == null ? "" : ":" + referenceConfig.getVersion()) + " from the url " + invoker.getUrl() + " to the consumer " + NetUtils.getLocalHost() + " use dubbo version " + Version.getVersion());
+            throw new IllegalStateException("Failed to check the status of the service " + interfaceName + ". No provider available for the service " + (group == null ? "" : group + "/") + interfaceName + (version == null ? "" : ":" + version) + " from the url " + invoker.getUrl() + " to the consumer " + NetUtils.getLocalHost() + " use dubbo version " + Version.getVersion());
         }
         if (logger.isInfoEnabled()) {
             logger.info("Refer dubbo service " + interfaceClass.getName() + " from url " + invoker.getUrl());
         }
-
-        invokers.put(referenceConfig, invoker);
         // create service proxy
-        return proxyFactory.getProxy(invoker);
+        return (T) proxyFactory.getProxy(invoker);
     }
 
     public void initReferenceConfig() {
-        if (referenceConfig.getConsumer() == null) {
-            referenceConfig.setConsumer(bootstrap.getConsumer() == null ? new ConsumerConfig() : bootstrap.getConsumer());
+        if (this.getConsumer() == null) {
+            this.setConsumer(bootstrap.getConsumer() == null ? new ConsumerConfig() : bootstrap.getConsumer());
         }
-        if (referenceConfig.getModule() == null) {
-            referenceConfig.setModule(bootstrap.getModule());
+        if (this.getModule() == null) {
+            this.setModule(bootstrap.getModule());
         }
-        if (referenceConfig.getApplication() == null) {
-            referenceConfig.setApplication(bootstrap.getApplication() == null ? new ApplicationConfig() : bootstrap.getApplication());
+        if (this.getApplication() == null) {
+            this.setApplication(bootstrap.getApplication() == null ? new ApplicationConfig() : bootstrap.getApplication());
         }
-        if (referenceConfig.getMonitor() == null) {
-            referenceConfig.setMonitor(bootstrap.getMonitor() == null ? new MonitorConfig() : bootstrap.getMonitor());
+        if (this.getMonitor() == null) {
+            this.setMonitor(bootstrap.getMonitor() == null ? new MonitorConfig() : bootstrap.getMonitor());
         }
-        if (referenceConfig.getRegistries() == null) {
-            referenceConfig.setRegistries(bootstrap.getRegistries());
+        if (this.getRegistries() == null) {
+            this.setRegistries(bootstrap.getRegistries());
         }
 
 
-        ConsumerConfig consumer = referenceConfig.getConsumer();
+        ConsumerConfig consumer = this.getConsumer();
         if (consumer != null) {
-            if (referenceConfig.getApplication() == null) {
-                referenceConfig.setApplication(consumer.getApplication());
+            if (this.getApplication() == null) {
+                this.setApplication(consumer.getApplication());
             }
-            if (referenceConfig.getModule() == null) {
-                referenceConfig.setModule(consumer.getModule());
+            if (this.getModule() == null) {
+                this.setModule(consumer.getModule());
             }
-            if (referenceConfig.getRegistries() == null) {
-                referenceConfig.setRegistries(consumer.getRegistries());
+            if (this.getRegistries() == null) {
+                this.setRegistries(consumer.getRegistries());
             }
-            if (referenceConfig.getMonitor() == null) {
-                referenceConfig.setMonitor(consumer.getMonitor());
+            if (this.getMonitor() == null) {
+                this.setMonitor(consumer.getMonitor());
             }
         }
-        ModuleConfig module = referenceConfig.getModule();
+        ModuleConfig module = this.getModule();
         if (module != null) {
-            if (referenceConfig.getRegistries() == null) {
-                referenceConfig.setRegistries(module.getRegistries());
+            if (this.getRegistries() == null) {
+                this.setRegistries(module.getRegistries());
             }
-            if (referenceConfig.getMonitor() == null) {
-                referenceConfig.setMonitor(module.getMonitor());
+            if (this.getMonitor() == null) {
+                this.setMonitor(module.getMonitor());
             }
         }
-        ApplicationConfig application = referenceConfig.getApplication();
+        ApplicationConfig application = this.getApplication();
         if (application != null) {
-            if (referenceConfig.getRegistries() == null) {
-                referenceConfig.setRegistries(application.getRegistries());
+            if (this.getRegistries() == null) {
+                this.setRegistries(application.getRegistries());
             }
-            if (referenceConfig.getMonitor() == null) {
-                referenceConfig.setMonitor(application.getMonitor());
+            if (this.getMonitor() == null) {
+                this.setMonitor(application.getMonitor());
             }
         }
 
-        referenceConfig.checkApplication();
-        referenceConfig.checkStubAndMock(referenceConfig.getInterfaceClass());
+        this.checkApplication();
+        this.checkStubAndMock(this.getInterfaceClass());
     }
 
-    public void unrefer() {
-        invokers.keySet().forEach(this::unrefer);
-        invokers.clear();
-        refs.clear();
+    public synchronized void destroy() {
+        unrefer();
     }
 
-    public void unrefer(ReferenceConfig config) {
-        Invoker<?> invoker = invokers.remove(config);
-        invoker.destroy();
-        refs.remove(config);
+    public synchronized void unrefer() {
+        if (ref == null) {
+            return;
+        }
+        if (destroyed) {
+            return;
+        }
+        destroyed = true;
+        try {
+            invoker.destroy();
+        } catch (Throwable t) {
+            logger.warn("Unexpected err when destroy invoker of ReferenceConfig(" + url + ").", t);
+        }
+        invoker = null;
+        ref = null;
     }
+
+    @SuppressWarnings("unused")
+    private final Object finalizerGuardian = new Object() {
+        @Override
+        protected void finalize() throws Throwable {
+            super.finalize();
+
+            if (!ReferenceConfigRefer.this.destroyed) {
+                logger.warn("ReferenceConfig(" + url + ") is not DESTROYED when FINALIZE");
+
+                /* don't destroy for now
+                try {
+                    ReferenceConfig.this.destroy();
+                } catch (Throwable t) {
+                        logger.warn("Unexpected err when destroy invoker of ReferenceConfig(" + url + ") in finalize method!", t);
+                }
+                */
+            }
+        }
+    };
+
 }

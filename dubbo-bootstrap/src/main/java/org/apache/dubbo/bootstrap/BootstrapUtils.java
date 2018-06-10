@@ -34,11 +34,12 @@ import com.alibaba.dubbo.config.AbstractInterfaceConfig;
 import com.alibaba.dubbo.config.ApplicationConfig;
 import com.alibaba.dubbo.config.MonitorConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
-import com.alibaba.dubbo.config.ServiceConfig;
 import com.alibaba.dubbo.monitor.MonitorFactory;
 import com.alibaba.dubbo.monitor.MonitorService;
 import com.alibaba.dubbo.registry.RegistryFactory;
 import com.alibaba.dubbo.registry.RegistryService;
+
+import org.apache.dubbo.config.ServiceConfig;
 
 import java.util.ArrayList;
 import java.util.HashMap;

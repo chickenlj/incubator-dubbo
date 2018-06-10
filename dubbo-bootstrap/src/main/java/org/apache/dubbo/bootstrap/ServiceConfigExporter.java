@@ -34,7 +34,7 @@ import com.alibaba.dubbo.config.ModuleConfig;
 import com.alibaba.dubbo.config.MonitorConfig;
 import com.alibaba.dubbo.config.ProtocolConfig;
 import com.alibaba.dubbo.config.ProviderConfig;
-import com.alibaba.dubbo.config.ServiceConfig;
+import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.dubbo.config.invoker.DelegateProviderMetaDataInvoker;
 import com.alibaba.dubbo.config.model.ApplicationModel;
 import com.alibaba.dubbo.config.model.ProviderModel;
@@ -73,29 +73,31 @@ import static com.alibaba.dubbo.common.utils.NetUtils.isInvalidPort;
 /**
  *
  */
-public class ExportHelper {
-    private static final Logger logger = LoggerFactory.getLogger(ExportHelper.class);
+public class ServiceConfigExporter<T> extends org.apache.dubbo.config.ServiceConfig<T> {
+    public static final Logger logger = LoggerFactory.getLogger(ServiceConfigExporter.class);
     private static final Protocol protocol = ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension();
     private static final ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
     private static final ScheduledExecutorService delayExportExecutor = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("DubboServiceDelayExporter", true));
-    private final Map<ServiceConfig, List<Exporter<?>>> exporters = new HashMap<>();
-    private static final Map<String, Integer> RANDOM_PORT_MAP = new HashMap<>();
-    private DubboBootstrap bootstrap;
-    private ServiceConfig serviceConfig;
+    private final List<Exporter<?>> exporters = new ArrayList<>();
 
-    public ExportHelper(DubboBootstrap bootstrap) {
+    private transient volatile boolean exported;
+    private transient volatile boolean unexported;
+
+    private DubboBootstrap bootstrap;
+
+    public ServiceConfigExporter() {
+    }
+
+    public ServiceConfigExporter(Service service) {
+        super(service);
+    }
+
+    public void setBootstrap(DubboBootstrap bootstrap) {
         this.bootstrap = bootstrap;
     }
 
-    public void setServiceConfig(ServiceConfig serviceConfig) {
-        this.serviceConfig = serviceConfig;
-    }
-
-    public void export() {
+    public synchronized void export() {
         initConfig(bootstrap);
-        Boolean export = serviceConfig.getExport();
-        Integer delay = serviceConfig.getDelay();
-        ProviderConfig provider = serviceConfig.getProvider();
         if (provider != null) {
             if (export == null) {
                 export = provider.getExport();
@@ -121,33 +123,36 @@ public class ExportHelper {
     }
 
     protected void doExport() {
-        if (exporters.get(serviceConfig) != null) {
+        if (unexported) {
+            throw new IllegalStateException("Already unexported!");
+        }
+        if (exported) {
             return;
         }
-        if (serviceConfig.getInterface() == null || serviceConfig.getInterface().length() == 0) {
+        exported = true;
+
+        if (interfaceName == null || interfaceName.length() == 0) {
             throw new IllegalStateException("<dubbo:service interface=\"\" /> interface not allow null!");
         }
-        if (serviceConfig.getRef() instanceof GenericService) {
-            serviceConfig.setInterface(GenericService.class);
-            if (StringUtils.isEmpty(serviceConfig.getGeneric())) {
-                serviceConfig.setGeneric(Boolean.TRUE.toString());
+        if (ref instanceof GenericService) {
+            interfaceClass = GenericService.class;
+            if (StringUtils.isEmpty(generic)) {
+                generic = Boolean.TRUE.toString();
             }
         } else {
             try {
-                serviceConfig.setInterface(Class.forName(serviceConfig.getInterface(), true, Thread.currentThread()
-                        .getContextClassLoader()));
+                interfaceClass = Class.forName(interfaceName, true, Thread.currentThread()
+                        .getContextClassLoader());
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException(e.getMessage(), e);
             }
-            serviceConfig.checkInterfaceAndMethods();
-            serviceConfig.checkRef();
-//            serviceConfig.setGeneric(Boolean.FALSE.toString());
+            checkInterfaceAndMethods(interfaceClass, methods);
+            checkRef();
+            generic = Boolean.FALSE.toString();
         }
-
-        String local = serviceConfig.getLocal();
         if (local != null) {
             if ("true".equals(local)) {
-                local = serviceConfig.getInterface() + "Local";
+                local = interfaceName + "Local";
             }
             Class<?> localClass;
             try {
@@ -155,15 +160,13 @@ public class ExportHelper {
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException(e.getMessage(), e);
             }
-            if (!serviceConfig.getInterfaceClass().isAssignableFrom(localClass)) {
-                throw new IllegalStateException("The local implementation class " + localClass.getName() + " not implement interface " + serviceConfig.getInterface());
+            if (!interfaceClass.isAssignableFrom(localClass)) {
+                throw new IllegalStateException("The local implementation class " + localClass.getName() + " not implement interface " + interfaceName);
             }
-            serviceConfig.setLocal(local);
         }
-        String stub = serviceConfig.getStub();
         if (stub != null) {
             if ("true".equals(stub)) {
-                stub = serviceConfig.getInterface() + "Stub";
+                stub = interfaceName + "Stub";
             }
             Class<?> stubClass;
             try {
@@ -171,28 +174,23 @@ public class ExportHelper {
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException(e.getMessage(), e);
             }
-            if (!serviceConfig.getInterfaceClass().isAssignableFrom(stubClass)) {
-                throw new IllegalStateException("The stub implementation class " + stubClass.getName() + " not implement interface " + serviceConfig.getInterface());
+            if (!interfaceClass.isAssignableFrom(stubClass)) {
+                throw new IllegalStateException("The stub implementation class " + stubClass.getName() + " not implement interface " + interfaceName);
             }
-            serviceConfig.setStub(stub);
         }
-//        appendProperties(this);
-        // TODO local and stub still may not append yet, so find a way to check.
-//        checkStubAndMock(interfaceClass);
-        String path = serviceConfig.getPath();
+        //TODO The properties may still not set yet, find a better way to check
+        checkStubAndMock(interfaceClass);
         if (path == null || path.length() == 0) {
-            serviceConfig.setPath(serviceConfig.getInterface());
+            path = interfaceName;
         }
         doExportUrls();
-
-        // TODO
-        ProviderModel providerModel = new ProviderModel(serviceConfig.getUniqueServiceName(), serviceConfig, serviceConfig.getRef());
-        ApplicationModel.initProviderModel(serviceConfig.getUniqueServiceName(), providerModel);
+        ProviderModel providerModel = new ProviderModel(getUniqueServiceName(), this, ref);
+        ApplicationModel.initProviderModel(getUniqueServiceName(), providerModel);
     }
 
     private void doExportUrls() {
-        List<URL> registryURLs = BootstrapUtils.loadRegistries(serviceConfig, true);
-        for (ProtocolConfig protocolConfig : serviceConfig.getProtocols()) {
+        List<URL> registryURLs = BootstrapUtils.loadRegistries(this, true);
+        for (ProtocolConfig protocolConfig : protocols) {
             doExportUrlsFor1Protocol(protocolConfig, registryURLs);
         }
     }
@@ -210,39 +208,38 @@ public class ExportHelper {
         if (ConfigUtils.getPid() > 0) {
             map.put(Constants.PID_KEY, String.valueOf(ConfigUtils.getPid()));
         }
-        map.putAll(BootstrapUtils.configToMap(serviceConfig.getApplication(), null));
-        map.putAll(BootstrapUtils.configToMap(serviceConfig.getModule(), null));
-        map.putAll(BootstrapUtils.configToMap(serviceConfig.getProvider(), Constants.DEFAULT_KEY));
+        map.putAll(BootstrapUtils.configToMap(application, null));
+        map.putAll(BootstrapUtils.configToMap(module, null));
+        map.putAll(BootstrapUtils.configToMap(provider, Constants.DEFAULT_KEY));
         map.putAll(BootstrapUtils.configToMap(protocolConfig, null));
-        map.putAll(BootstrapUtils.configToMap(serviceConfig, null));
-        List<MethodConfig> methodConfigs = serviceConfig.getMethods();
-        if (methodConfigs != null && !methodConfigs.isEmpty()) {
-            for (MethodConfig methodConfig : methodConfigs) {
-                map.putAll(BootstrapUtils.configToMap(methodConfig, methodConfig.getName()));
-                String retryKey = methodConfig.getName() + ".retry";
+        map.putAll(BootstrapUtils.configToMap(this, null));
+        if (methods != null && !methods.isEmpty()) {
+            for (MethodConfig method : methods) {
+                map.putAll(BootstrapUtils.configToMap(method, method.getName()));
+                String retryKey = method.getName() + ".retry";
                 if (map.containsKey(retryKey)) {
                     String retryValue = map.remove(retryKey);
                     if ("false".equals(retryValue)) {
-                        map.put(methodConfig.getName() + ".retries", "0");
+                        map.put(method.getName() + ".retries", "0");
                     }
                 }
-                List<ArgumentConfig> arguments = methodConfig.getArguments();
+                List<ArgumentConfig> arguments = method.getArguments();
                 if (arguments != null && !arguments.isEmpty()) {
                     for (ArgumentConfig argument : arguments) {
                         // convert argument type
                         if (argument.getType() != null && argument.getType().length() > 0) {
-                            Method[] methods = serviceConfig.getInterfaceClass().getMethods();
+                            Method[] methods = interfaceClass.getMethods();
                             // visit all methods
                             if (methods != null && methods.length > 0) {
                                 for (int i = 0; i < methods.length; i++) {
                                     String methodName = methods[i].getName();
                                     // target the method, and get its signature
-                                    if (methodName.equals(methodConfig.getName())) {
+                                    if (methodName.equals(method.getName())) {
                                         Class<?>[] argtypes = methods[i].getParameterTypes();
                                         // one callback in the method
                                         if (argument.getIndex() != -1) {
                                             if (argtypes[argument.getIndex()].getName().equals(argument.getType())) {
-                                                map.putAll(BootstrapUtils.configToMap(argument, methodConfig.getName() + "." + argument.getIndex()));
+                                                map.putAll(BootstrapUtils.configToMap(argument, method.getName() + "." + argument.getIndex()));
                                             } else {
                                                 throw new IllegalArgumentException("argument config error : the index attribute and type attribute not match :index :" + argument.getIndex() + ", type:" + argument.getType());
                                             }
@@ -251,7 +248,7 @@ public class ExportHelper {
                                             for (int j = 0; j < argtypes.length; j++) {
                                                 Class<?> argclazz = argtypes[j];
                                                 if (argclazz.getName().equals(argument.getType())) {
-                                                    map.putAll(BootstrapUtils.configToMap(argument, methodConfig.getName() + "." + j));
+                                                    map.putAll(BootstrapUtils.configToMap(argument, method.getName() + "." + j));
                                                     if (argument.getIndex() != -1 && argument.getIndex() != j) {
                                                         throw new IllegalArgumentException("argument config error : the index attribute and type attribute not match :index :" + argument.getIndex() + ", type:" + argument.getType());
                                                     }
@@ -262,7 +259,7 @@ public class ExportHelper {
                                 }
                             }
                         } else if (argument.getIndex() != -1) {
-                            map.putAll(BootstrapUtils.configToMap(argument, methodConfig.getName() + "." + argument.getIndex()));
+                            map.putAll(BootstrapUtils.configToMap(argument, method.getName() + "." + argument.getIndex()));
                         } else {
                             throw new IllegalArgumentException("argument config must set index or type attribute.eg: <dubbo:argument index='0' .../> or <dubbo:argument type=xxx .../>");
                         }
@@ -272,12 +269,11 @@ public class ExportHelper {
             } // end of methods for
         }
 
-        Class<?> interfaceClass = serviceConfig.getInterfaceClass();
-        if (ProtocolUtils.isGeneric(serviceConfig.getGeneric())) {
-            map.put(Constants.GENERIC_KEY, serviceConfig.getGeneric());
+        if (ProtocolUtils.isGeneric(generic)) {
+            map.put(Constants.GENERIC_KEY, generic);
             map.put(Constants.METHODS_KEY, Constants.ANY_VALUE);
         } else {
-            String revision = Version.getVersion(interfaceClass, serviceConfig.getVersion());
+            String revision = Version.getVersion(interfaceClass, version);
             if (revision != null && revision.length() > 0) {
                 map.put("revision", revision);
             }
@@ -290,7 +286,6 @@ public class ExportHelper {
                 map.put(Constants.METHODS_KEY, StringUtils.join(new HashSet<String>(Arrays.asList(methods)), ","));
             }
         }
-        String token = serviceConfig.getToken();
         if (!ConfigUtils.isEmpty(token)) {
             if (ConfigUtils.isDefault(token)) {
                 map.put(Constants.TOKEN_KEY, UUID.randomUUID().toString());
@@ -303,7 +298,6 @@ public class ExportHelper {
             map.put("notify", "false");
         }
         // export service
-        ProviderConfig provider = serviceConfig.getProvider();
         String contextPath = protocolConfig.getContextpath();
         if ((contextPath == null || contextPath.length() == 0) && provider != null) {
             contextPath = provider.getContextpath();
@@ -311,7 +305,7 @@ public class ExportHelper {
 
         String host = this.findConfigedHosts(protocolConfig, registryURLs, map);
         Integer port = this.findConfigedPorts(protocolConfig, map);
-        URL url = new URL(name, host, port, (contextPath == null || contextPath.length() == 0 ? "" : contextPath + "/") + serviceConfig.getPath(), map);
+        URL url = new URL(name, host, port, (contextPath == null || contextPath.length() == 0 ? "" : contextPath + "/") + path, map);
 
         if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
                 .hasExtension(url.getProtocol())) {
@@ -335,7 +329,7 @@ public class ExportHelper {
                 if (registryURLs != null && !registryURLs.isEmpty()) {
                     for (URL registryURL : registryURLs) {
                         url = url.addParameterIfAbsent(Constants.DYNAMIC_KEY, registryURL.getParameter(Constants.DYNAMIC_KEY));
-                        URL monitorUrl = BootstrapUtils.loadMonitor(serviceConfig, registryURL);
+                        URL monitorUrl = BootstrapUtils.loadMonitor(this, registryURL);
                         if (monitorUrl != null) {
                             url = url.addParameterAndEncoded(Constants.MONITOR_KEY, monitorUrl.toFullString());
                         }
@@ -349,22 +343,22 @@ public class ExportHelper {
                             registryURL = registryURL.addParameter(Constants.PROXY_KEY, proxy);
                         }
 
-                        Invoker<?> invoker = proxyFactory.getInvoker(serviceConfig.getRef(), (Class) interfaceClass, registryURL.addParameterAndEncoded(Constants.EXPORT_KEY, url.toFullString()));
-                        DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, serviceConfig);
+                        Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(Constants.EXPORT_KEY, url.toFullString()));
+                        DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
 
                         Exporter<?> exporter = protocol.export(wrapperInvoker);
-                        saveExporter(exporter);
+                        exporters.add(exporter);
                     }
                 } else {
-                    Invoker<?> invoker = proxyFactory.getInvoker(serviceConfig.getRef(), (Class) interfaceClass, url);
-                    DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, serviceConfig);
+                    Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, url);
+                    DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
 
                     Exporter<?> exporter = protocol.export(wrapperInvoker);
-                    saveExporter(exporter);
+                    exporters.add(exporter);
                 }
             }
         }
-        serviceConfig.getExportedUrls().add(url);
+        this.urls.add(url);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -374,23 +368,12 @@ public class ExportHelper {
                     .setProtocol(Constants.LOCAL_PROTOCOL)
                     .setHost(LOCALHOST)
                     .setPort(0);
-            Class<?> interfaceClass = serviceConfig.getInterfaceClass();
-            Object ref = serviceConfig.getRef();
-            ServiceClassHolder.getInstance().pushServiceClass(serviceConfig.getServiceClass(ref));
+            ServiceClassHolder.getInstance().pushServiceClass(getServiceClass(ref));
             Exporter<?> exporter = protocol.export(
                     proxyFactory.getInvoker(ref, (Class) interfaceClass, local));
-            saveExporter(exporter);
+            exporters.add(exporter);
             logger.info("Export dubbo service " + interfaceClass.getName() + " to local registry");
         }
-    }
-
-    private void saveExporter(Exporter<?> exporter) {
-        List<Exporter<?>> exporterList = exporters.get(serviceConfig);
-        if (exporterList == null) {
-            exporters.put(serviceConfig, new ArrayList<>());
-            exporterList = exporters.get(serviceConfig);
-        }
-        exporterList.add(exporter);
     }
 
     /**
@@ -404,7 +387,6 @@ public class ExportHelper {
      * @return
      */
     private String findConfigedHosts(ProtocolConfig protocolConfig, List<URL> registryURLs, Map<String, String> map) {
-        ProviderConfig provider = serviceConfig.getProvider();
         boolean anyhost = false;
 
         String hostToBind = getValueFromConfig(protocolConfig, Constants.DUBBO_IP_TO_BIND);
@@ -483,7 +465,6 @@ public class ExportHelper {
      */
     private Integer findConfigedPorts(ProtocolConfig protocolConfig, Map<String, String> map) {
         String name = protocolConfig.getName();
-        ProviderConfig provider = serviceConfig.getProvider();
         Integer portToBind = null;
 
         // parse bind port from environment
@@ -564,75 +545,85 @@ public class ExportHelper {
     }
 
     private void initConfig(DubboBootstrap bootstrap) {
-        if (serviceConfig.getProvider() == null) {
-            serviceConfig.setProvider(bootstrap.getProvider() == null ? new ProviderConfig() : bootstrap.getProvider());
+        if (provider == null) {
+            this.setProvider(bootstrap.getProvider() == null ? new ProviderConfig() : bootstrap.getProvider());
         }
-        if (serviceConfig.getModule() == null) {
-            serviceConfig.setModule(bootstrap.getModule());
+        if (this.getModule() == null) {
+            this.setModule(bootstrap.getModule());
         }
-        if (serviceConfig.getApplication() == null) {
-            serviceConfig.setApplication(bootstrap.getApplication() == null ? new ApplicationConfig() : bootstrap.getApplication());
+        if (this.getApplication() == null) {
+            this.setApplication(bootstrap.getApplication() == null ? new ApplicationConfig() : bootstrap.getApplication());
         }
-        if (serviceConfig.getMonitor() == null) {
-            serviceConfig.setMonitor(bootstrap.getMonitor() == null ? new MonitorConfig() : bootstrap.getMonitor());
+        if (this.getMonitor() == null) {
+            this.setMonitor(bootstrap.getMonitor() == null ? new MonitorConfig() : bootstrap.getMonitor());
         }
-        if (serviceConfig.getProtocols() == null) {
-            serviceConfig.setProtocols(bootstrap.getProtocols());
+        if (this.getProtocols() == null) {
+            this.setProtocols(bootstrap.getProtocols());
         }
-        if (serviceConfig.getRegistries() == null) {
-            serviceConfig.setRegistries(bootstrap.getRegistries());
+        if (this.getRegistries() == null) {
+            this.setRegistries(bootstrap.getRegistries());
         }
 
-        ProviderConfig provider = serviceConfig.getProvider();
+        ProviderConfig provider = this.getProvider();
         if (provider != null) {
-            if (serviceConfig.getApplication() == null) {
-                serviceConfig.setApplication(provider.getApplication());
+            if (this.getApplication() == null) {
+                this.setApplication(provider.getApplication());
             }
-            if (serviceConfig.getModule() == null) {
-                serviceConfig.setModule(provider.getModule());
+            if (this.getModule() == null) {
+                this.setModule(provider.getModule());
             }
-            if (serviceConfig.getRegistries() == null) {
-                serviceConfig.setRegistries(provider.getRegistries());
+            if (this.getRegistries() == null) {
+                this.setRegistries(provider.getRegistries());
             }
-            if (serviceConfig.getMonitor() == null) {
-                serviceConfig.setMonitor(provider.getMonitor());
+            if (this.getMonitor() == null) {
+                this.setMonitor(provider.getMonitor());
             }
-            if (serviceConfig.getProtocols() == null) {
-                serviceConfig.setProtocols(provider.getProtocols());
+            if (this.getProtocols() == null) {
+                this.setProtocols(provider.getProtocols());
             }
         }
-        ModuleConfig module = serviceConfig.getModule();
+        ModuleConfig module = this.getModule();
         if (module != null) {
-            if (serviceConfig.getRegistries() == null) {
-                serviceConfig.setRegistries(module.getRegistries());
+            if (this.getRegistries() == null) {
+                this.setRegistries(module.getRegistries());
             }
-            if (serviceConfig.getMonitor() == null) {
-                serviceConfig.setMonitor(module.getMonitor());
+            if (this.getMonitor() == null) {
+                this.setMonitor(module.getMonitor());
             }
         }
-        ApplicationConfig application = serviceConfig.getApplication();
+        ApplicationConfig application = this.getApplication();
         if (application != null) {
-            if (serviceConfig.getRegistries() == null) {
-                serviceConfig.setRegistries(application.getRegistries());
+            if (this.getRegistries() == null) {
+                this.setRegistries(application.getRegistries());
             }
-            if (serviceConfig.getMonitor() == null) {
-                serviceConfig.setMonitor(application.getMonitor());
+            if (this.getMonitor() == null) {
+                this.setMonitor(application.getMonitor());
             }
         }
-        serviceConfig.checkApplication();
-        serviceConfig.checkRegistry();
-        serviceConfig.checkProtocol();
-        serviceConfig.checkStubAndMock(serviceConfig.getInterfaceClass());
+        this.checkApplication();
+        this.checkRegistry();
+        this.checkProtocol();
+        this.checkStubAndMock(interfaceClass);
     }
 
-    public void unexport() {
-        exporters.keySet().forEach(this::unexport);
-        exporters.clear();
-    }
-
-    public void unexport(ServiceConfig config) {
-        List<Exporter<?>> exporterList = exporters.remove(config);
-        exporterList.forEach(Exporter::unexport);
+    public synchronized void unexport() {
+        if (!exported) {
+            return;
+        }
+        if (unexported) {
+            return;
+        }
+        if (!exporters.isEmpty()) {
+            for (Exporter<?> exporter : exporters) {
+                try {
+                    exporter.unexport();
+                } catch (Throwable t) {
+                    logger.warn("unexpected err when unexport" + exporter, t);
+                }
+            }
+            exporters.clear();
+        }
+        unexported = true;
     }
 
 }
