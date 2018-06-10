@@ -122,6 +122,25 @@ public class ExtensionLoader<T> {
         return loader;
     }
 
+    /**
+     * Used by Configs to check if a SPI input is valid. Should not be used to get ExtensionLoader instance
+     * internally in framework, use {@link this#getExtensionLoader(Class)} instead.
+     *
+     * @param className
+     * @return
+     */
+    public static ExtensionLoader<?> getExtensionLoader(String className) {
+        if (className == null || className.isEmpty()) {
+            throw new IllegalArgumentException("Extension type name == null");
+        }
+        try {
+            Class<?> type = Class.forName(className);
+            return getExtensionLoader(type);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException("Cannot find Extension, failed to find a class definition with className:" + className);
+        }
+    }
+
     private static ClassLoader findClassLoader() {
         return ExtensionLoader.class.getClassLoader();
     }

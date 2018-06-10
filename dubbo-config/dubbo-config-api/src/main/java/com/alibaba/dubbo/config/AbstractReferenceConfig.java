@@ -17,9 +17,8 @@
 package com.alibaba.dubbo.config;
 
 import com.alibaba.dubbo.common.Constants;
+import com.alibaba.dubbo.common.utils.ConfigUtils;
 import com.alibaba.dubbo.config.support.Parameter;
-import com.alibaba.dubbo.rpc.InvokerListener;
-import com.alibaba.dubbo.rpc.support.ProtocolUtils;
 
 /**
  * AbstractConsumerConfig
@@ -79,7 +78,7 @@ public abstract class AbstractReferenceConfig extends AbstractInterfaceConfig {
 
     @Parameter(excluded = true)
     public Boolean isGeneric() {
-        return ProtocolUtils.isGeneric(generic);
+        return ConfigUtils.isGeneric(generic);
     }
 
     public void setGeneric(Boolean generic) {
@@ -128,7 +127,6 @@ public abstract class AbstractReferenceConfig extends AbstractInterfaceConfig {
 
     @Override
     public void setListener(String listener) {
-        checkMultiExtension(InvokerListener.class, "listener", listener);
         super.setListener(listener);
     }
 

@@ -20,10 +20,10 @@ package com.alibaba.dubbo.rpc.protocol.dubbo;
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.common.utils.NetUtils;
+import com.alibaba.dubbo.common.utils.StaticContext;
 import com.alibaba.dubbo.rpc.Exporter;
 import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.RpcContext;
-import com.alibaba.dubbo.rpc.StaticContext;
 import com.alibaba.dubbo.rpc.protocol.dubbo.support.ProtocolUtils;
 
 import junit.framework.Assert;

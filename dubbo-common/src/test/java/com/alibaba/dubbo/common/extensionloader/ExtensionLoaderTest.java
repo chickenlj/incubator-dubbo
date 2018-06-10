@@ -69,7 +69,7 @@ public class ExtensionLoaderTest {
     @Test
     public void test_getExtensionLoader_Null() throws Exception {
         try {
-            ExtensionLoader.getExtensionLoader(null);
+            ExtensionLoader.getExtensionLoader((Class<?>) null);
             fail();
         } catch (IllegalArgumentException expected) {
             assertThat(expected.getMessage(),

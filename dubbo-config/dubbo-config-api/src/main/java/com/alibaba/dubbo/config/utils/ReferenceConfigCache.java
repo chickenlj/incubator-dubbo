@@ -16,13 +16,7 @@
  */
 package com.alibaba.dubbo.config.utils;
 
-import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.ReferenceConfig;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * a simple util class for cache {@link ReferenceConfig}.
@@ -33,12 +27,12 @@ import java.util.concurrent.ConcurrentMap;
  * You can implement and use your own {@link ReferenceConfig} cache if you need use complicate strategy.
  */
 public class ReferenceConfigCache {
-    public static final String DEFAULT_NAME = "_DEFAULT_";
-    /**
+    /*public static final String DEFAULT_NAME = "_DEFAULT_";
+    *//**
      * Create the key with the <b>Group</b>, <b>Interface</b> and <b>version</b> attribute of {@link ReferenceConfig}.
      * <p>
      * key example: <code>group1/com.alibaba.foo.FooService:1.0.0</code>.
-     */
+     *//*
     public static final KeyGenerator DEFAULT_KEY_GENERATOR = new KeyGenerator() {
         @Override
         public String generateKey(ReferenceConfig<?> referenceConfig) {
@@ -72,26 +66,26 @@ public class ReferenceConfigCache {
         this.generator = generator;
     }
 
-    /**
+    *//**
      * Get the cache use default name and {@link #DEFAULT_KEY_GENERATOR} to generate cache key.
      * Create cache if not existed yet.
-     */
+     *//*
     public static ReferenceConfigCache getCache() {
         return getCache(DEFAULT_NAME);
     }
 
-    /**
+    *//**
      * Get the cache use specified name and {@link KeyGenerator}.
      * Create cache if not existed yet.
-     */
+     *//*
     public static ReferenceConfigCache getCache(String name) {
         return getCache(name, DEFAULT_KEY_GENERATOR);
     }
 
-    /**
+    *//**
      * Get the cache use specified {@link KeyGenerator}.
      * Create cache if not existed yet.
-     */
+     *//*
     public static ReferenceConfigCache getCache(String name, KeyGenerator keyGenerator) {
         ReferenceConfigCache cache = cacheHolder.get(name);
         if (cache != null) {
@@ -121,19 +115,19 @@ public class ReferenceConfigCache {
         config.destroy();
     }
 
-    /**
+    *//**
      * clear and destroy one {@link ReferenceConfig} in the cache.
      *
      * @param referenceConfig use for create key.
-     */
+     *//*
     public <T> void destroy(ReferenceConfig<T> referenceConfig) {
         String key = generator.generateKey(referenceConfig);
         destroyKey(key);
     }
 
-    /**
+    *//**
      * clear and destroy all {@link ReferenceConfig} in the cache.
-     */
+     *//*
     public void destroyAll() {
         Set<String> set = new HashSet<String>(cache.keySet());
         for (String key : set) {
@@ -149,5 +143,5 @@ public class ReferenceConfigCache {
 
     public static interface KeyGenerator {
         String generateKey(ReferenceConfig<?> referenceConfig);
-    }
+    }*/
 }

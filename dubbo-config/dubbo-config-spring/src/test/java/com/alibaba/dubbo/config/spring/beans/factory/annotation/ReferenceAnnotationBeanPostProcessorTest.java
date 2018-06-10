@@ -20,6 +20,8 @@ import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.dubbo.config.spring.ReferenceBean;
 import com.alibaba.dubbo.config.spring.api.DemoService;
 import com.alibaba.dubbo.config.spring.context.annotation.DubboComponentScan;
+
+import org.apache.dubbo.bootstrap.Bootstraps;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -112,9 +114,9 @@ public class ReferenceAnnotationBeanPostProcessorTest {
 
         TestBean testBean = context.getBean(TestBean.class);
 
-        Assert.assertEquals(referenceBean.get(), testBean.getDemoServiceFromAncestor());
-        Assert.assertEquals(referenceBean.get(), testBean.getDemoServiceFromParent());
-        Assert.assertEquals(referenceBean.get(), testBean.getDemoService());
+        Assert.assertEquals(Bootstraps.bootstrap.refer(referenceBean), testBean.getDemoServiceFromAncestor());
+        Assert.assertEquals(Bootstraps.bootstrap.refer(referenceBean), testBean.getDemoServiceFromParent());
+        Assert.assertEquals(Bootstraps.bootstrap.refer(referenceBean), testBean.getDemoService());
 
     }
 

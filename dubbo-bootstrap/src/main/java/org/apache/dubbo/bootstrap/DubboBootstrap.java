@@ -18,7 +18,6 @@ package org.apache.dubbo.bootstrap;
 
 import com.alibaba.dubbo.config.ApplicationConfig;
 import com.alibaba.dubbo.config.ConsumerConfig;
-import com.alibaba.dubbo.config.DubboShutdownHook;
 import com.alibaba.dubbo.config.ModuleConfig;
 import com.alibaba.dubbo.config.MonitorConfig;
 import com.alibaba.dubbo.config.ProtocolConfig;
@@ -71,6 +70,7 @@ public class DubboBootstrap {
 
     public DubboBootstrap(boolean registerShutdownHookOnStart, DubboShutdownHook shutdownHook) {
         this.serviceConfigList = new ArrayList<>();
+        this.referenceConfigList = new ArrayList<>();
         this.shutdownHook = shutdownHook;
         this.registerShutdownHookOnStart = registerShutdownHookOnStart;
     }
@@ -274,5 +274,13 @@ public class DubboBootstrap {
 
     public void setRegisterShutdownHookOnStart(boolean register) {
         this.registerShutdownHookOnStart = register;
+    }
+
+    public ExportHelper getExportHelper() {
+        return exportHelper;
+    }
+
+    public ReferHelper getReferHelper() {
+        return referHelper;
     }
 }

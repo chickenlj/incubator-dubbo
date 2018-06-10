@@ -25,6 +25,7 @@ import com.alibaba.dubbo.common.logger.Logger;
 import com.alibaba.dubbo.common.logger.LoggerFactory;
 import com.alibaba.dubbo.common.utils.ConfigUtils;
 import com.alibaba.dubbo.common.utils.NetUtils;
+import com.alibaba.dubbo.common.utils.StaticContext;
 import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.ApplicationConfig;
 import com.alibaba.dubbo.config.ConsumerConfig;
@@ -37,7 +38,6 @@ import com.alibaba.dubbo.config.model.ConsumerModel;
 import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.Protocol;
 import com.alibaba.dubbo.rpc.ProxyFactory;
-import com.alibaba.dubbo.rpc.StaticContext;
 import com.alibaba.dubbo.rpc.cluster.Cluster;
 import com.alibaba.dubbo.rpc.cluster.directory.StaticDirectory;
 import com.alibaba.dubbo.rpc.cluster.support.AvailableCluster;
@@ -68,8 +68,9 @@ public class ReferHelper {
     private static final Protocol refprotocol = ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension();
     private static final Cluster cluster = ExtensionLoader.getExtensionLoader(Cluster.class).getAdaptiveExtension();
     private static final ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
-    private final List<URL> urls = new ArrayList<URL>();
+    private final List<URL> urls = new ArrayList<>();
     private final Map<ReferenceConfig, Invoker<?>> invokers = new HashMap<>();
+    private final Map<ReferenceConfig, Object> refs = new HashMap<>();
 
     private DubboBootstrap bootstrap;
     private ReferenceConfig referenceConfig;
@@ -83,16 +84,11 @@ public class ReferHelper {
     }
 
     public Object refer() {
-        if (referenceConfig.getRef() == null) {
-            init();
-        }
-        return referenceConfig.getRef();
+        refs.computeIfAbsent(referenceConfig, rc -> doRefer());
+        return refs.get(referenceConfig);
     }
 
-    private void init() {
-        if (invokers.get(referenceConfig) != null) {
-            return;
-        }
+    private Object doRefer() {
         initReferenceConfig();
         referenceConfig.setInitialized(true);
         String interfaceName = referenceConfig.getInterface();
@@ -209,10 +205,11 @@ public class ReferHelper {
 
         //attributes are stored by system context.
         StaticContext.getSystemContext().putAll(attributes);
-        referenceConfig.setRef(createProxy(map));
+        Object proxy = createProxy(map);
         // TODO
-        ConsumerModel consumerModel = new ConsumerModel(referenceConfig.getUniqueServiceName(), referenceConfig, referenceConfig.getRef(), interfaceClass.getMethods());
+        ConsumerModel consumerModel = new ConsumerModel(referenceConfig.getUniqueServiceName(), referenceConfig, proxy, interfaceClass.getMethods());
         ApplicationModel.initConsumerModel(referenceConfig.getUniqueServiceName(), consumerModel);
+        return proxy;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
@@ -258,10 +255,10 @@ public class ReferHelper {
                     }
                 }
             } else { // assemble URL from register center's configuration
-                List<URL> us = referenceConfig.loadRegistries(false);
+                List<URL> us = BootstrapUtils.loadRegistries(referenceConfig, false);
                 if (us != null && !us.isEmpty()) {
                     for (URL u : us) {
-                        URL monitorUrl = referenceConfig.loadMonitor(u);
+                        URL monitorUrl = BootstrapUtils.loadMonitor(referenceConfig, u);
                         if (monitorUrl != null) {
                             map.put(Constants.MONITOR_KEY, URL.encode(monitorUrl.toFullString()));
                         }
@@ -372,10 +369,12 @@ public class ReferHelper {
     public void unrefer() {
         invokers.keySet().forEach(this::unrefer);
         invokers.clear();
+        refs.clear();
     }
 
     public void unrefer(ReferenceConfig config) {
         Invoker<?> invoker = invokers.remove(config);
         invoker.destroy();
+        refs.remove(config);
     }
 }

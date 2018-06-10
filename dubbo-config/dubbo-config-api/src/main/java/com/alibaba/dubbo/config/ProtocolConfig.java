@@ -17,15 +17,7 @@
 package com.alibaba.dubbo.config;
 
 import com.alibaba.dubbo.common.extension.ExtensionLoader;
-import com.alibaba.dubbo.common.serialize.Serialization;
-import com.alibaba.dubbo.common.status.StatusChecker;
-import com.alibaba.dubbo.common.threadpool.ThreadPool;
 import com.alibaba.dubbo.config.support.Parameter;
-import com.alibaba.dubbo.remoting.Codec;
-import com.alibaba.dubbo.remoting.Dispatcher;
-import com.alibaba.dubbo.remoting.Transporter;
-import com.alibaba.dubbo.remoting.exchange.Exchanger;
-import com.alibaba.dubbo.remoting.telnet.TelnetHandler;
 import com.alibaba.dubbo.rpc.Protocol;
 
 import java.util.Map;
@@ -203,7 +195,7 @@ public class ProtocolConfig extends AbstractConfig {
     }
 
     public void setThreadpool(String threadpool) {
-        checkExtension(ThreadPool.class, "threadpool", threadpool);
+        checkExtension("com.alibaba.dubbo.common.threadpool.ThreadPool", "threadpool", threadpool);
         this.threadpool = threadpool;
     }
 
@@ -245,7 +237,7 @@ public class ProtocolConfig extends AbstractConfig {
 
     public void setCodec(String codec) {
         if ("dubbo".equals(name)) {
-            checkMultiExtension(Codec.class, "codec", codec);
+            checkMultiExtension("com.alibaba.dubbo.remoting.Codec", "codec", codec);
         }
         this.codec = codec;
     }
@@ -256,7 +248,7 @@ public class ProtocolConfig extends AbstractConfig {
 
     public void setSerialization(String serialization) {
         if ("dubbo".equals(name)) {
-            checkMultiExtension(Serialization.class, "serialization", serialization);
+            checkMultiExtension("com.alibaba.dubbo.common.serialize.Serialization", "serialization", serialization);
         }
         this.serialization = serialization;
     }
@@ -299,7 +291,7 @@ public class ProtocolConfig extends AbstractConfig {
 
     public void setServer(String server) {
         if ("dubbo".equals(name)) {
-            checkMultiExtension(Transporter.class, "server", server);
+            checkMultiExtension("com.alibaba.dubbo.remoting.Transporter", "server", server);
         }
         this.server = server;
     }
@@ -310,7 +302,7 @@ public class ProtocolConfig extends AbstractConfig {
 
     public void setClient(String client) {
         if ("dubbo".equals(name)) {
-            checkMultiExtension(Transporter.class, "client", client);
+            checkMultiExtension("com.alibaba.dubbo.remoting.Transporter", "client", client);
         }
         this.client = client;
     }
@@ -328,7 +320,7 @@ public class ProtocolConfig extends AbstractConfig {
     }
 
     public void setTelnet(String telnet) {
-        checkMultiExtension(TelnetHandler.class, "telnet", telnet);
+        checkMultiExtension("com.alibaba.dubbo.remoting.telnet.TelnetHandler", "telnet", telnet);
         this.telnet = telnet;
     }
 
@@ -346,7 +338,7 @@ public class ProtocolConfig extends AbstractConfig {
     }
 
     public void setStatus(String status) {
-        checkMultiExtension(StatusChecker.class, "status", status);
+        checkMultiExtension("com.alibaba.dubbo.common.status.StatusChecker", "status", status);
         this.status = status;
     }
 
@@ -363,7 +355,7 @@ public class ProtocolConfig extends AbstractConfig {
     }
 
     public void setTransporter(String transporter) {
-        checkExtension(Transporter.class, "transporter", transporter);
+        checkExtension("com.alibaba.dubbo.remoting.Transporter", "transporter", transporter);
         this.transporter = transporter;
     }
 
@@ -372,7 +364,7 @@ public class ProtocolConfig extends AbstractConfig {
     }
 
     public void setExchanger(String exchanger) {
-        checkExtension(Exchanger.class, "exchanger", exchanger);
+        checkExtension("com.alibaba.dubbo.remoting.exchange.Exchanger", "exchanger", exchanger);
         this.exchanger = exchanger;
     }
 
@@ -402,7 +394,7 @@ public class ProtocolConfig extends AbstractConfig {
     }
 
     public void setDispatcher(String dispatcher) {
-        checkExtension(Dispatcher.class, "dispacther", dispatcher);
+        checkExtension("com.alibaba.dubbo.remoting.Dispatcher", "dispacther", dispatcher);
         this.dispatcher = dispatcher;
     }
 
@@ -458,14 +450,5 @@ public class ProtocolConfig extends AbstractConfig {
         if (name != null) {
             ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(name).destroy();
         }
-    }
-
-    /**
-     * Just for compatibility.
-     * It should be deleted in the next major version, say 2.7.x.
-     */
-    @Deprecated
-    public static void destroyAll() {
-        DubboShutdownHook.getDubboShutdownHook().destroyAll();
     }
 }

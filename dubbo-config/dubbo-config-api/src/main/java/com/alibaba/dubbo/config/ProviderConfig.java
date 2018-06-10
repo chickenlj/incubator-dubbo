@@ -17,13 +17,7 @@
 package com.alibaba.dubbo.config;
 
 import com.alibaba.dubbo.common.Constants;
-import com.alibaba.dubbo.common.status.StatusChecker;
-import com.alibaba.dubbo.common.threadpool.ThreadPool;
 import com.alibaba.dubbo.config.support.Parameter;
-import com.alibaba.dubbo.remoting.Dispatcher;
-import com.alibaba.dubbo.remoting.Transporter;
-import com.alibaba.dubbo.remoting.exchange.Exchanger;
-import com.alibaba.dubbo.remoting.telnet.TelnetHandler;
 
 import java.util.Arrays;
 
@@ -169,7 +163,7 @@ public class ProviderConfig extends AbstractServiceConfig {
     }
 
     public void setThreadpool(String threadpool) {
-        checkExtension(ThreadPool.class, "threadpool", threadpool);
+        checkExtension("com.alibaba.dubbo.common.threadpool.ThreadPool", "threadpool", threadpool);
         this.threadpool = threadpool;
     }
 
@@ -258,7 +252,7 @@ public class ProviderConfig extends AbstractServiceConfig {
     }
 
     public void setTelnet(String telnet) {
-        checkMultiExtension(TelnetHandler.class, "telnet", telnet);
+        checkMultiExtension("com.alibaba.dubbo.remoting.telnet.TelnetHandler", "telnet", telnet);
         this.telnet = telnet;
     }
 
@@ -276,7 +270,7 @@ public class ProviderConfig extends AbstractServiceConfig {
     }
 
     public void setStatus(String status) {
-        checkMultiExtension(StatusChecker.class, "status", status);
+        checkMultiExtension("com.alibaba.dubbo.common.status.StatusChecker", "status", status);
         this.status = status;
     }
 
@@ -320,7 +314,7 @@ public class ProviderConfig extends AbstractServiceConfig {
     }
 
     public void setTransporter(String transporter) {
-        checkExtension(Transporter.class, "transporter", transporter);
+//        checkExtension(Transporter.class, "transporter", transporter);
         this.transporter = transporter;
     }
 
@@ -329,7 +323,7 @@ public class ProviderConfig extends AbstractServiceConfig {
     }
 
     public void setExchanger(String exchanger) {
-        checkExtension(Exchanger.class, "exchanger", exchanger);
+        checkExtension("com.alibaba.dubbo.remoting.exchange.Exchanger", "exchanger", exchanger);
         this.exchanger = exchanger;
     }
 
@@ -359,8 +353,8 @@ public class ProviderConfig extends AbstractServiceConfig {
     }
 
     public void setDispatcher(String dispatcher) {
-        checkExtension(Dispatcher.class, Constants.DISPATCHER_KEY, exchanger);
-        checkExtension(Dispatcher.class, "dispather", exchanger);
+        checkExtension("com.alibaba.dubbo.remoting.Dispatcher", Constants.DISPATCHER_KEY, exchanger);
+        checkExtension("com.alibaba.dubbo.remoting.Dispatcher", "dispather", exchanger);
         this.dispatcher = dispatcher;
     }
 

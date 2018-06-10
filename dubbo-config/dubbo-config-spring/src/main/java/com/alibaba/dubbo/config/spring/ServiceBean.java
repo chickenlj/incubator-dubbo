@@ -25,6 +25,8 @@ import com.alibaba.dubbo.config.RegistryConfig;
 import com.alibaba.dubbo.config.ServiceConfig;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.dubbo.config.spring.extension.SpringExtensionFactory;
+
+import org.apache.dubbo.bootstrap.Bootstraps;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.BeanNameAware;
@@ -116,11 +118,11 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        if (isDelay() && !isExported() && !isUnexported()) {
+        if (isDelay()) {
             if (logger.isInfoEnabled()) {
                 logger.info("The service ready on spring started. service: " + getInterface());
             }
-            export();
+            Bootstraps.bootstrap().export(this);
         }
     }
 
@@ -144,7 +146,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
                         && providerConfigMap.size() > 1) { // backward compatibility
                     List<ProviderConfig> providerConfigs = new ArrayList<ProviderConfig>();
                     for (ProviderConfig config : providerConfigMap.values()) {
-                        if (config.isDefault() != null && config.isDefault().booleanValue()) {
+                        if (config.isDefault() != null && config.isDefault()) {
                             providerConfigs.add(config);
                         }
                     }
@@ -154,7 +156,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
                 } else {
                     ProviderConfig providerConfig = null;
                     for (ProviderConfig config : providerConfigMap.values()) {
-                        if (config.isDefault() == null || config.isDefault().booleanValue()) {
+                        if (config.isDefault() == null || config.isDefault()) {
                             if (providerConfig != null) {
                                 throw new IllegalStateException("Duplicate provider configs: " + providerConfig + " and " + config);
                             }
@@ -261,7 +263,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
             }
         }
         if (!isDelay()) {
-            export();
+            Bootstraps.bootstrap().registerServiceConfig(this);
         }
     }
 
@@ -274,7 +276,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
 
     // merged from dubbox
     @Override
-    protected Class getServiceClass(T ref) {
+    public Class getServiceClass(T ref) {
         if (AopUtils.isAopProxy(ref)) {
             return AopUtils.getTargetClass(ref);
         }

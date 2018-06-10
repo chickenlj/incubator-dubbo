@@ -33,6 +33,7 @@ public class ClassLoaderFilter implements Filter {
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
         ClassLoader ocl = Thread.currentThread().getContextClassLoader();
+        // TODO
         Thread.currentThread().setContextClassLoader(invoker.getInterface().getClassLoader());
         try {
             return invoker.invoke(invocation);

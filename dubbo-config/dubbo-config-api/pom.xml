@@ -29,34 +29,15 @@
         <skip_maven_deploy>false</skip_maven_deploy>
     </properties>
     <dependencies>
+        <!-- TODO this dependency should be removed, now blocks by DelegateProviderMetaDataInvoker and some Model classes-->
         <dependency>
             <groupId>com.alibaba</groupId>
-            <artifactId>dubbo-registry-api</artifactId>
+            <artifactId>dubbo-rpc-api</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
-            <artifactId>dubbo-monitor-api</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>dubbo-remoting-api</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>dubbo-rpc-injvm</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>dubbo-filter-validation</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>dubbo-filter-cache</artifactId>
+            <artifactId>dubbo-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>

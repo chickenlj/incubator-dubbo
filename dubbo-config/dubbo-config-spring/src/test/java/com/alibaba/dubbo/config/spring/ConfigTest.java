@@ -16,52 +16,7 @@
  */
 package com.alibaba.dubbo.config.spring;
 
-import com.alibaba.dubbo.common.Constants;
-import com.alibaba.dubbo.common.URL;
-import com.alibaba.dubbo.common.extension.ExtensionLoader;
-import com.alibaba.dubbo.common.utils.NetUtils;
-import com.alibaba.dubbo.common.utils.StringUtils;
-import com.alibaba.dubbo.config.ApplicationConfig;
-import com.alibaba.dubbo.config.ConsumerConfig;
-import com.alibaba.dubbo.config.ProtocolConfig;
-import com.alibaba.dubbo.config.ProviderConfig;
-import com.alibaba.dubbo.config.ReferenceConfig;
-import com.alibaba.dubbo.config.RegistryConfig;
-import com.alibaba.dubbo.config.ServiceConfig;
-import com.alibaba.dubbo.config.spring.action.DemoActionByAnnotation;
-import com.alibaba.dubbo.config.spring.action.DemoActionBySetter;
-import com.alibaba.dubbo.config.spring.annotation.consumer.AnnotationAction;
-import com.alibaba.dubbo.config.spring.api.DemoService;
-import com.alibaba.dubbo.config.spring.api.HelloService;
-import com.alibaba.dubbo.config.spring.filter.MockFilter;
-import com.alibaba.dubbo.config.spring.impl.DemoServiceImpl;
-import com.alibaba.dubbo.config.spring.impl.HelloServiceImpl;
-import com.alibaba.dubbo.config.spring.registry.MockRegistry;
-import com.alibaba.dubbo.config.spring.registry.MockRegistryFactory;
-import com.alibaba.dubbo.registry.Registry;
-import com.alibaba.dubbo.registry.RegistryService;
-import com.alibaba.dubbo.rpc.Exporter;
-import com.alibaba.dubbo.rpc.Filter;
-import com.alibaba.dubbo.rpc.RpcContext;
-import com.alibaba.dubbo.rpc.RpcException;
-import com.alibaba.dubbo.rpc.service.GenericException;
-import com.alibaba.dubbo.rpc.service.GenericService;
-import org.junit.Assert;
 import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-import java.util.Collection;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.matchers.JUnitMatchers.containsString;
 
 
 /**
@@ -69,7 +24,7 @@ import static org.junit.matchers.JUnitMatchers.containsString;
  */
 @Ignore
 public class ConfigTest {
-
+/*
     private static void unexportService(ServiceConfig<?> config) {
         if (config != null) {
             config.unexport();
@@ -984,5 +939,5 @@ public class ConfigTest {
         } finally {
             ctx.destroy();
         }
-    }
+    }*/
 }

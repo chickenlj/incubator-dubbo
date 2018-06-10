@@ -22,7 +22,6 @@ import com.alibaba.dubbo.common.extension.ExtensionLoader;
 import com.alibaba.dubbo.common.logger.Logger;
 import com.alibaba.dubbo.common.logger.LoggerFactory;
 import com.alibaba.dubbo.common.utils.CollectionUtils;
-import com.alibaba.dubbo.common.utils.ConfigUtils;
 import com.alibaba.dubbo.common.utils.ReflectUtils;
 import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.support.Parameter;
@@ -59,103 +58,10 @@ public abstract class AbstractConfig implements Serializable {
     private static final Pattern PATTERN_NAME_HAS_SYMBOL = Pattern.compile("[:*,/\\-._0-9a-zA-Z]+");
 
     private static final Pattern PATTERN_KEY = Pattern.compile("[*,\\-._0-9a-zA-Z]+");
-    private static final Map<String, String> legacyProperties = new HashMap<String, String>();
     private static final String[] SUFFIXES = new String[]{"Config", "Bean"};
     private volatile Map<String, Object> metaData;
 
-    static {
-        legacyProperties.put("dubbo.protocol.name", "dubbo.service.protocol");
-        legacyProperties.put("dubbo.protocol.host", "dubbo.service.server.host");
-        legacyProperties.put("dubbo.protocol.port", "dubbo.service.server.port");
-        legacyProperties.put("dubbo.protocol.threads", "dubbo.service.max.thread.pool.size");
-        legacyProperties.put("dubbo.consumer.timeout", "dubbo.service.invoke.timeout");
-        legacyProperties.put("dubbo.consumer.retries", "dubbo.service.max.retry.providers");
-        legacyProperties.put("dubbo.consumer.check", "dubbo.service.allow.no.provider");
-        legacyProperties.put("dubbo.service.url", "dubbo.service.address");
-
-        // this is only for compatibility
-        Runtime.getRuntime().addShutdownHook(DubboShutdownHook.getDubboShutdownHook());
-    }
-
     protected String id;
-
-    private static String convertLegacyValue(String key, String value) {
-        if (value != null && value.length() > 0) {
-            if ("dubbo.service.max.retry.providers".equals(key)) {
-                return String.valueOf(Integer.parseInt(value) - 1);
-            } else if ("dubbo.service.allow.no.provider".equals(key)) {
-                return String.valueOf(!Boolean.parseBoolean(value));
-            }
-        }
-        return value;
-    }
-
-    protected static void appendProperties(AbstractConfig config) {
-        if (config == null) {
-            return;
-        }
-        String prefix = "dubbo." + getTagName(config.getClass()) + ".";
-        Method[] methods = config.getClass().getMethods();
-        for (Method method : methods) {
-            try {
-                String name = method.getName();
-                if (name.length() > 3 && name.startsWith("set") && Modifier.isPublic(method.getModifiers())
-                        && method.getParameterTypes().length == 1 && isPrimitive(method.getParameterTypes()[0])) {
-                    String property = StringUtils.camelToSplitName(name.substring(3, 4).toLowerCase() + name.substring(4), ".");
-
-                    String value = null;
-                    if (config.getId() != null && config.getId().length() > 0) {
-                        String pn = prefix + config.getId() + "." + property;
-                        value = System.getProperty(pn);
-                        if (!StringUtils.isBlank(value)) {
-                            logger.info("Use System Property " + pn + " to config dubbo");
-                        }
-                    }
-                    if (value == null || value.length() == 0) {
-                        String pn = prefix + property;
-                        value = System.getProperty(pn);
-                        if (!StringUtils.isBlank(value)) {
-                            logger.info("Use System Property " + pn + " to config dubbo");
-                        }
-                    }
-                    if (value == null || value.length() == 0) {
-                        Method getter;
-                        try {
-                            getter = config.getClass().getMethod("get" + name.substring(3));
-                        } catch (NoSuchMethodException e) {
-                            try {
-                                getter = config.getClass().getMethod("is" + name.substring(3));
-                            } catch (NoSuchMethodException e2) {
-                                getter = null;
-                            }
-                        }
-                        if (getter != null) {
-                            if (getter.invoke(config) == null) {
-                                if (config.getId() != null && config.getId().length() > 0) {
-                                    value = ConfigUtils.getProperty(prefix + config.getId() + "." + property);
-                                }
-                                if (value == null || value.length() == 0) {
-                                    value = ConfigUtils.getProperty(prefix + property);
-                                }
-                                if (value == null || value.length() == 0) {
-                                    String legacyKey = legacyProperties.get(prefix + property);
-                                    if (legacyKey != null && legacyKey.length() > 0) {
-                                        value = convertLegacyValue(legacyKey, ConfigUtils.getProperty(legacyKey));
-                                    }
-                                }
-
-                            }
-                        }
-                    }
-                    if (value != null && value.length() > 0) {
-                        method.invoke(config, convertPrimitive(method.getParameterTypes()[0], value));
-                    }
-                }
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-    }
 
     private static String getTagName(Class<?> cls) {
         String tag = cls.getSimpleName();
@@ -167,77 +73,6 @@ public abstract class AbstractConfig implements Serializable {
         }
         tag = tag.toLowerCase();
         return tag;
-    }
-
-    protected static void appendParameters(Map<String, String> parameters, Object config) {
-        appendParameters(parameters, config, null);
-    }
-
-    @SuppressWarnings("unchecked")
-    protected static void appendParameters(Map<String, String> parameters, Object config, String prefix) {
-        if (config == null) {
-            return;
-        }
-        Method[] methods = config.getClass().getMethods();
-        for (Method method : methods) {
-            try {
-                String name = method.getName();
-                if ((name.startsWith("get") || name.startsWith("is"))
-                        && !"getClass".equals(name)
-                        && Modifier.isPublic(method.getModifiers())
-                        && method.getParameterTypes().length == 0
-                        && isPrimitive(method.getReturnType())) {
-                    Parameter parameter = method.getAnnotation(Parameter.class);
-                    if (method.getReturnType() == Object.class || parameter != null && parameter.excluded()) {
-                        continue;
-                    }
-                    int i = name.startsWith("get") ? 3 : 2;
-                    String prop = StringUtils.camelToSplitName(name.substring(i, i + 1).toLowerCase() + name.substring(i + 1), ".");
-                    String key;
-                    if (parameter != null && parameter.key().length() > 0) {
-                        key = parameter.key();
-                    } else {
-                        key = prop;
-                    }
-                    Object value = method.invoke(config);
-                    String str = String.valueOf(value).trim();
-                    if (value != null && str.length() > 0) {
-                        if (parameter != null && parameter.escaped()) {
-                            str = URL.encode(str);
-                        }
-                        if (parameter != null && parameter.append()) {
-                            String pre = parameters.get(Constants.DEFAULT_KEY + "." + key);
-                            if (pre != null && pre.length() > 0) {
-                                str = pre + "," + str;
-                            }
-                            pre = parameters.get(key);
-                            if (pre != null && pre.length() > 0) {
-                                str = pre + "," + str;
-                            }
-                        }
-                        if (prefix != null && prefix.length() > 0) {
-                            key = prefix + "." + key;
-                        }
-                        parameters.put(key, str);
-                    } else if (parameter != null && parameter.required()) {
-                        throw new IllegalStateException(config.getClass().getSimpleName() + "." + key + " == null");
-                    }
-                } else if ("getParameters".equals(name)
-                        && Modifier.isPublic(method.getModifiers())
-                        && method.getParameterTypes().length == 0
-                        && method.getReturnType() == Map.class) {
-                    Map<String, String> map = (Map<String, String>) method.invoke(config, new Object[0]);
-                    if (map != null && map.size() > 0) {
-                        String pre = (prefix != null && prefix.length() > 0 ? prefix + "." : "");
-                        for (Map.Entry<String, String> entry : map.entrySet()) {
-                            parameters.put(pre + entry.getKey().replace('-', '.'), entry.getValue());
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                throw new IllegalStateException(e.getMessage(), e);
-            }
-        }
     }
 
     public static void appendAttributes(Map<Object, Object> parameters, Object config) {
@@ -296,36 +131,15 @@ public abstract class AbstractConfig implements Serializable {
                 || type == Object.class;
     }
 
-    private static Object convertPrimitive(Class<?> type, String value) {
-        if (type == char.class || type == Character.class) {
-            return value.length() > 0 ? value.charAt(0) : '\0';
-        } else if (type == boolean.class || type == Boolean.class) {
-            return Boolean.valueOf(value);
-        } else if (type == byte.class || type == Byte.class) {
-            return Byte.valueOf(value);
-        } else if (type == short.class || type == Short.class) {
-            return Short.valueOf(value);
-        } else if (type == int.class || type == Integer.class) {
-            return Integer.valueOf(value);
-        } else if (type == long.class || type == Long.class) {
-            return Long.valueOf(value);
-        } else if (type == float.class || type == Float.class) {
-            return Float.valueOf(value);
-        } else if (type == double.class || type == Double.class) {
-            return Double.valueOf(value);
-        }
-        return value;
-    }
-
-    protected static void checkExtension(Class<?> type, String property, String value) {
+    protected static void checkExtension(String className, String property, String value) {
         checkName(property, value);
         if (value != null && value.length() > 0
-                && !ExtensionLoader.getExtensionLoader(type).hasExtension(value)) {
-            throw new IllegalStateException("No such extension " + value + " for " + property + "/" + type.getName());
+                && !ExtensionLoader.getExtensionLoader(className).hasExtension(value)) {
+            throw new IllegalStateException("No such extension " + value + " for " + property + "/" + className);
         }
     }
 
-    protected static void checkMultiExtension(Class<?> type, String property, String value) {
+    public static void checkMultiExtension(String className, String property, String value) {
         checkMultiName(property, value);
         if (value != null && value.length() > 0) {
             String[] values = value.split("\\s*[,]+\\s*");
@@ -336,8 +150,8 @@ public abstract class AbstractConfig implements Serializable {
                 if (Constants.DEFAULT_KEY.equals(v)) {
                     continue;
                 }
-                if (!ExtensionLoader.getExtensionLoader(type).hasExtension(v)) {
-                    throw new IllegalStateException("No such extension " + v + " for " + property + "/" + type.getName());
+                if (!ExtensionLoader.getExtensionLoader(className).hasExtension(v)) {
+                    throw new IllegalStateException("No such extension " + v + " for " + property + "/" + className);
                 }
             }
         }
@@ -541,9 +355,11 @@ public abstract class AbstractConfig implements Serializable {
                                 key = prefix + "." + key;
                             }
                             metaData.put(key, str);
-                        } else if (parameter != null && parameter.required()) {
-                            throw new IllegalStateException(this.getClass().getSimpleName() + "." + key + " == null");
                         }
+                        // TODO
+                       /* else if (parameter != null && parameter.required()) {
+                            throw new IllegalStateException(this.getClass().getSimpleName() + "." + key + " == null");
+                        }*/
                     } else if ("getParameters".equals(name)
                             && Modifier.isPublic(method.getModifiers())
                             && method.getParameterTypes().length == 0
