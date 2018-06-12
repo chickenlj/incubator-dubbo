@@ -18,6 +18,7 @@ package com.alibaba.dubbo.config;
 
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.Version;
+import com.alibaba.dubbo.common.config.ConfigurationHolder;
 import com.alibaba.dubbo.common.utils.ConfigUtils;
 import com.alibaba.dubbo.common.utils.NetUtils;
 import com.alibaba.dubbo.common.utils.ReflectUtils;
@@ -91,7 +92,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     public void checkRegistry() {
         // for backward compatibility
         if (registries == null || registries.isEmpty()) {
-            String address = ConfigUtils.getProperty("dubbo.registry.address");
+            String address = ConfigurationHolder.getCompositeConf().getString("dubbo.registry.address");
             if (address != null && address.length() > 0) {
                 registries = new ArrayList<RegistryConfig>();
                 String[] as = address.split("\\s*[|]+\\s*");
@@ -117,7 +118,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     public void checkApplication() {
         // for backward compatibility
         if (application == null) {
-            String applicationName = ConfigUtils.getProperty("dubbo.application.name");
+            String applicationName = ConfigurationHolder.getCompositeConf().getString("dubbo.application.name");
             if (applicationName != null && applicationName.length() > 0) {
                 application = new ApplicationConfig();
             }

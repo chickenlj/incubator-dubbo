@@ -23,8 +23,6 @@ import com.alibaba.dubbo.common.config.CompositeConfiguration;
 import com.alibaba.dubbo.common.config.Configuration;
 import com.alibaba.dubbo.common.config.ConfigurationHolder;
 import com.alibaba.dubbo.common.config.InmemoryConfiguration;
-import com.alibaba.dubbo.common.config.PropertiesConfiguration;
-import com.alibaba.dubbo.common.config.SystemConfiguration;
 import com.alibaba.dubbo.common.extension.ExtensionLoader;
 import com.alibaba.dubbo.common.utils.ConfigUtils;
 import com.alibaba.dubbo.common.utils.StringUtils;
@@ -54,12 +52,6 @@ public class BootstrapUtils {
 
 
     private static final String[] SUFFIXES = new String[]{"Config", "Bean"};
-
-    public static CompositeConfiguration getCompositeConfiguration() {
-        Configuration system = new SystemConfiguration();
-        Configuration properties = new PropertiesConfiguration();
-        return new CompositeConfiguration(system, properties);
-    }
 
     /**
      * @param config
@@ -182,8 +174,8 @@ public class BootstrapUtils {
     public static URL loadMonitor(AbstractInterfaceConfig interfaceConfig, URL registryURL) {
         MonitorConfig monitor = interfaceConfig.getMonitor();
         if (monitor == null) {
-            String monitorAddress = ConfigUtils.getProperty("dubbo.monitor.address");
-            String monitorProtocol = ConfigUtils.getProperty("dubbo.monitor.protocol");
+            String monitorAddress = ConfigurationHolder.getCompositeConf().getString("dubbo.monitor.address");
+            String monitorProtocol = ConfigurationHolder.getCompositeConf().getString("dubbo.monitor.protocol");
             if ((monitorAddress == null || monitorAddress.length() == 0) && (monitorProtocol == null || monitorProtocol.length() == 0)) {
                 return null;
             }

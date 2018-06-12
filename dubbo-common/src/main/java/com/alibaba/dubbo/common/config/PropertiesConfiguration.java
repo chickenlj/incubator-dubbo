@@ -39,20 +39,22 @@ public class PropertiesConfiguration extends AbstractPrefixConfiguration {
 
     private static final Logger logger = LoggerFactory.getLogger(PropertiesConfiguration.class);
 
-    private Properties properties;
+    private volatile Properties properties;
 
     public PropertiesConfiguration(String prefix, String id) {
         super(prefix, id);
         if (properties == null) {
-            if (properties == null) {
-                String path = System.getProperty(Constants.DUBBO_PROPERTIES_KEY);
-                if (path == null || path.length() == 0) {
-                    path = System.getenv(Constants.DUBBO_PROPERTIES_KEY);
+            synchronized (this) {
+                if (properties == null) {
+                    String path = System.getProperty(Constants.DUBBO_PROPERTIES_KEY);
                     if (path == null || path.length() == 0) {
-                        path = Constants.DEFAULT_DUBBO_PROPERTIES;
+                        path = System.getenv(Constants.DUBBO_PROPERTIES_KEY);
+                        if (path == null || path.length() == 0) {
+                            path = Constants.DEFAULT_DUBBO_PROPERTIES;
+                        }
                     }
+                    properties = loadProperties(path, false, true);
                 }
-                properties = loadProperties(path, false, true);
             }
         }
     }

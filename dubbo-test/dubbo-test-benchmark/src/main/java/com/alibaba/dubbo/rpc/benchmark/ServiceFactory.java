@@ -18,7 +18,7 @@ package com.alibaba.dubbo.rpc.benchmark;
 
 import com.alibaba.dubbo.config.ApplicationConfig;
 
-import org.apache.dubbo.config.ReferenceConfig;
+import org.apache.dubbo.bootstrap.ReferenceConfigRefer;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -80,7 +80,7 @@ public class ServiceFactory<T> {
     }
 
     protected T createClient(Class<T> cls, String targetIP, int targetPort, int connectTimeout, int clientNums) {
-        ReferenceConfig<T> referenceConfig = new ReferenceConfig<T>();
+        ReferenceConfigRefer<T> referenceConfig = new ReferenceConfigRefer<T>();
         referenceConfig.setInterface(cls);
         StringBuilder url = new StringBuilder();
         url.append("dubbo://");

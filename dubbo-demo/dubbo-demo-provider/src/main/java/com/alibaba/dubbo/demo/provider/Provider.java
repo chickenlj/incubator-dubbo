@@ -16,6 +16,8 @@
  */
 package com.alibaba.dubbo.demo.provider;
 
+import com.alibaba.dubbo.config.spring.initializer.DubboApplicationListener;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class Provider {
@@ -25,6 +27,9 @@ public class Provider {
         //But you can pass use -Djava.net.preferIPv4Stack=true,then it work well whether in debug mode or not
         System.setProperty("java.net.preferIPv4Stack", "true");
         ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"META-INF/spring/dubbo-demo-provider.xml"});
+        context.addApplicationListener(new DubboApplicationListener());
+        context.registerShutdownHook();
+        context.refresh();
         context.start();
 
         System.in.read(); // press any key to exit

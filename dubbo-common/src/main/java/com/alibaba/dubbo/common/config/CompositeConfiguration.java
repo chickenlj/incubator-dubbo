@@ -37,9 +37,7 @@ public class CompositeConfiguration extends AbstractConfiguration {
 
     public CompositeConfiguration(Configuration... configurations) {
         if (configurations != null && configurations.length > 0) {
-            Arrays.stream(configurations).filter(config -> {
-                return !configList.contains(config);
-            }).forEach(configList::add);
+            Arrays.stream(configurations).filter(config -> !configList.contains(config)).forEach(configList::add);
         }
     }
 

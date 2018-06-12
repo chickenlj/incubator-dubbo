@@ -122,7 +122,7 @@ public class ServiceBean<T> extends ServiceConfigExporter<T> implements Initiali
             if (logger.isInfoEnabled()) {
                 logger.info("The service ready on spring started. service: " + getInterface());
             }
-            Bootstraps.bootstrap().registerServiceConfig(this);
+            Bootstraps.bootstrap().export(this);
         }
     }
 

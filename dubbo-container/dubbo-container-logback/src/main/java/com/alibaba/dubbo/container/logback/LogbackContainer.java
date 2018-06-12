@@ -16,7 +16,8 @@
  */
 package com.alibaba.dubbo.container.logback;
 
-import com.alibaba.dubbo.common.utils.ConfigUtils;
+import com.alibaba.dubbo.common.config.Configuration;
+import com.alibaba.dubbo.common.config.ConfigurationHolder;
 import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.container.Container;
 
@@ -44,14 +45,15 @@ public class LogbackContainer implements Container {
 
     @Override
     public void start() {
-        String file = ConfigUtils.getProperty(LOGBACK_FILE);
+        Configuration conf = ConfigurationHolder.getCompositeConf();
+        String file = conf.getString(LOGBACK_FILE);
         if (file != null && file.length() > 0) {
-            String level = ConfigUtils.getProperty(LOGBACK_LEVEL);
+            String level = conf.getString(LOGBACK_LEVEL);
             if (level == null || level.length() == 0) {
                 level = DEFAULT_LOGBACK_LEVEL;
             }
             // maxHistory=0 Infinite history
-            int maxHistory = StringUtils.parseInteger(ConfigUtils.getProperty(LOGBACK_MAX_HISTORY));
+            int maxHistory = StringUtils.parseInteger(conf.getString(LOGBACK_MAX_HISTORY));
 
             doInitializer(file, level, maxHistory);
         }

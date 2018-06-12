@@ -16,8 +16,10 @@
  */
 package com.alibaba.dubbo.config.utils;
 
-/**
- *
- */
-public class ReferenceConfigCache {
+public class ReferenceConfigCache extends org.apache.dubbo.bootstrap.ReferenceConfigCache {
+
+    private ReferenceConfigCache(String name, KeyGenerator generator) {
+        super(name, generator);
+    }
 }
+

@@ -17,6 +17,10 @@
 package com.alibaba.dubbo.common.utils;
 
 import com.alibaba.dubbo.common.Constants;
+import com.alibaba.dubbo.common.config.CompositeConfiguration;
+import com.alibaba.dubbo.common.config.Configuration;
+import com.alibaba.dubbo.common.config.PropertiesConfiguration;
+import com.alibaba.dubbo.common.config.SystemConfiguration;
 import com.alibaba.dubbo.common.extension.ExtensionLoader;
 import com.alibaba.dubbo.common.logger.Logger;
 import com.alibaba.dubbo.common.logger.LoggerFactory;
@@ -42,6 +46,12 @@ public class ConfigUtils {
     private static int PID = -1;
 
     private ConfigUtils() {
+    }
+
+    public static CompositeConfiguration getCompositeConfiguration() {
+        Configuration system = new SystemConfiguration();
+        Configuration properties = new PropertiesConfiguration();
+        return new CompositeConfiguration(system, properties);
     }
 
     public static boolean isNotEmpty(String value) {

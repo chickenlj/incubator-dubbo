@@ -50,6 +50,8 @@ public class DubboBootstrap {
     private List<ProtocolConfig> protocols;
     private MonitorConfig monitor;
     private ModuleConfig module;
+
+    private ReferenceConfigCache cache;
     /**
      * The shutdown hook used when Dubbo is running under embedded environment
      */
@@ -66,6 +68,7 @@ public class DubboBootstrap {
     public DubboBootstrap(boolean registerShutdownHookOnStart, DubboShutdownHook shutdownHook) {
         this.serviceConfigList = new ArrayList<>();
         this.referenceConfigList = new ArrayList<>();
+        this.cache = ReferenceConfigCache.getCache();
         this.shutdownHook = shutdownHook;
         this.registerShutdownHookOnStart = registerShutdownHookOnStart;
     }
@@ -110,6 +113,11 @@ public class DubboBootstrap {
         return this;
     }
 
+    public DubboBootstrap referenceCache(ReferenceConfigCache cache) {
+        this.cache = cache;
+        return this;
+    }
+
     /**
      * Register service config to bootstrap, which will be called during {@link DubboBootstrap#stop()}
      *
@@ -117,11 +125,13 @@ public class DubboBootstrap {
      * @return the bootstrap instance
      */
     public DubboBootstrap registerServiceConfig(ServiceConfigExporter serviceConfig) {
+        serviceConfig.setBootstrap(this);
         serviceConfigList.add(serviceConfig);
         return this;
     }
 
     public DubboBootstrap registerReferenceConfig(ReferenceConfigRefer referenceConfig) {
+        referenceConfig.setBootstrap(this);
         referenceConfigList.add(referenceConfig);
         return this;
     }
@@ -168,19 +178,34 @@ public class DubboBootstrap {
     }
 
     public synchronized void export() {
-        serviceConfigList.forEach(ServiceConfigExporter::export);
+        serviceConfigList.forEach(serviceConfig -> {
+            serviceConfig.setBootstrap(this);
+            serviceConfig.export();
+        });
     }
 
-    public synchronized void export(ServiceConfigExporter serviceConfigExporter) {
-        serviceConfigExporter.export();
+    public synchronized void export(ServiceConfigExporter serviceConfig) {
+        serviceConfig.setBootstrap(this);
+        serviceConfig.export();
     }
 
     public synchronized void refer() {
-        referenceConfigList.forEach(ReferenceConfigRefer::refer);
+        referenceConfigList.forEach(referenceConfig -> {
+            referenceConfig.setBootstrap(this);
+            if (cache.get(referenceConfig) != null) {
+                return;
+            }
+            referenceConfig.refer();
+        });
     }
 
-    public synchronized Object refer(ReferenceConfigRefer referenceConfigRefer) {
-        return referenceConfigRefer.refer();
+    public synchronized Object refer(ReferenceConfigRefer referenceConfig) {
+        referenceConfig.setBootstrap(this);
+        Object ref = cache.get(referenceConfig);
+        if (ref != null) {
+            return ref;
+        }
+        return referenceConfig.refer();
     }
 
     public synchronized void unexport() {
@@ -192,11 +217,11 @@ public class DubboBootstrap {
     }
 
     public synchronized void unrefer() {
-        referenceConfigList.forEach(ReferenceConfigRefer::unrefer);
+        cache.destroyAll();
     }
 
     public synchronized void unrefer(ReferenceConfigRefer referenceConfig) {
-        referenceConfig.unrefer();
+        cache.destroy(referenceConfig);
     }
 
     public ApplicationConfig getApplication() {

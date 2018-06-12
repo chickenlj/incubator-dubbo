@@ -21,11 +21,12 @@ package com.alibaba.dubbo.common.config;
  */
 public class ConfigurationHolder {
 
-    private static volatile Configuration propertiesConf;
-    private static volatile Configuration systemConf;
-    private static volatile Configuration environmentConf;
+    private static volatile PropertiesConfiguration propertiesConf;
+    private static volatile SystemConfiguration systemConf;
+    private static volatile EnvironmentConfiguration environmentConf;
+    private static volatile CompositeConfiguration compositeConf;
 
-    public static Configuration getPropertiesConf(String prefix, String id) {
+    public static PropertiesConfiguration getPropertiesConf(String prefix, String id) {
         if (propertiesConf != null) {
             return propertiesConf;
         }
@@ -38,7 +39,7 @@ public class ConfigurationHolder {
         return propertiesConf;
     }
 
-    public static Configuration getSystemConf(String prefix, String id) {
+    public static SystemConfiguration getSystemConf(String prefix, String id) {
         if (systemConf != null) {
             return systemConf;
         }
@@ -51,7 +52,7 @@ public class ConfigurationHolder {
         return systemConf;
     }
 
-    public static Configuration getEnvironmentConf(String prefix, String id) {
+    public static EnvironmentConfiguration getEnvironmentConf(String prefix, String id) {
         if (environmentConf != null) {
             return environmentConf;
         }
@@ -62,5 +63,18 @@ public class ConfigurationHolder {
             environmentConf = new EnvironmentConfiguration(prefix, id);
         }
         return environmentConf;
+    }
+
+    public static CompositeConfiguration getCompositeConf() {
+        return getCompositeConf(null, null);
+    }
+
+    public static CompositeConfiguration getCompositeConf(String prefix, String id) {
+        if (compositeConf != null) {
+            return compositeConf;
+        }
+        Configuration system = ConfigurationHolder.getPropertiesConf(prefix, id);
+        Configuration properties = ConfigurationHolder.getSystemConf(prefix, id);
+        return new CompositeConfiguration(system, properties);
     }
 }

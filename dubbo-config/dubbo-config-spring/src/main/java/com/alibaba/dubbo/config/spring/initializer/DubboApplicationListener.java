@@ -32,7 +32,7 @@ public class DubboApplicationListener implements ApplicationListener<Application
     private DubboBootstrap dubboBootstrap;
 
     public DubboApplicationListener() {
-        dubboBootstrap = Bootstraps.bootstrap(false);
+        dubboBootstrap = Bootstraps.bootstrap(true);
     }
 
     public DubboApplicationListener(DubboBootstrap dubboBootstrap) {
