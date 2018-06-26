@@ -21,6 +21,7 @@
         <artifactId>dubbo-parent</artifactId>
         <groupId>org.apache.dubbo</groupId>
         <version>2.7.0-SNAPSHOT</version>
+        <relativePath>../dubbo-parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

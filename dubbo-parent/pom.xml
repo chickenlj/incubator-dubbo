@@ -9,12 +9,12 @@
     </parent>
 
     <groupId>org.apache.dubbo</groupId>
-    <artifactId>dubbo-dependencies-bom</artifactId>
+    <artifactId>dubbo-parent</artifactId>
     <version>2.7.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>dubbo-dependencies-bom</name>
-    <description>Dubbo dependencies BOM</description>
+    <name>dubbo-parent</name>
+    <description>parent module of Dubbo project</description>
     <url>https://github.com/apache/incubator-dubbo</url>
     <inceptionYear>2011</inceptionYear>
     <licenses>

@@ -25,7 +25,7 @@
     </parent>
 
     <groupId>org.apache.dubbo</groupId>
-    <artifactId>dubbo-parent</artifactId>
+    <artifactId>dubbo-project</artifactId>
     <version>2.7.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -140,7 +140,7 @@
         <module>dubbo-serialization</module>
         <module>dubbo-bootstrap</module>
         <module>dubbo-compatible</module>
-        <module>dependencies-bom</module>
+        <module>dubbo-parent</module>
         <module>bom</module>
         <module>all</module>
         <module>distribution</module>
@@ -150,7 +150,7 @@
         <dependencies>
             <dependency>
                 <groupId>org.apache.dubbo</groupId>
-                <artifactId>dubbo-dependencies-bom</artifactId>
+                <artifactId>dubbo-parent</artifactId>
                 <version>2.7.0-SNAPSHOT</version>
                 <type>pom</type>
                 <scope>import</scope>
