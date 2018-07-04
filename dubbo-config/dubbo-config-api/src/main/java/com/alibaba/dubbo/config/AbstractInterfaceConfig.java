@@ -89,6 +89,8 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     // the scope for referring/exporting a service, if it's local, it means searching in current JVM only.
     private String scope;
 
+    protected String dynamicType;
+
     public void checkRegistry() {
         // for backward compatibility
         if (registries == null || registries.isEmpty()) {

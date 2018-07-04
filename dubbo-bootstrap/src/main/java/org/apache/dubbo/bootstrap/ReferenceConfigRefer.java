@@ -217,6 +217,7 @@ public class ReferenceConfigRefer<T> extends org.apache.dubbo.config.ReferenceCo
             }
         }
         map.put(Constants.INTERFACE_KEY, interfaceName);
+
         map.putAll(BootstrapUtils.configToMap(application, null));
         map.putAll(BootstrapUtils.configToMap(module, null));
         map.putAll(BootstrapUtils.configToMap(consumer, Constants.DEFAULT_KEY));

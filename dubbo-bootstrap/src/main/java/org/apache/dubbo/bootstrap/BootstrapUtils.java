@@ -37,6 +37,8 @@ import com.alibaba.dubbo.monitor.MonitorService;
 import com.alibaba.dubbo.registry.RegistryFactory;
 import com.alibaba.dubbo.registry.RegistryService;
 
+import org.apache.dubbo.config.AbstractDynamicConfiguration;
+import org.apache.dubbo.config.DynamicConfiguration;
 import org.apache.dubbo.config.ServiceConfig;
 
 import java.util.ArrayList;
@@ -63,7 +65,8 @@ public class BootstrapUtils {
     public static CompositeConfiguration getCompositeConfiguration(AbstractConfig config, String defaultPrefix, String prefix, String id) {
         Configuration system = ConfigurationHolder.getSystemConf(prefix, id);
         Configuration properties = ConfigurationHolder.getPropertiesConf(prefix, id);
-        return new CompositeConfiguration(system, toConfiguration(config, defaultPrefix), properties);
+        Configuration inmemory = toConfiguration(config, defaultPrefix);
+        return new CompositeConfiguration(system, inmemory, properties);
     }
 
     /**
@@ -91,6 +94,32 @@ public class BootstrapUtils {
         Set<String> keys = config.getMetaData(defaultPrefix).keySet();
         keys.forEach(key -> {
             String value = configuration.getString(key);
+            if (value != null) {
+                map.put(key, value);
+            }
+        });
+
+        return map;
+    }
+
+    public static Map<String, String> configToMapConsideringDynamic(AbstractConfig config, String defaultPrefix, ApplicationConfig application) {
+        Map<String, String> map = new HashMap<>();
+        if (config == null) {
+            return map;
+        }
+        String prefix = "dubbo." + getTagName(config.getClass()) + ".";
+        String id = config.getId();
+
+        Configuration system = ConfigurationHolder.getSystemConf(prefix, id);
+        Configuration properties = ConfigurationHolder.getPropertiesConf(prefix, id);
+        Configuration inmemory = toConfiguration(config, defaultPrefix);
+        AbstractDynamicConfiguration dynamic = (AbstractDynamicConfiguration) ExtensionLoader.getExtensionLoader(DynamicConfiguration.class).getExtension(application.getDynamicType());
+        dynamic.setEnv(application.getEnvironment());
+        dynamic.setPrefix(prefix);
+        CompositeConfiguration compositeConfiguration = new CompositeConfiguration(dynamic, system, inmemory, properties);
+        Set<String> keys = config.getMetaData(defaultPrefix).keySet();
+        keys.forEach(key -> {
+            String value = compositeConfiguration.getString(key);
             if (value != null) {
                 map.put(key, value);
             }
@@ -142,7 +171,7 @@ public class BootstrapUtils {
                 if (address.length() > 0 && !RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)) {
                     Map<String, String> map = new HashMap<>();
                     map.putAll(configToMap(application, null));
-                    map.putAll(configToMap(registryConfig, null));
+                    map.putAll(configToMapConsideringDynamic(registryConfig, null, application));
                     map.put("path", RegistryService.class.getName());
                     map.put("dubbo", Version.getProtocolVersion());
                     map.put(Constants.TIMESTAMP_KEY, String.valueOf(System.currentTimeMillis()));
@@ -195,7 +224,7 @@ public class BootstrapUtils {
         if (ConfigUtils.getPid() > 0) {
             map.put(Constants.PID_KEY, String.valueOf(ConfigUtils.getPid()));
         }
-        map.putAll(configToMap(monitor, null));
+        map.putAll(configToMapConsideringDynamic(monitor, null, interfaceConfig.getApplication()));
         String address = monitor.getAddress();
         String sysaddress = System.getProperty("dubbo.monitor.address");
         if (sysaddress != null && sysaddress.length() > 0) {

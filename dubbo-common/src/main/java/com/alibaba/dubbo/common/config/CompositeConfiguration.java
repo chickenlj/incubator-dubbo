@@ -41,6 +41,14 @@ public class CompositeConfiguration extends AbstractConfiguration {
         }
     }
 
+    public void addConfiguration(Configuration configuration) {
+        this.configList.add(configuration);
+    }
+
+    public void addConfigurationFirst(Configuration configuration) {
+        this.configList.add(0, configuration);
+    }
+
     @Override
     protected Object getInternalProperty(String key) {
         Configuration firstMatchingConfiguration = null;

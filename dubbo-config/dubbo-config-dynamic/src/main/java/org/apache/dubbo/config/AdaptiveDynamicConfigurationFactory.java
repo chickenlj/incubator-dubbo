@@ -14,33 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.dubbo.common.config;
+package org.apache.dubbo.config;
+
+import com.alibaba.dubbo.common.extension.Adaptive;
+import com.alibaba.dubbo.common.extension.ExtensionLoader;
 
 /**
- * This is an abstraction specially customized for the sequence Dubbo retrieves properties.
+ *
  */
-public abstract class AbstractPrefixConfiguration extends AbstractConfiguration {
-
-    private String id;
-    private String prefix;
-
-    public AbstractPrefixConfiguration(String prefix, String id) {
-        super();
-        this.prefix = prefix;
-        this.id = id;
-    }
-
+@Adaptive
+public class AdaptiveDynamicConfigurationFactory implements DynamicConfigurationFactory {
     @Override
-    public Object getProperty(String key, Object defaultValue) {
-        Object value = getInternalProperty(key);
-        if (value == null && prefix != null) {
-            if (id != null) {
-                value = getInternalProperty(prefix + id + "." + key);
-            }
-            if (value == null) {
-                value = getInternalProperty(prefix + key);
-            }
-        }
-        return value;
+    public DynamicConfiguration getDynamicConfiguration(String type) {
+        AbstractDynamicConfiguration configuration = (AbstractDynamicConfiguration) ExtensionLoader.getExtensionLoader(DynamicConfiguration.class).getExtension(type);
+        configuration.setEnv("");
+        return configuration;
     }
 }
