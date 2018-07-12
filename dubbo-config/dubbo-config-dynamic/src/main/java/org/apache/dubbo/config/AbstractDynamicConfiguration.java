@@ -23,9 +23,13 @@ import com.alibaba.dubbo.common.utils.StringUtils;
  *
  */
 public abstract class AbstractDynamicConfiguration extends AbstractConfiguration implements DynamicConfiguration {
+    private String address;
+    private String basePath;
+
     private String prefix;
     private String env;
     private String serviceKey;
+    private String app;
 
     @Override
     public void addListener(ConfigurationListener listener) {
@@ -34,7 +38,7 @@ public abstract class AbstractDynamicConfiguration extends AbstractConfiguration
 
     @Override
     public Object getProperty(String key, Object defaultValue) {
-        Object value = null;
+        Object value;
         if (StringUtils.isNotEmpty(env) && StringUtils.isNotEmpty(prefix)) {
             value = getInternalProperty(prefix + "." + env + "." + key);
         } else {

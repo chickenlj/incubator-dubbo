@@ -78,6 +78,7 @@ public class ApplicationConfig extends AbstractConfig {
     private Boolean qosAcceptForeignIp;
 
     private String dynamicType;
+    private String address;
 
     // customized parameters
     private Map<String, String> parameters;
@@ -245,12 +246,21 @@ public class ApplicationConfig extends AbstractConfig {
         this.qosAcceptForeignIp = qosAcceptForeignIp;
     }
 
+    @Parameter(key = "dynamic.type")
     public String getDynamicType() {
         return dynamicType;
     }
 
     public void setDynamicType(String dynamicType) {
         this.dynamicType = dynamicType;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public Map<String, String> getParameters() {

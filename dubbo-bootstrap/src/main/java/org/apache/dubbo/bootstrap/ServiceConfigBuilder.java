@@ -73,8 +73,8 @@ import static com.alibaba.dubbo.common.utils.NetUtils.isInvalidPort;
 /**
  *
  */
-public class ServiceConfigExporter<T> extends org.apache.dubbo.config.ServiceConfig<T> {
-    public static final Logger logger = LoggerFactory.getLogger(ServiceConfigExporter.class);
+public class ServiceConfigBuilder<T> extends org.apache.dubbo.config.ServiceConfig<T> {
+    public static final Logger logger = LoggerFactory.getLogger(ServiceConfigBuilder.class);
     private static final Protocol protocol = ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension();
     private static final ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
     private static final ScheduledExecutorService delayExportExecutor = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("DubboServiceDelayExporter", true));
@@ -85,10 +85,11 @@ public class ServiceConfigExporter<T> extends org.apache.dubbo.config.ServiceCon
 
     private DubboBootstrap bootstrap;
 
-    public ServiceConfigExporter() {
+    public ServiceConfigBuilder() {
+        super();
     }
 
-    public ServiceConfigExporter(Service service) {
+    public ServiceConfigBuilder(Service service) {
         super(service);
     }
 
@@ -626,4 +627,76 @@ public class ServiceConfigExporter<T> extends org.apache.dubbo.config.ServiceCon
         unexported = true;
     }
 
+    /**
+     * a bunch of fluent style methods to facilitate usage
+     */
+
+    public static <T> ServiceConfigBuilder<T> create() {
+        return new ServiceConfigBuilder<>();
+    }
+
+    public ServiceConfigBuilder<T> interfaceName(String interfaceName) {
+        this.setInterface(interfaceName);
+        return this;
+    }
+
+    public ServiceConfigBuilder<T> timeout(int timeout) {
+        this.setTimeout(timeout);
+        return this;
+    }
+
+    public ServiceConfigBuilder<T> ref(T ref) {
+        this.setRef(ref);
+        return this;
+    }
+
+    public ServiceConfigBuilder<T> generic(String generic) {
+        this.setGeneric(generic);
+        return this;
+    }
+
+    public ServiceConfigBuilder<T> async(boolean isAsync) {
+        this.setAsync(isAsync);
+        return this;
+    }
+
+    public ServiceConfigBuilder<T> group(String group) {
+        this.setGroup(group);
+        return this;
+    }
+
+    public ServiceConfigBuilder<T> version(String version) {
+        this.setVersion(version);
+        return this;
+    }
+
+    public ServiceConfigBuilder<T> register(boolean isRegister) {
+        this.setRegister(isRegister);
+        return this;
+    }
+
+    public ServiceConfigBuilder<T> generic(int delay) {
+        this.setDelay(delay);
+        return this;
+    }
+
+    public ServiceConfigBuilder<T> provider(ProviderConfig providerConfig) {
+        this.setProvider(providerConfig);
+        return this;
+    }
+
+    public ServiceConfigBuilder<T> application(ApplicationConfig applicationConfig) {
+        this.setApplication(applicationConfig);
+        return this;
+    }
+
+    public ServiceConfigBuilder<T> protocol(ProtocolConfig protocolConfig) {
+        this.setProtocol(protocolConfig);
+        return this;
+    }
+
+    public ServiceConfigBuilder<T> monitor(MonitorConfig monitorConfig) {
+        this.setMonitor(monitorConfig);
+        return this;
+    }
 }

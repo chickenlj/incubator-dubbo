@@ -26,7 +26,7 @@ import com.alibaba.dubbo.config.spring.extension.SpringExtensionFactory;
 import com.alibaba.dubbo.config.support.Parameter;
 
 import org.apache.dubbo.bootstrap.Bootstraps;
-import org.apache.dubbo.bootstrap.ReferenceConfigRefer;
+import org.apache.dubbo.bootstrap.ReferenceConfigBuilder;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
@@ -43,7 +43,7 @@ import java.util.Map;
  *
  * @export
  */
-public class ReferenceBean<T> extends ReferenceConfigRefer<T> implements FactoryBean, ApplicationContextAware, InitializingBean, DisposableBean {
+public class ReferenceBean<T> extends ReferenceConfigBuilder<T> implements FactoryBean, ApplicationContextAware, InitializingBean, DisposableBean {
 
     private static final long serialVersionUID = 213195494150089726L;
 

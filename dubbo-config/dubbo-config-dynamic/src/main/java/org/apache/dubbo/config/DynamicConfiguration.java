@@ -17,10 +17,12 @@
 package org.apache.dubbo.config;
 
 import com.alibaba.dubbo.common.config.Configuration;
+import com.alibaba.dubbo.common.extension.SPI;
 
 /**
  *
  */
+@SPI("archaius")
 public interface DynamicConfiguration extends Configuration {
 
     void addListener(ConfigurationListener listener);

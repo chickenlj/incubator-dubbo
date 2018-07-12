@@ -16,11 +16,11 @@
  */
 package com.alibaba.dubbo.config;
 
-import org.apache.dubbo.bootstrap.ReferenceConfigRefer;
+import org.apache.dubbo.bootstrap.ReferenceConfigBuilder;
 
 /**
  *
  */
-public class ReferenceConfig<T> extends ReferenceConfigRefer<T> {
+public class ReferenceConfig<T> extends ReferenceConfigBuilder<T> {
 
 }

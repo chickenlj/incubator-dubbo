@@ -62,8 +62,8 @@ import static com.alibaba.dubbo.common.utils.NetUtils.isInvalidLocalHost;
 /**
  *
  */
-public class ReferenceConfigRefer<T> extends org.apache.dubbo.config.ReferenceConfig<T> {
-    public static final Logger logger = LoggerFactory.getLogger(ReferenceConfigRefer.class);
+public class ReferenceConfigBuilder<T> extends org.apache.dubbo.config.ReferenceConfig<T> {
+    public static final Logger logger = LoggerFactory.getLogger(ReferenceConfigBuilder.class);
 
     private static final Protocol refprotocol = ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension();
     private static final Cluster cluster = ExtensionLoader.getExtensionLoader(Cluster.class).getAdaptiveExtension();
@@ -77,10 +77,10 @@ public class ReferenceConfigRefer<T> extends org.apache.dubbo.config.ReferenceCo
 
     private DubboBootstrap bootstrap;
 
-    public ReferenceConfigRefer() {
+    public ReferenceConfigBuilder() {
     }
 
-    public ReferenceConfigRefer(Reference reference) {
+    public ReferenceConfigBuilder(Reference reference) {
         super(reference);
     }
 
@@ -429,7 +429,7 @@ public class ReferenceConfigRefer<T> extends org.apache.dubbo.config.ReferenceCo
         protected void finalize() throws Throwable {
             super.finalize();
 
-            if (!ReferenceConfigRefer.this.destroyed) {
+            if (!ReferenceConfigBuilder.this.destroyed) {
                 logger.warn("ReferenceConfig(" + url + ") is not DESTROYED when FINALIZE");
 
                 /* don't destroy for now
@@ -442,5 +442,43 @@ public class ReferenceConfigRefer<T> extends org.apache.dubbo.config.ReferenceCo
             }
         }
     };
+
+    /**
+     * a bunch of fluent style methods to facilitate usage
+     */
+
+    public static <T> ReferenceConfigBuilder<T> create() {
+        return new ReferenceConfigBuilder<>();
+    }
+
+    public ReferenceConfigBuilder<T> interfaceName(String interfaceName) {
+        this.setInterface(interfaceName);
+        return this;
+    }
+
+    public ReferenceConfigBuilder<T> id(String id) {
+        this.setId(id);
+        return this;
+    }
+
+    public ReferenceConfigBuilder<T> timeout(int timeout) {
+        this.setTimeout(timeout);
+        return this;
+    }
+
+    public ReferenceConfigBuilder<T> consumer(ConsumerConfig consumerConfig) {
+        this.setConsumer(consumerConfig);
+        return this;
+    }
+
+    public ReferenceConfigBuilder<T> application(ApplicationConfig applicationConfig) {
+        this.setApplication(applicationConfig);
+        return this;
+    }
+
+    public ReferenceConfigBuilder<T> monitor(MonitorConfig monitorConfig) {
+        this.setMonitor(monitorConfig);
+        return this;
+    }
 
 }

@@ -1,0 +1,2 @@
+apollo=org.apache.dubbo.config.apollo.ApolloDynamicConfiguration
+archaius=org.apache.dubbo.config.archaius.ArchaiusDynamicConfiguration

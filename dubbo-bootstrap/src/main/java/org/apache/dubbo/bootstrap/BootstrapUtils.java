@@ -55,6 +55,26 @@ public class BootstrapUtils {
 
     private static final String[] SUFFIXES = new String[]{"Config", "Bean"};
 
+    public static String getCompositeProperty(AbstractConfig config, String key, String defaultValue) {
+        return getCompositeConfiguration(config, "default").getString(key, defaultValue);
+    }
+
+    public static String getCompositeDynamicProperty(AbstractConfig config, ApplicationConfig application, String key, String defaultValue) {
+        CompositeConfiguration compositeConfiguration = getCompositeConfiguration(config, "default");
+        String dynamicType = getCompositeProperty(application, "dynamic.type", "archaius");
+        AbstractDynamicConfiguration dynamic = (AbstractDynamicConfiguration) ExtensionLoader.getExtensionLoader(DynamicConfiguration.class).getExtension(dynamicType);
+        dynamic.setEnv(application.getEnvironment());
+        dynamic.setPrefix("dubbo." + getTagName(config.getClass()) + ".");
+        compositeConfiguration.addConfigurationFirst(dynamic);
+        return compositeConfiguration.getString(key, defaultValue);
+    }
+
+    private static CompositeConfiguration getCompositeConfiguration(AbstractConfig config, String defaultPrefix) {
+        String prefix = "dubbo." + getTagName(config.getClass()) + ".";
+        String id = config.getId();
+        return getCompositeConfiguration(config, defaultPrefix, prefix, id);
+    }
+
     /**
      * @param config
      * @param defaultPrefix "default", only used when {@param config} is ConsumerConfig or ProviderConfig
@@ -62,19 +82,22 @@ public class BootstrapUtils {
      * @param id            {@link ServiceConfig#getId()}
      * @return
      */
-    public static CompositeConfiguration getCompositeConfiguration(AbstractConfig config, String defaultPrefix, String prefix, String id) {
-        Configuration system = ConfigurationHolder.getSystemConf(prefix, id);
-        Configuration properties = ConfigurationHolder.getPropertiesConf(prefix, id);
-        Configuration inmemory = toConfiguration(config, defaultPrefix);
-        return new CompositeConfiguration(system, inmemory, properties);
+    private static CompositeConfiguration getCompositeConfiguration(AbstractConfig config, String defaultPrefix, String prefix, String id) {
+        CompositeConfiguration compositeConfiguration = new CompositeConfiguration();
+        compositeConfiguration.addConfiguration(ConfigurationHolder.getSystemConf(prefix, id));
+        if (config != null) {
+            compositeConfiguration.addConfiguration(toConfiguration(config, defaultPrefix));
+        }
+        compositeConfiguration.addConfiguration(ConfigurationHolder.getPropertiesConf(prefix, id));
+        return compositeConfiguration;
     }
 
     /**
      * @param config
-     * @param defaultPrefix, "default"
+     * @param defaultPrefix
      * @return
      */
-    public static Configuration toConfiguration(AbstractConfig config, String defaultPrefix) {
+    private static Configuration toConfiguration(AbstractConfig config, String defaultPrefix) {
         InmemoryConfiguration configuration = new InmemoryConfiguration();
         if (config == null) {
             return configuration;
@@ -110,13 +133,12 @@ public class BootstrapUtils {
         String prefix = "dubbo." + getTagName(config.getClass()) + ".";
         String id = config.getId();
 
-        Configuration system = ConfigurationHolder.getSystemConf(prefix, id);
-        Configuration properties = ConfigurationHolder.getPropertiesConf(prefix, id);
-        Configuration inmemory = toConfiguration(config, defaultPrefix);
-        AbstractDynamicConfiguration dynamic = (AbstractDynamicConfiguration) ExtensionLoader.getExtensionLoader(DynamicConfiguration.class).getExtension(application.getDynamicType());
+        CompositeConfiguration compositeConfiguration = getCompositeConfiguration(config, "default", prefix, id);
+        String dynamicType = getCompositeProperty(application, "dynamic.type", "archaius");
+        AbstractDynamicConfiguration dynamic = (AbstractDynamicConfiguration) ExtensionLoader.getExtensionLoader(DynamicConfiguration.class).getExtension(dynamicType);
         dynamic.setEnv(application.getEnvironment());
         dynamic.setPrefix(prefix);
-        CompositeConfiguration compositeConfiguration = new CompositeConfiguration(dynamic, system, inmemory, properties);
+        compositeConfiguration.addConfigurationFirst(dynamic);
         Set<String> keys = config.getMetaData(defaultPrefix).keySet();
         keys.forEach(key -> {
             String value = compositeConfiguration.getString(key);
@@ -158,45 +180,46 @@ public class BootstrapUtils {
         List<URL> registryList = new ArrayList<>();
         ApplicationConfig application = interfaceConfig.getApplication();
         List<RegistryConfig> registries = interfaceConfig.getRegistries();
-        if (registries != null && !registries.isEmpty()) {
-            for (RegistryConfig registryConfig : registries) {
-                String address = registryConfig.getAddress();
-                if (address == null || address.length() == 0) {
-                    address = Constants.ANYHOST_VALUE;
-                }
-                String sysaddress = System.getProperty("dubbo.registry.address");
-                if (sysaddress != null && sysaddress.length() > 0) {
-                    address = sysaddress;
-                }
-                if (address.length() > 0 && !RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)) {
-                    Map<String, String> map = new HashMap<>();
-                    map.putAll(configToMap(application, null));
-                    map.putAll(configToMapConsideringDynamic(registryConfig, null, application));
-                    map.put("path", RegistryService.class.getName());
-                    map.put("dubbo", Version.getProtocolVersion());
-                    map.put(Constants.TIMESTAMP_KEY, String.valueOf(System.currentTimeMillis()));
-                    if (ConfigUtils.getPid() > 0) {
-                        map.put(Constants.PID_KEY, String.valueOf(ConfigUtils.getPid()));
+        if ()
+            if (registries != null && !registries.isEmpty()) {
+                for (RegistryConfig registryConfig : registries) {
+                    String address = registryConfig.getAddress();
+                    if (address == null || address.length() == 0) {
+                        address = Constants.ANYHOST_VALUE;
                     }
-                    if (!map.containsKey("protocol")) {
-                        if (ExtensionLoader.getExtensionLoader(RegistryFactory.class).hasExtension("remote")) {
-                            map.put("protocol", "remote");
-                        } else {
-                            map.put("protocol", "dubbo");
+                    String sysaddress = System.getProperty("dubbo.registry.address");
+                    if (sysaddress != null && sysaddress.length() > 0) {
+                        address = sysaddress;
+                    }
+                    if (address.length() > 0 && !RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)) {
+                        Map<String, String> map = new HashMap<>();
+                        map.putAll(configToMap(application, null));
+                        map.putAll(configToMapConsideringDynamic(registryConfig, null, application));
+                        map.put("path", RegistryService.class.getName());
+                        map.put("dubbo", Version.getProtocolVersion());
+                        map.put(Constants.TIMESTAMP_KEY, String.valueOf(System.currentTimeMillis()));
+                        if (ConfigUtils.getPid() > 0) {
+                            map.put(Constants.PID_KEY, String.valueOf(ConfigUtils.getPid()));
                         }
-                    }
-                    List<URL> urls = UrlUtils.parseURLs(address, map);
-                    for (URL url : urls) {
-                        url = url.addParameter(Constants.REGISTRY_KEY, url.getProtocol());
-                        url = url.setProtocol(Constants.REGISTRY_PROTOCOL);
-                        if ((provider && url.getParameter(Constants.REGISTER_KEY, true))
-                                || (!provider && url.getParameter(Constants.SUBSCRIBE_KEY, true))) {
-                            registryList.add(url);
+                        if (!map.containsKey("protocol")) {
+                            if (ExtensionLoader.getExtensionLoader(RegistryFactory.class).hasExtension("remote")) {
+                                map.put("protocol", "remote");
+                            } else {
+                                map.put("protocol", "dubbo");
+                            }
+                        }
+                        List<URL> urls = UrlUtils.parseURLs(address, map);
+                        for (URL url : urls) {
+                            url = url.addParameter(Constants.REGISTRY_KEY, url.getProtocol());
+                            url = url.setProtocol(Constants.REGISTRY_PROTOCOL);
+                            if ((provider && url.getParameter(Constants.REGISTER_KEY, true))
+                                    || (!provider && url.getParameter(Constants.SUBSCRIBE_KEY, true))) {
+                                registryList.add(url);
+                            }
                         }
                     }
                 }
             }
-        }
         return registryList;
     }
 

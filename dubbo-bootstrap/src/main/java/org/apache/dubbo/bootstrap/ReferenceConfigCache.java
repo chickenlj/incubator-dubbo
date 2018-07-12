@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentMap;
 public class ReferenceConfigCache {
     public static final String DEFAULT_NAME = "_DEFAULT_";
     /**
-     * Create the key with the <b>Group</b>, <b>Interface</b> and <b>version</b> attribute of {@link ReferenceConfigRefer}.
+     * Create the key with the <b>Group</b>, <b>Interface</b> and <b>version</b> attribute of {@link ReferenceConfigBuilder}.
      * <p>
      * key example: <code>group1/com.alibaba.foo.FooService:1.0.0</code>.
      */
@@ -57,7 +57,7 @@ public class ReferenceConfigCache {
     static final ConcurrentMap<String, ReferenceConfigCache> cacheHolder = new ConcurrentHashMap<String, ReferenceConfigCache>();
     private final String name;
     private final KeyGenerator generator;
-    ConcurrentMap<String, ReferenceConfigRefer<?>> cache = new ConcurrentHashMap<>();
+    ConcurrentMap<String, ReferenceConfigBuilder<?>> cache = new ConcurrentHashMap<>();
 
     protected ReferenceConfigCache(String name, KeyGenerator generator) {
         this.name = name;
@@ -94,10 +94,10 @@ public class ReferenceConfigCache {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T get(ReferenceConfigRefer<T> referenceConfig) {
+    public <T> T get(ReferenceConfigBuilder<T> referenceConfig) {
         String key = generator.generateKey(referenceConfig);
 
-        ReferenceConfigRefer<?> config = cache.get(key);
+        ReferenceConfigBuilder<?> config = cache.get(key);
         if (config != null) {
             return (T) config.get();
         }
@@ -109,7 +109,7 @@ public class ReferenceConfigCache {
 
     @SuppressWarnings("unchecked")
     public <T> T get(String key) {
-        ReferenceConfigRefer<?> config = cache.get(key);
+        ReferenceConfigBuilder<?> config = cache.get(key);
         if (config != null) {
             return (T) config.get();
         }
@@ -117,23 +117,23 @@ public class ReferenceConfigCache {
     }
 
     void destroyKey(String key) {
-        ReferenceConfigRefer<?> config = cache.remove(key);
+        ReferenceConfigBuilder<?> config = cache.remove(key);
         if (config == null) return;
         config.destroy();
     }
 
     /**
-     * clear and destroy one {@link ReferenceConfigRefer} in the cache.
+     * clear and destroy one {@link ReferenceConfigBuilder} in the cache.
      *
      * @param referenceConfig use for create key.
      */
-    public <T> void destroy(ReferenceConfigRefer<T> referenceConfig) {
+    public <T> void destroy(ReferenceConfigBuilder<T> referenceConfig) {
         String key = generator.generateKey(referenceConfig);
         destroyKey(key);
     }
 
     /**
-     * clear and destroy all {@link ReferenceConfigRefer} in the cache.
+     * clear and destroy all {@link ReferenceConfigBuilder} in the cache.
      */
     public void destroyAll() {
         Set<String> set = new HashSet<>(cache.keySet());
@@ -149,6 +149,6 @@ public class ReferenceConfigCache {
     }
 
     public static interface KeyGenerator {
-        String generateKey(ReferenceConfigRefer<?> referenceConfig);
+        String generateKey(ReferenceConfigBuilder<?> referenceConfig);
     }
 }

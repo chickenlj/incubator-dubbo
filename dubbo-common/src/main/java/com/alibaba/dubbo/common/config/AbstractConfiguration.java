@@ -48,6 +48,10 @@ public abstract class AbstractConfiguration implements Configuration {
         // we only process String properties for now
         String value = (String) getProperty(key);
 
+        if (value == null) {
+            return defaultValue;
+        }
+
         Object obj = value;
         if (cls.isInstance(value)) {
             return cls.cast(value);

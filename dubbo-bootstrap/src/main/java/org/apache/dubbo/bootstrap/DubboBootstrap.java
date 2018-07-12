@@ -40,8 +40,8 @@ public class DubboBootstrap {
     /**
      * The list of ServiceConfig
      */
-    private List<ServiceConfigExporter> serviceConfigList;
-    private List<ReferenceConfigRefer> referenceConfigList;
+    private List<ServiceConfigBuilder> serviceConfigList;
+    private List<ReferenceConfigBuilder> referenceConfigList;
 
     private ApplicationConfig application;
     private List<RegistryConfig> registries;
@@ -124,13 +124,13 @@ public class DubboBootstrap {
      * @param serviceConfig the service
      * @return the bootstrap instance
      */
-    public DubboBootstrap registerServiceConfig(ServiceConfigExporter serviceConfig) {
+    public DubboBootstrap registerServiceConfig(ServiceConfigBuilder serviceConfig) {
         serviceConfig.setBootstrap(this);
         serviceConfigList.add(serviceConfig);
         return this;
     }
 
-    public DubboBootstrap registerReferenceConfig(ReferenceConfigRefer referenceConfig) {
+    public DubboBootstrap registerReferenceConfig(ReferenceConfigBuilder referenceConfig) {
         referenceConfig.setBootstrap(this);
         referenceConfigList.add(referenceConfig);
         return this;
@@ -184,7 +184,7 @@ public class DubboBootstrap {
         });
     }
 
-    public synchronized void export(ServiceConfigExporter serviceConfig) {
+    public synchronized void export(ServiceConfigBuilder serviceConfig) {
         serviceConfig.setBootstrap(this);
         serviceConfig.export();
     }
@@ -199,7 +199,7 @@ public class DubboBootstrap {
         });
     }
 
-    public synchronized Object refer(ReferenceConfigRefer referenceConfig) {
+    public synchronized Object refer(ReferenceConfigBuilder referenceConfig) {
         referenceConfig.setBootstrap(this);
         Object ref = cache.get(referenceConfig);
         if (ref != null) {
@@ -209,18 +209,18 @@ public class DubboBootstrap {
     }
 
     public synchronized void unexport() {
-        serviceConfigList.forEach(ServiceConfigExporter::unexport);
+        serviceConfigList.forEach(ServiceConfigBuilder::unexport);
     }
 
-    public synchronized void unexport(ServiceConfigExporter serviceConfigExporter) {
-        serviceConfigExporter.unexport();
+    public synchronized void unexport(ServiceConfigBuilder serviceConfigBuilder) {
+        serviceConfigBuilder.unexport();
     }
 
     public synchronized void unrefer() {
         cache.destroyAll();
     }
 
-    public synchronized void unrefer(ReferenceConfigRefer referenceConfig) {
+    public synchronized void unrefer(ReferenceConfigBuilder referenceConfig) {
         cache.destroy(referenceConfig);
     }
 

@@ -26,7 +26,7 @@ import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.dubbo.config.spring.extension.SpringExtensionFactory;
 
 import org.apache.dubbo.bootstrap.Bootstraps;
-import org.apache.dubbo.bootstrap.ServiceConfigExporter;
+import org.apache.dubbo.bootstrap.ServiceConfigBuilder;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.BeanNameAware;
@@ -48,7 +48,7 @@ import java.util.Map;
  *
  * @export
  */
-public class ServiceBean<T> extends ServiceConfigExporter<T> implements InitializingBean, DisposableBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent>, BeanNameAware {
+public class ServiceBean<T> extends ServiceConfigBuilder<T> implements InitializingBean, DisposableBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent>, BeanNameAware {
 
     private static final long serialVersionUID = 213195494150089726L;
 

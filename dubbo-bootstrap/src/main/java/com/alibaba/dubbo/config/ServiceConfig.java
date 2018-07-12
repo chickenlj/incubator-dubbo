@@ -16,11 +16,11 @@
  */
 package com.alibaba.dubbo.config;
 
-import org.apache.dubbo.bootstrap.ServiceConfigExporter;
+import org.apache.dubbo.bootstrap.ServiceConfigBuilder;
 
 /**
  *
  */
-public class ServiceConfig<T> extends ServiceConfigExporter<T> {
+public class ServiceConfig<T> extends ServiceConfigBuilder<T> {
 
 }

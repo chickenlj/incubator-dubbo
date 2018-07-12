@@ -42,6 +42,9 @@ public class CompositeConfiguration extends AbstractConfiguration {
     }
 
     public void addConfiguration(Configuration configuration) {
+        if (configList.contains(configuration)) {
+            return;
+        }
         this.configList.add(configuration);
     }
 
@@ -53,9 +56,13 @@ public class CompositeConfiguration extends AbstractConfiguration {
     protected Object getInternalProperty(String key) {
         Configuration firstMatchingConfiguration = null;
         for (Configuration config : configList) {
-            if (config.containsKey(key)) {
-                firstMatchingConfiguration = config;
-                break;
+            try {
+                if (config.containsKey(key)) {
+                    firstMatchingConfiguration = config;
+                    break;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         if (firstMatchingConfiguration != null) {
