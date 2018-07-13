@@ -246,7 +246,7 @@ public class ApplicationConfig extends AbstractConfig {
         this.qosAcceptForeignIp = qosAcceptForeignIp;
     }
 
-    @Parameter(key = "dynamic.type")
+    @Parameter(key = "dynamic.type", excluded = true)
     public String getDynamicType() {
         return dynamicType;
     }
@@ -255,6 +255,7 @@ public class ApplicationConfig extends AbstractConfig {
         this.dynamicType = dynamicType;
     }
 
+    @Parameter(excluded = true)
     public String getAddress() {
         return address;
     }

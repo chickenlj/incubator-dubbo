@@ -40,9 +40,9 @@ public abstract class AbstractDynamicConfiguration extends AbstractConfiguration
     public Object getProperty(String key, Object defaultValue) {
         Object value;
         if (StringUtils.isNotEmpty(env) && StringUtils.isNotEmpty(prefix)) {
-            value = getInternalProperty(prefix + "." + env + "." + key);
+            value = getInternalProperty(prefix + env + "." + key);
         } else {
-            value = getInternalProperty(prefix + "." + key);
+            value = getInternalProperty(prefix + key);
         }
         if (value == null) {
             value = getInternalProperty(key);

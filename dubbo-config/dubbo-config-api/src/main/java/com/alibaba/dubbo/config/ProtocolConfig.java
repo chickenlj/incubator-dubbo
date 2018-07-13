@@ -109,7 +109,6 @@ public class ProtocolConfig extends AbstractConfig {
     // whether to register
     private Boolean register;
 
-    // parameters
     // 是否长连接
     // TODO add this to provider config
     private Boolean keepAlive;

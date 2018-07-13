@@ -323,17 +323,18 @@ public abstract class AbstractConfig implements Serializable {
                             && Modifier.isPublic(method.getModifiers())
                             && method.getParameterTypes().length == 0
                             && isPrimitive(method.getReturnType())) {
-                        Parameter parameter = method.getAnnotation(Parameter.class);
-                        if (method.getReturnType() == Object.class || parameter != null && parameter.excluded()) {
-                            continue;
-                        }
                         int i = name.startsWith("get") ? 3 : 2;
                         String prop = StringUtils.camelToSplitName(name.substring(i, i + 1).toLowerCase() + name.substring(i + 1), ".");
                         String key;
+                        Parameter parameter = method.getAnnotation(Parameter.class);
                         if (parameter != null && parameter.key().length() > 0) {
                             key = parameter.key();
                         } else {
                             key = prop;
+                        }
+                        if (method.getReturnType() == Object.class || parameter != null && parameter.excluded()) {
+                            metaData.put(key, null);
+                            continue;
                         }
                         Object value = method.invoke(this);
                         String str = String.valueOf(value).trim();
@@ -355,6 +356,8 @@ public abstract class AbstractConfig implements Serializable {
                                 key = prefix + "." + key;
                             }
                             metaData.put(key, str);
+                        } else {
+                            metaData.put(key, null);
                         }
                         // TODO check required somewhere else.
                         /*else if (parameter != null && parameter.required()) {

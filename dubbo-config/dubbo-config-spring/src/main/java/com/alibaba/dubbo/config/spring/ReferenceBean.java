@@ -25,7 +25,7 @@ import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.dubbo.config.spring.extension.SpringExtensionFactory;
 import com.alibaba.dubbo.config.support.Parameter;
 
-import org.apache.dubbo.bootstrap.Bootstraps;
+import org.apache.dubbo.bootstrap.DubboBootstrap;
 import org.apache.dubbo.bootstrap.ReferenceConfigBuilder;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.DisposableBean;
@@ -65,7 +65,7 @@ public class ReferenceBean<T> extends ReferenceConfigBuilder<T> implements Facto
 
     @Override
     public Object getObject() throws Exception {
-        return Bootstraps.bootstrap().refer(this);
+        return DubboBootstrap.getInstance().refer(this);
     }
 
     @Override

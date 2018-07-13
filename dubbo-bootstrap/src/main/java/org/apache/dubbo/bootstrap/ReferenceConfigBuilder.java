@@ -162,37 +162,7 @@ public class ReferenceConfigBuilder<T> extends org.apache.dubbo.config.Reference
                 }
             }
         }
-        if (consumer != null) {
-            if (application == null) {
-                application = consumer.getApplication();
-            }
-            if (module == null) {
-                module = consumer.getModule();
-            }
-            if (registries == null) {
-                registries = consumer.getRegistries();
-            }
-            if (monitor == null) {
-                monitor = consumer.getMonitor();
-            }
-        }
-        if (module != null) {
-            if (registries == null) {
-                registries = module.getRegistries();
-            }
-            if (monitor == null) {
-                monitor = module.getMonitor();
-            }
-        }
-        if (application != null) {
-            if (registries == null) {
-                registries = application.getRegistries();
-            }
-            if (monitor == null) {
-                monitor = application.getMonitor();
-            }
-        }
-        checkApplication();
+        initReferenceConfig();
         checkStubAndMock(interfaceClass);
         Map<String, String> map = new HashMap<String, String>();
         Map<Object, Object> attributes = new HashMap<Object, Object>();
@@ -346,7 +316,7 @@ public class ReferenceConfigBuilder<T> extends org.apache.dubbo.config.Reference
         return (T) proxyFactory.getProxy(invoker);
     }
 
-    public void initReferenceConfig() {
+    private void initReferenceConfig() {
         if (this.getConsumer() == null) {
             this.setConsumer(bootstrap.getConsumer() == null ? new ConsumerConfig() : bootstrap.getConsumer());
         }
@@ -399,6 +369,7 @@ public class ReferenceConfigBuilder<T> extends org.apache.dubbo.config.Reference
         }
 
         this.checkApplication();
+        this.checkRegistry();
         this.checkStubAndMock(this.getInterfaceClass());
     }
 

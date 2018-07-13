@@ -16,7 +16,6 @@
  */
 package com.alibaba.dubbo.config.spring.initializer;
 
-import org.apache.dubbo.bootstrap.Bootstraps;
 import org.apache.dubbo.bootstrap.DubboBootstrap;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -32,7 +31,8 @@ public class DubboApplicationListener implements ApplicationListener<Application
     private DubboBootstrap dubboBootstrap;
 
     public DubboApplicationListener() {
-        dubboBootstrap = Bootstraps.bootstrap(true);
+        dubboBootstrap = DubboBootstrap.getInstance();
+        dubboBootstrap.setRegisterShutdownHookOnStart(false);
     }
 
     public DubboApplicationListener(DubboBootstrap dubboBootstrap) {

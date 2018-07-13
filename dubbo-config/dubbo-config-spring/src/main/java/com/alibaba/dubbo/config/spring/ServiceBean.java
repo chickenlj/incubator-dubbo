@@ -25,7 +25,7 @@ import com.alibaba.dubbo.config.RegistryConfig;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.dubbo.config.spring.extension.SpringExtensionFactory;
 
-import org.apache.dubbo.bootstrap.Bootstraps;
+import org.apache.dubbo.bootstrap.DubboBootstrap;
 import org.apache.dubbo.bootstrap.ServiceConfigBuilder;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactoryUtils;
@@ -122,7 +122,7 @@ public class ServiceBean<T> extends ServiceConfigBuilder<T> implements Initializ
             if (logger.isInfoEnabled()) {
                 logger.info("The service ready on spring started. service: " + getInterface());
             }
-            Bootstraps.bootstrap().export(this);
+            DubboBootstrap.getInstance().serviceConfig(this);
         }
     }
 
@@ -263,7 +263,7 @@ public class ServiceBean<T> extends ServiceConfigBuilder<T> implements Initializ
             }
         }
         if (!isDelay()) {
-            Bootstraps.bootstrap().registerServiceConfig(this);
+            DubboBootstrap.getInstance().serviceConfig(this);
         }
     }
 

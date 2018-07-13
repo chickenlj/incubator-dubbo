@@ -197,11 +197,66 @@ public class ServiceConfigBuilder<T> extends org.apache.dubbo.config.ServiceConf
     }
 
     private void doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs) {
+        URL url = this.generateUrl(protocolConfig, registryURLs);
+        if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
+                .hasExtension(url.getProtocol())) {
+            url = ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
+                    .getExtension(url.getProtocol()).getConfigurator(url).configure(url);
+        }
+
+        String scope = url.getParameter(Constants.SCOPE_KEY);
+        // don't export when none is configured
+        if (!Constants.SCOPE_NONE.toString().equalsIgnoreCase(scope)) {
+
+            // export to local if the config is not remote (export to remote only when config is remote)
+            if (!Constants.SCOPE_REMOTE.toString().equalsIgnoreCase(scope)) {
+                exportLocal(url);
+            }
+            // export to remote if the config is not local (export to local only when config is local)
+            if (!Constants.SCOPE_LOCAL.toString().equalsIgnoreCase(scope)) {
+                if (logger.isInfoEnabled()) {
+                    logger.info("Export dubbo service " + interfaceClass.getName() + " to url " + url);
+                }
+                if (registryURLs != null && !registryURLs.isEmpty()) {
+                    for (URL registryURL : registryURLs) {
+                        url = url.addParameterIfAbsent(Constants.DYNAMIC_KEY, registryURL.getParameter(Constants.DYNAMIC_KEY));
+                        URL monitorUrl = BootstrapUtils.loadMonitor(this, registryURL);
+                        if (monitorUrl != null) {
+                            url = url.addParameterAndEncoded(Constants.MONITOR_KEY, monitorUrl.toFullString());
+                        }
+                        if (logger.isInfoEnabled()) {
+                            logger.info("Register dubbo service " + interfaceClass.getName() + " url " + url + " to registry " + registryURL);
+                        }
+
+                        // For providers, this is used to enable custom proxy to generate invoker
+                        String proxy = url.getParameter(Constants.PROXY_KEY);
+                        if (StringUtils.isNotEmpty(proxy)) {
+                            registryURL = registryURL.addParameter(Constants.PROXY_KEY, proxy);
+                        }
+
+                        Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(Constants.EXPORT_KEY, url.toFullString()));
+                        DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
+
+                        Exporter<?> exporter = protocol.export(wrapperInvoker);
+                        exporters.add(exporter);
+                    }
+                } else {
+                    Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, url);
+                    DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
+
+                    Exporter<?> exporter = protocol.export(wrapperInvoker);
+                    exporters.add(exporter);
+                }
+            }
+        }
+        this.urls.add(url);
+    }
+
+    private URL generateUrl(ProtocolConfig protocolConfig, List<URL> registryURLs) {
         String name = protocolConfig.getName();
         if (name == null || name.length() == 0) {
             name = "dubbo";
         }
-
         Map<String, String> map = new HashMap<String, String>();
         map.put(Constants.SIDE_KEY, Constants.PROVIDER_SIDE);
         map.put(Constants.DUBBO_VERSION_KEY, Version.getProtocolVersion());
@@ -306,60 +361,7 @@ public class ServiceConfigBuilder<T> extends org.apache.dubbo.config.ServiceConf
 
         String host = this.findConfigedHosts(protocolConfig, registryURLs, map);
         Integer port = this.findConfigedPorts(protocolConfig, map);
-        URL url = new URL(name, host, port, (contextPath == null || contextPath.length() == 0 ? "" : contextPath + "/") + path, map);
-
-        if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
-                .hasExtension(url.getProtocol())) {
-            url = ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
-                    .getExtension(url.getProtocol()).getConfigurator(url).configure(url);
-        }
-
-        String scope = url.getParameter(Constants.SCOPE_KEY);
-        // don't export when none is configured
-        if (!Constants.SCOPE_NONE.toString().equalsIgnoreCase(scope)) {
-
-            // export to local if the config is not remote (export to remote only when config is remote)
-            if (!Constants.SCOPE_REMOTE.toString().equalsIgnoreCase(scope)) {
-                exportLocal(url);
-            }
-            // export to remote if the config is not local (export to local only when config is local)
-            if (!Constants.SCOPE_LOCAL.toString().equalsIgnoreCase(scope)) {
-                if (logger.isInfoEnabled()) {
-                    logger.info("Export dubbo service " + interfaceClass.getName() + " to url " + url);
-                }
-                if (registryURLs != null && !registryURLs.isEmpty()) {
-                    for (URL registryURL : registryURLs) {
-                        url = url.addParameterIfAbsent(Constants.DYNAMIC_KEY, registryURL.getParameter(Constants.DYNAMIC_KEY));
-                        URL monitorUrl = BootstrapUtils.loadMonitor(this, registryURL);
-                        if (monitorUrl != null) {
-                            url = url.addParameterAndEncoded(Constants.MONITOR_KEY, monitorUrl.toFullString());
-                        }
-                        if (logger.isInfoEnabled()) {
-                            logger.info("Register dubbo service " + interfaceClass.getName() + " url " + url + " to registry " + registryURL);
-                        }
-
-                        // For providers, this is used to enable custom proxy to generate invoker
-                        String proxy = url.getParameter(Constants.PROXY_KEY);
-                        if (StringUtils.isNotEmpty(proxy)) {
-                            registryURL = registryURL.addParameter(Constants.PROXY_KEY, proxy);
-                        }
-
-                        Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(Constants.EXPORT_KEY, url.toFullString()));
-                        DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
-
-                        Exporter<?> exporter = protocol.export(wrapperInvoker);
-                        exporters.add(exporter);
-                    }
-                } else {
-                    Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, url);
-                    DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
-
-                    Exporter<?> exporter = protocol.export(wrapperInvoker);
-                    exporters.add(exporter);
-                }
-            }
-        }
-        this.urls.add(url);
+        return new URL(name, host, port, (contextPath == null || contextPath.length() == 0 ? "" : contextPath + "/") + path, map);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

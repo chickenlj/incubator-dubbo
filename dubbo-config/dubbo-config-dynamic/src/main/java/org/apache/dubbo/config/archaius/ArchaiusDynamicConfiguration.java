@@ -31,6 +31,9 @@ import org.apache.dubbo.config.ConfigurationListener;
  */
 public class ArchaiusDynamicConfiguration extends AbstractDynamicConfiguration {
 
+    /**
+     * Ensure that this extension get loaded during app start.
+     */
     public ArchaiusDynamicConfiguration() {
         String zkConfigRootPath = "/dubbo/config/archaius";
 

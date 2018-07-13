@@ -32,6 +32,7 @@ import java.util.List;
  * The bootstrap class will be responsible to cleanup the resources during stop.
  */
 public class DubboBootstrap {
+    private static final DubboBootstrap INSTANCE = new DubboBootstrap(true);
 
     /**
      * Whether register the shutdown hook during start?
@@ -51,11 +52,23 @@ public class DubboBootstrap {
     private MonitorConfig monitor;
     private ModuleConfig module;
 
-    private ReferenceConfigCache cache;
+    private ReferenceConfigCache cache = ReferenceConfigCache.getCache();
     /**
      * The shutdown hook used when Dubbo is running under embedded environment
      */
     private DubboShutdownHook shutdownHook;
+
+    public static DubboBootstrap getInstance() {
+        return INSTANCE;
+    }
+
+    public static DubboBootstrap newBootStrap() {
+        return new DubboBootstrap(false);
+    }
+
+    public static DubboBootstrap newBootStrap(boolean registerShutdownHookOnStart) {
+        return new DubboBootstrap(registerShutdownHookOnStart);
+    }
 
     public DubboBootstrap() {
         this(true, DubboShutdownHook.getDubboShutdownHook());
@@ -68,7 +81,6 @@ public class DubboBootstrap {
     public DubboBootstrap(boolean registerShutdownHookOnStart, DubboShutdownHook shutdownHook) {
         this.serviceConfigList = new ArrayList<>();
         this.referenceConfigList = new ArrayList<>();
-        this.cache = ReferenceConfigCache.getCache();
         this.shutdownHook = shutdownHook;
         this.registerShutdownHookOnStart = registerShutdownHookOnStart;
     }
@@ -94,12 +106,23 @@ public class DubboBootstrap {
     }
 
     public DubboBootstrap registryConfig(RegistryConfig registryConfig) {
+        if (this.registries == null) {
+            this.registries = new ArrayList<>();
+        }
         this.registries.add(registryConfig);
         return this;
     }
 
-    public DubboBootstrap protocolConfig(List<ProtocolConfig> protocolConfigs) {
+    public DubboBootstrap protocolConfigs(List<ProtocolConfig> protocolConfigs) {
         this.protocols = protocolConfigs;
+        return this;
+    }
+
+    public DubboBootstrap protocolConfig(ProtocolConfig protocolConfig) {
+        if (this.protocols == null) {
+            this.protocols = new ArrayList<>();
+        }
+        this.protocols.add(protocolConfig);
         return this;
     }
 
@@ -118,19 +141,24 @@ public class DubboBootstrap {
         return this;
     }
 
+    public DubboBootstrap cache(ReferenceConfigCache cache) {
+        this.cache = cache;
+        return this;
+    }
+
     /**
      * Register service config to bootstrap, which will be called during {@link DubboBootstrap#stop()}
      *
      * @param serviceConfig the service
      * @return the bootstrap instance
      */
-    public DubboBootstrap registerServiceConfig(ServiceConfigBuilder serviceConfig) {
+    public DubboBootstrap serviceConfig(ServiceConfigBuilder serviceConfig) {
         serviceConfig.setBootstrap(this);
         serviceConfigList.add(serviceConfig);
         return this;
     }
 
-    public DubboBootstrap registerReferenceConfig(ReferenceConfigBuilder referenceConfig) {
+    public DubboBootstrap referenceConfig(ReferenceConfigBuilder referenceConfig) {
         referenceConfig.setBootstrap(this);
         referenceConfigList.add(referenceConfig);
         return this;
@@ -190,22 +218,30 @@ public class DubboBootstrap {
     }
 
     public synchronized void refer() {
-        referenceConfigList.forEach(referenceConfig -> {
-            referenceConfig.setBootstrap(this);
-            if (cache.get(referenceConfig) != null) {
-                return;
-            }
-            referenceConfig.refer();
-        });
+        refer(true);
     }
 
     public synchronized Object refer(ReferenceConfigBuilder referenceConfig) {
+        return refer(referenceConfig, true);
+    }
+
+    public synchronized Object refer(ReferenceConfigBuilder referenceConfig, boolean isCache) {
         referenceConfig.setBootstrap(this);
-        Object ref = cache.get(referenceConfig);
-        if (ref != null) {
-            return ref;
+        if (isCache) {
+            return cache.get(referenceConfig);
         }
         return referenceConfig.refer();
+    }
+
+    public synchronized void refer(boolean isCache) {
+        referenceConfigList.forEach(referenceConfig -> {
+            referenceConfig.setBootstrap(this);
+            if (isCache) {
+                cache.get(referenceConfig);
+            } else {
+                referenceConfig.refer();
+            }
+        });
     }
 
     public synchronized void unexport() {
@@ -254,5 +290,9 @@ public class DubboBootstrap {
 
     public void setRegisterShutdownHookOnStart(boolean register) {
         this.registerShutdownHookOnStart = register;
+    }
+
+    public ReferenceConfigCache getCache() {
+        return cache;
     }
 }

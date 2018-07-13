@@ -65,7 +65,7 @@ public class InmemoryConfiguration extends AbstractConfiguration {
 
     @Override
     public boolean containsKey(String key) {
-        return store.containsKey(key);
+        return store.containsKey(key) && store.get(key) != null;
     }
 
     @Override

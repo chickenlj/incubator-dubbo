@@ -17,10 +17,8 @@
 package com.alibaba.dubbo.config;
 
 import com.alibaba.dubbo.common.Constants;
-import com.alibaba.dubbo.common.Version;
 import com.alibaba.dubbo.common.config.ConfigurationHolder;
 import com.alibaba.dubbo.common.utils.ConfigUtils;
-import com.alibaba.dubbo.common.utils.NetUtils;
 import com.alibaba.dubbo.common.utils.ReflectUtils;
 import com.alibaba.dubbo.config.support.Parameter;
 import com.alibaba.dubbo.rpc.support.MockInvoker;
@@ -92,27 +90,10 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     protected String dynamicType;
 
     public void checkRegistry() {
-        // for backward compatibility
         if (registries == null || registries.isEmpty()) {
-            String address = ConfigurationHolder.getCompositeConf().getString("dubbo.registry.address");
-            if (address != null && address.length() > 0) {
-                registries = new ArrayList<RegistryConfig>();
-                String[] as = address.split("\\s*[|]+\\s*");
-                for (String a : as) {
-                    RegistryConfig registryConfig = new RegistryConfig();
-                    registryConfig.setAddress(a);
-                    registries.add(registryConfig);
-                }
-            }
-        }
-        if ((registries == null || registries.isEmpty())) {
-            throw new IllegalStateException((getClass().getSimpleName().startsWith("Reference")
-                    ? "No such any registry to refer service in consumer "
-                    : "No such any registry to export service in provider ")
-                    + NetUtils.getLocalHost()
-                    + " use dubbo version "
-                    + Version.getVersion()
-                    + ", Please add <dubbo:registry address=\"...\" /> to your spring config. If you want unregister, please set <dubbo:service registry=\"N/A\" />");
+            registries = new ArrayList<>();
+            RegistryConfig registryConfig = new RegistryConfig();
+            registries.add(registryConfig);
         }
     }
 
