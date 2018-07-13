@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.dubbo.common.config;
+package org.apache.dubbo.common.config;
 
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.logger.Logger;
@@ -122,7 +122,7 @@ public class PropertiesConfiguration extends AbstractPrefixConfiguration {
         List<URL> list = new ArrayList<URL>();
         try {
             Enumeration<URL> urls = ClassHelper.getClassLoader().getResources(fileName);
-            list = new ArrayList<java.net.URL>();
+            list = new ArrayList<URL>();
             while (urls.hasMoreElements()) {
                 list.add(urls.nextElement());
             }
@@ -156,7 +156,7 @@ public class PropertiesConfiguration extends AbstractPrefixConfiguration {
 
         logger.info("load " + fileName + " properties file from " + list);
 
-        for (java.net.URL url : list) {
+        for (URL url : list) {
             try {
                 Properties p = new Properties();
                 InputStream input = url.openStream();

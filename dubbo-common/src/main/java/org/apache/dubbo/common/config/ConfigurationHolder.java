@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.dubbo.common.config;
+package org.apache.dubbo.common.config;
 
 /**
  * TODO load as SPI may be better

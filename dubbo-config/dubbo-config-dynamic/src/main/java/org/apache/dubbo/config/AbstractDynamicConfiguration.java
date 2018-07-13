@@ -16,8 +16,8 @@
  */
 package org.apache.dubbo.config;
 
-import com.alibaba.dubbo.common.config.AbstractConfiguration;
-import com.alibaba.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.common.config.AbstractConfiguration;
+import org.apache.dubbo.common.utils.StringUtils;
 
 /**
  *

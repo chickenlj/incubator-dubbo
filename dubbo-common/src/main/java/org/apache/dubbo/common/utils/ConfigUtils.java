@@ -16,10 +16,14 @@
  */
 package org.apache.dubbo.common.utils;
 
-import org.apache.dubbo.common.Constants;
-import org.apache.dubbo.common.extension.ExtensionLoader;
-import org.apache.dubbo.common.logger.Logger;
-import org.apache.dubbo.common.logger.LoggerFactory;
+import com.alibaba.dubbo.common.Constants;
+import com.alibaba.dubbo.common.config.CompositeConfiguration;
+import com.alibaba.dubbo.common.config.Configuration;
+import com.alibaba.dubbo.common.config.PropertiesConfiguration;
+import com.alibaba.dubbo.common.config.SystemConfiguration;
+import com.alibaba.dubbo.common.extension.ExtensionLoader;
+import com.alibaba.dubbo.common.logger.Logger;
+import com.alibaba.dubbo.common.logger.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -42,6 +46,12 @@ public class ConfigUtils {
     private static int PID = -1;
 
     private ConfigUtils() {
+    }
+
+    public static CompositeConfiguration getCompositeConfiguration() {
+        Configuration system = new SystemConfiguration();
+        Configuration properties = new PropertiesConfiguration();
+        return new CompositeConfiguration(system, properties);
     }
 
     public static boolean isNotEmpty(String value) {
@@ -326,6 +336,14 @@ public class ConfigUtils {
         }
 
         return timeout;
+    }
+
+    public static boolean isGeneric(String generic) {
+        return generic != null
+                && !"".equals(generic)
+                && (Constants.GENERIC_SERIALIZATION_DEFAULT.equalsIgnoreCase(generic)  /* Normal generalization cal */
+                || Constants.GENERIC_SERIALIZATION_NATIVE_JAVA.equalsIgnoreCase(generic) /* Streaming generalization call supporting jdk serialization */
+                || Constants.GENERIC_SERIALIZATION_BEAN.equalsIgnoreCase(generic));
     }
 
 }

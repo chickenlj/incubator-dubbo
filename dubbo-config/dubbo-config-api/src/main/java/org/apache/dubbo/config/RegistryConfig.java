@@ -109,7 +109,7 @@ public class RegistryConfig extends AbstractConfig {
         this.protocol = protocol;
     }
 
-    @Parameter(excluded = true)
+    //    @Parameter(excluded = true)
     public String getAddress() {
         return address;
     }
@@ -146,7 +146,7 @@ public class RegistryConfig extends AbstractConfig {
 
     /**
      * @return wait
-     * @see org.apache.dubbo.config.ProviderConfig#getWait()
+     * @see ProviderConfig#getWait()
      * @deprecated
      */
     @Deprecated
@@ -156,7 +156,7 @@ public class RegistryConfig extends AbstractConfig {
 
     /**
      * @param wait
-     * @see org.apache.dubbo.config.ProviderConfig#setWait(Integer)
+     * @see ProviderConfig#setWait(Integer)
      * @deprecated
      */
     @Deprecated

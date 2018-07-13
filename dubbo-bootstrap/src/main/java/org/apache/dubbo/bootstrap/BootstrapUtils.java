@@ -16,30 +16,29 @@
  */
 package org.apache.dubbo.bootstrap;
 
-import com.alibaba.dubbo.common.Constants;
-import com.alibaba.dubbo.common.URL;
-import com.alibaba.dubbo.common.Version;
-import com.alibaba.dubbo.common.config.CompositeConfiguration;
-import com.alibaba.dubbo.common.config.Configuration;
-import com.alibaba.dubbo.common.config.ConfigurationHolder;
-import com.alibaba.dubbo.common.config.InmemoryConfiguration;
-import com.alibaba.dubbo.common.extension.ExtensionLoader;
-import com.alibaba.dubbo.common.utils.ConfigUtils;
-import com.alibaba.dubbo.common.utils.StringUtils;
-import com.alibaba.dubbo.common.utils.UrlUtils;
-import com.alibaba.dubbo.config.AbstractConfig;
-import com.alibaba.dubbo.config.AbstractInterfaceConfig;
-import com.alibaba.dubbo.config.ApplicationConfig;
-import com.alibaba.dubbo.config.MonitorConfig;
-import com.alibaba.dubbo.config.RegistryConfig;
-import com.alibaba.dubbo.monitor.MonitorFactory;
-import com.alibaba.dubbo.monitor.MonitorService;
-import com.alibaba.dubbo.registry.RegistryFactory;
-import com.alibaba.dubbo.registry.RegistryService;
-
+import org.apache.dubbo.common.Constants;
+import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.Version;
+import org.apache.dubbo.common.config.CompositeConfiguration;
+import org.apache.dubbo.common.config.Configuration;
+import org.apache.dubbo.common.config.ConfigurationHolder;
+import org.apache.dubbo.common.config.InmemoryConfiguration;
+import org.apache.dubbo.common.extension.ExtensionLoader;
+import org.apache.dubbo.common.utils.ConfigUtils;
+import org.apache.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.common.utils.UrlUtils;
+import org.apache.dubbo.config.AbstractConfig;
 import org.apache.dubbo.config.AbstractDynamicConfiguration;
+import org.apache.dubbo.config.AbstractInterfaceConfig;
+import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.DynamicConfiguration;
+import org.apache.dubbo.config.MonitorConfig;
+import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.config.ServiceConfig;
+import org.apache.dubbo.monitor.MonitorFactory;
+import org.apache.dubbo.monitor.MonitorService;
+import org.apache.dubbo.registry.RegistryFactory;
+import org.apache.dubbo.registry.RegistryService;
 
 import java.util.ArrayList;
 import java.util.HashMap;

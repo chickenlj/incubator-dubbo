@@ -14,29 +14,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.dubbo.common.config;
+package org.apache.dubbo.common.config;
 
 /**
  *
  */
-public class SystemConfiguration extends AbstractPrefixConfiguration {
+public class EnvironmentConfiguration extends AbstractPrefixConfiguration {
 
-    public SystemConfiguration(String prefix, String id) {
+    public EnvironmentConfiguration(String prefix, String id) {
         super(prefix, id);
     }
 
-    public SystemConfiguration() {
+    public EnvironmentConfiguration() {
         this(null, null);
     }
 
     @Override
     protected Object getInternalProperty(String key) {
-        return System.getProperty(key);
+        return System.getenv(key);
     }
 
     @Override
     public boolean containsKey(String key) {
-        String value = System.getProperty(key);
+        String value = System.getenv(key);
         if (value == null) {
             return false;
         }

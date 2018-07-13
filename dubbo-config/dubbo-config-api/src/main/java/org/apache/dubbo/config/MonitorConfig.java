@@ -56,7 +56,7 @@ public class MonitorConfig extends AbstractConfig {
         this.address = address;
     }
 
-    @Parameter(excluded = true)
+    //    @Parameter(excluded = true)
     public String getAddress() {
         return address;
     }

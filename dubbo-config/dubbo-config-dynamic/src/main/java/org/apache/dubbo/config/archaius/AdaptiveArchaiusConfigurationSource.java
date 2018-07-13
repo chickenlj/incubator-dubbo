@@ -16,7 +16,7 @@
  */
 package org.apache.dubbo.config.archaius;
 
-import com.alibaba.dubbo.common.extension.Adaptive;
+import org.apache.dubbo.common.extension.Adaptive;
 
 /**
  *

@@ -17,15 +17,14 @@
 package org.apache.dubbo.config;
 
 import org.apache.dubbo.common.Constants;
+import org.apache.dubbo.common.utils.ConfigUtils;
 import org.apache.dubbo.config.support.Parameter;
-import org.apache.dubbo.rpc.InvokerListener;
-import org.apache.dubbo.rpc.support.ProtocolUtils;
 
 /**
  * AbstractConsumerConfig
  *
  * @export
- * @see org.apache.dubbo.config.ReferenceConfig
+ * @see ReferenceConfig
  */
 public abstract class AbstractReferenceConfig extends AbstractInterfaceConfig {
 
@@ -79,7 +78,7 @@ public abstract class AbstractReferenceConfig extends AbstractInterfaceConfig {
 
     @Parameter(excluded = true)
     public Boolean isGeneric() {
-        return ProtocolUtils.isGeneric(generic);
+        return ConfigUtils.isGeneric(generic);
     }
 
     public void setGeneric(Boolean generic) {
@@ -128,7 +127,6 @@ public abstract class AbstractReferenceConfig extends AbstractInterfaceConfig {
 
     @Override
     public void setListener(String listener) {
-        checkMultiExtension(InvokerListener.class, "listener", listener);
         super.setListener(listener);
     }
 

@@ -60,7 +60,7 @@
             <artifactId>dubbo-serialization-hessian2</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.alibaba</groupId>
+            <groupId>org.apache.dubbo</groupId>
             <artifactId>dubbo-qos</artifactId>
         </dependency>
     </dependencies>

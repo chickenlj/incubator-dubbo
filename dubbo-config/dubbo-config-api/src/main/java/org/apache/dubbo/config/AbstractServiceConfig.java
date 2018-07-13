@@ -18,7 +18,6 @@ package org.apache.dubbo.config;
 
 import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.config.support.Parameter;
-import org.apache.dubbo.rpc.ExporterListener;
 
 import java.util.Arrays;
 import java.util.List;
@@ -212,7 +211,7 @@ public abstract class AbstractServiceConfig extends AbstractInterfaceConfig {
 
     @Override
     public void setListener(String listener) {
-        checkMultiExtension(ExporterListener.class, "listener", listener);
+        checkMultiExtension("org.apache.dubbo.rpc.ExporterListener", "listener", listener);
         this.listener = listener;
     }
 

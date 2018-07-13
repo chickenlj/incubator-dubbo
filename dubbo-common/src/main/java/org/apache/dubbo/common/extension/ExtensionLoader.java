@@ -16,15 +16,15 @@
  */
 package org.apache.dubbo.common.extension;
 
-import org.apache.dubbo.common.Constants;
-import org.apache.dubbo.common.URL;
-import org.apache.dubbo.common.extension.support.ActivateComparator;
-import org.apache.dubbo.common.logger.Logger;
-import org.apache.dubbo.common.logger.LoggerFactory;
-import org.apache.dubbo.common.utils.ConcurrentHashSet;
-import org.apache.dubbo.common.utils.ConfigUtils;
-import org.apache.dubbo.common.utils.Holder;
-import org.apache.dubbo.common.utils.StringUtils;
+import com.alibaba.dubbo.common.Constants;
+import com.alibaba.dubbo.common.URL;
+import com.alibaba.dubbo.common.extension.support.ActivateComparator;
+import com.alibaba.dubbo.common.logger.Logger;
+import com.alibaba.dubbo.common.logger.LoggerFactory;
+import com.alibaba.dubbo.common.utils.ConcurrentHashSet;
+import com.alibaba.dubbo.common.utils.ConfigUtils;
+import com.alibaba.dubbo.common.utils.Holder;
+import com.alibaba.dubbo.common.utils.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -52,9 +52,9 @@ import java.util.regex.Pattern;
  * </ul>
  *
  * @see <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jar/jar.html#Service%20Provider">Service Provider in Java 5</a>
- * @see org.apache.dubbo.common.extension.SPI
- * @see org.apache.dubbo.common.extension.Adaptive
- * @see org.apache.dubbo.common.extension.Activate
+ * @see com.alibaba.dubbo.common.extension.SPI
+ * @see com.alibaba.dubbo.common.extension.Adaptive
+ * @see com.alibaba.dubbo.common.extension.Activate
  */
 public class ExtensionLoader<T> {
 
@@ -122,6 +122,25 @@ public class ExtensionLoader<T> {
         return loader;
     }
 
+    /**
+     * Used by Configs to check if a SPI input is valid. Should not be used to get ExtensionLoader instance
+     * internally in framework, use {@link this#getExtensionLoader(Class)} instead.
+     *
+     * @param className
+     * @return
+     */
+    public static ExtensionLoader<?> getExtensionLoader(String className) {
+        if (className == null || className.isEmpty()) {
+            throw new IllegalArgumentException("Extension type name == null");
+        }
+        try {
+            Class<?> type = Class.forName(className);
+            return getExtensionLoader(type);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException("Cannot find Extension, failed to find a class definition with className:" + className);
+        }
+    }
+
     private static ClassLoader findClassLoader() {
         return ExtensionLoader.class.getClassLoader();
     }
@@ -140,7 +159,7 @@ public class ExtensionLoader<T> {
      * @param url url
      * @param key url parameter key which used to get extension point names
      * @return extension list which are activated.
-     * @see #getActivateExtension(org.apache.dubbo.common.URL, String, String)
+     * @see #getActivateExtension(com.alibaba.dubbo.common.URL, String, String)
      */
     public List<T> getActivateExtension(URL url, String key) {
         return getActivateExtension(url, key, null);
@@ -152,7 +171,7 @@ public class ExtensionLoader<T> {
      * @param url    url
      * @param values extension point names
      * @return extension list which are activated
-     * @see #getActivateExtension(org.apache.dubbo.common.URL, String[], String)
+     * @see #getActivateExtension(com.alibaba.dubbo.common.URL, String[], String)
      */
     public List<T> getActivateExtension(URL url, String[] values) {
         return getActivateExtension(url, values, null);
@@ -165,7 +184,7 @@ public class ExtensionLoader<T> {
      * @param key   url parameter key which used to get extension point names
      * @param group group
      * @return extension list which are activated.
-     * @see #getActivateExtension(org.apache.dubbo.common.URL, String[], String)
+     * @see #getActivateExtension(com.alibaba.dubbo.common.URL, String[], String)
      */
     public List<T> getActivateExtension(URL url, String key, String group) {
         String value = url.getParameter(key);
@@ -179,7 +198,7 @@ public class ExtensionLoader<T> {
      * @param values extension point names
      * @param group  group
      * @return extension list which are activated
-     * @see org.apache.dubbo.common.extension.Activate
+     * @see com.alibaba.dubbo.common.extension.Activate
      */
     public List<T> getActivateExtension(URL url, String[] values, String group) {
         List<T> exts = new ArrayList<T>();
@@ -576,17 +595,14 @@ public class ExtensionLoader<T> {
         }
 
         Map<String, Class<?>> extensionClasses = new HashMap<String, Class<?>>();
-        loadDirectory(extensionClasses, DUBBO_INTERNAL_DIRECTORY, type.getName());
-        loadDirectory(extensionClasses, DUBBO_INTERNAL_DIRECTORY, type.getName().replace("org.apache", "com.alibaba"));
-        loadDirectory(extensionClasses, DUBBO_DIRECTORY, type.getName());
-        loadDirectory(extensionClasses, DUBBO_DIRECTORY, type.getName().replace("org.apache", "com.alibaba"));
-        loadDirectory(extensionClasses, SERVICES_DIRECTORY, type.getName());
-        loadDirectory(extensionClasses, SERVICES_DIRECTORY, type.getName().replace("org.apache", "com.alibaba"));
+        loadDirectory(extensionClasses, DUBBO_INTERNAL_DIRECTORY);
+        loadDirectory(extensionClasses, DUBBO_DIRECTORY);
+        loadDirectory(extensionClasses, SERVICES_DIRECTORY);
         return extensionClasses;
     }
 
-    private void loadDirectory(Map<String, Class<?>> extensionClasses, String dir, String type) {
-        String fileName = dir + type;
+    private void loadDirectory(Map<String, Class<?>> extensionClasses, String dir) {
+        String fileName = dir + type.getName();
         try {
             Enumeration<java.net.URL> urls;
             ClassLoader classLoader = findClassLoader();
@@ -703,7 +719,7 @@ public class ExtensionLoader<T> {
 
     @SuppressWarnings("deprecation")
     private String findAnnotationName(Class<?> clazz) {
-        org.apache.dubbo.common.Extension extension = clazz.getAnnotation(org.apache.dubbo.common.Extension.class);
+        com.alibaba.dubbo.common.Extension extension = clazz.getAnnotation(com.alibaba.dubbo.common.Extension.class);
         if (extension == null) {
             String name = clazz.getSimpleName();
             if (name.endsWith(type.getSimpleName())) {
@@ -734,7 +750,7 @@ public class ExtensionLoader<T> {
     private Class<?> createAdaptiveExtensionClass() {
         String code = createAdaptiveExtensionClassCode();
         ClassLoader classLoader = findClassLoader();
-        org.apache.dubbo.common.compiler.Compiler compiler = ExtensionLoader.getExtensionLoader(org.apache.dubbo.common.compiler.Compiler.class).getAdaptiveExtension();
+        com.alibaba.dubbo.common.compiler.Compiler compiler = ExtensionLoader.getExtensionLoader(com.alibaba.dubbo.common.compiler.Compiler.class).getAdaptiveExtension();
         return compiler.compile(code, classLoader);
     }
 
@@ -843,7 +859,7 @@ public class ExtensionLoader<T> {
 
                 boolean hasInvocation = false;
                 for (int i = 0; i < pts.length; ++i) {
-                    if (pts[i].getName().equals("org.apache.dubbo.rpc.Invocation")) {
+                    if (pts[i].getName().equals("com.alibaba.dubbo.rpc.Invocation")) {
                         // Null Point check
                         String s = String.format("\nif (arg%d == null) throw new IllegalArgumentException(\"invocation == null\");", i);
                         code.append(s);

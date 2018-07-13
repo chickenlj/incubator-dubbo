@@ -16,8 +16,8 @@
  */
 package org.apache.dubbo.config;
 
-import com.alibaba.dubbo.common.config.Configuration;
-import com.alibaba.dubbo.common.extension.SPI;
+import org.apache.dubbo.common.config.Configuration;
+import org.apache.dubbo.common.extension.SPI;
 
 /**
  *

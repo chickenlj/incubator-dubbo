@@ -16,15 +16,12 @@
  */
 package org.apache.dubbo.config;
 
-import com.alibaba.dubbo.common.Constants;
-import com.alibaba.dubbo.common.URL;
-import com.alibaba.dubbo.common.utils.ReflectUtils;
-import com.alibaba.dubbo.common.utils.StaticContext;
-import com.alibaba.dubbo.config.AbstractReferenceConfig;
-import com.alibaba.dubbo.config.ConsumerConfig;
-import com.alibaba.dubbo.config.MethodConfig;
-import com.alibaba.dubbo.config.annotation.Reference;
-import com.alibaba.dubbo.config.support.Parameter;
+import org.apache.dubbo.common.Constants;
+import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.utils.ReflectUtils;
+import org.apache.dubbo.config.annotation.Reference;
+import org.apache.dubbo.config.support.Parameter;
+import org.apache.dubbo.rpc.StaticContext;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -121,7 +118,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
             if (isGeneric()
                     || (getConsumer() != null && getConsumer().isGeneric())) {
                 // TODO Is current classloader right? Will this affect ClassLoaderFilter?
-                return Class.forName("com.alibaba.dubbo.rpc.service.GenericService");
+                return Class.forName("org.apache..dubbo.rpc.service.GenericService");
             }
             if (interfaceName != null && interfaceName.length() > 0) {
                 this.interfaceClass = Class.forName(interfaceName, true, Thread.currentThread()

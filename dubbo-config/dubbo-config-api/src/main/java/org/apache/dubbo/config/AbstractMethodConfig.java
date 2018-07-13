@@ -18,7 +18,6 @@ package org.apache.dubbo.config;
 
 import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.config.support.Parameter;
-import org.apache.dubbo.rpc.cluster.LoadBalance;
 
 import java.util.Map;
 
@@ -85,7 +84,6 @@ public abstract class AbstractMethodConfig extends AbstractConfig {
     }
 
     public void setLoadbalance(String loadbalance) {
-        checkExtension(LoadBalance.class, "loadbalance", loadbalance);
         this.loadbalance = loadbalance;
     }
 
