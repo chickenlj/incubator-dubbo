@@ -2,9 +2,9 @@ language: java
 sudo: false # faster builds
 
 jdk:
+    - oraclejdk10
     - oraclejdk9
     - oraclejdk8
-    - openjdk7
 
 script:
     - travis_wait 30 ./mvnw clean package
