@@ -23,8 +23,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
@@ -47,42 +45,30 @@ public class ProtocolConfigTest {
     public void testName() throws Exception {
         ProtocolConfig protocol = new ProtocolConfig();
         protocol.setName("name");
-        Map<String, String> parameters = new HashMap<String, String>();
-        ProtocolConfig.appendParameters(parameters, protocol);
         assertThat(protocol.getName(), equalTo("name"));
         assertThat(protocol.getId(), equalTo("name"));
-        assertThat(parameters.isEmpty(), is(true));
     }
 
     @Test
     public void testHost() throws Exception {
         ProtocolConfig protocol = new ProtocolConfig();
         protocol.setHost("host");
-        Map<String, String> parameters = new HashMap<String, String>();
-        ProtocolConfig.appendParameters(parameters, protocol);
         assertThat(protocol.getHost(), equalTo("host"));
-        assertThat(parameters.isEmpty(), is(true));
     }
 
     @Test
     public void testPort() throws Exception {
         ProtocolConfig protocol = new ProtocolConfig();
         protocol.setPort(8080);
-        Map<String, String> parameters = new HashMap<String, String>();
-        ProtocolConfig.appendParameters(parameters, protocol);
         assertThat(protocol.getPort(), equalTo(8080));
-        assertThat(parameters.isEmpty(), is(true));
     }
 
     @Test
     public void testPath() throws Exception {
         ProtocolConfig protocol = new ProtocolConfig();
         protocol.setContextpath("context-path");
-        Map<String, String> parameters = new HashMap<String, String>();
-        ProtocolConfig.appendParameters(parameters, protocol);
         assertThat(protocol.getPath(), equalTo("context-path"));
         assertThat(protocol.getContextpath(), equalTo("context-path"));
-        assertThat(parameters.isEmpty(), is(true));
         protocol.setPath("path");
         assertThat(protocol.getPath(), equalTo("path"));
         assertThat(protocol.getContextpath(), equalTo("path"));

@@ -28,9 +28,7 @@ import java.util.Map;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 public class MethodConfigTest {
@@ -39,9 +37,6 @@ public class MethodConfigTest {
         MethodConfig method = new MethodConfig();
         method.setName("hello");
         assertThat(method.getName(), equalTo("hello"));
-        Map<String, String> parameters = new HashMap<String, String>();
-        MethodConfig.appendParameters(parameters, method);
-        assertThat(parameters, not(hasKey("name")));
     }
 
     @Test
@@ -103,9 +98,6 @@ public class MethodConfigTest {
         Map<Object, Object> attribute = new HashMap<Object, Object>();
         MethodConfig.appendAttributes(attribute, method);
         assertThat(attribute, hasEntry((Object) Constants.ON_RETURN_INSTANCE_KEY, (Object) "on-return-object"));
-        Map<String, String> parameters = new HashMap<String, String>();
-        MethodConfig.appendParameters(parameters, method);
-        assertThat(parameters.size(), is(0));
     }
 
     @Test
@@ -116,9 +108,6 @@ public class MethodConfigTest {
         Map<Object, Object> attribute = new HashMap<Object, Object>();
         MethodConfig.appendAttributes(attribute, method);
         assertThat(attribute, hasEntry((Object) Constants.ON_RETURN_METHOD_KEY, (Object) "on-return-method"));
-        Map<String, String> parameters = new HashMap<String, String>();
-        MethodConfig.appendParameters(parameters, method);
-        assertThat(parameters.size(), is(0));
     }
 
     @Test
@@ -129,9 +118,6 @@ public class MethodConfigTest {
         Map<Object, Object> attribute = new HashMap<Object, Object>();
         MethodConfig.appendAttributes(attribute, method);
         assertThat(attribute, hasEntry((Object) Constants.ON_THROW_INSTANCE_KEY, (Object) "on-throw-object"));
-        Map<String, String> parameters = new HashMap<String, String>();
-        MethodConfig.appendParameters(parameters, method);
-        assertThat(parameters.size(), is(0));
     }
 
     @Test
@@ -142,9 +128,6 @@ public class MethodConfigTest {
         Map<Object, Object> attribute = new HashMap<Object, Object>();
         MethodConfig.appendAttributes(attribute, method);
         assertThat(attribute, hasEntry((Object) Constants.ON_THROW_METHOD_KEY, (Object) "on-throw-method"));
-        Map<String, String> parameters = new HashMap<String, String>();
-        MethodConfig.appendParameters(parameters, method);
-        assertThat(parameters.size(), is(0));
     }
 
     @Test
@@ -155,9 +138,6 @@ public class MethodConfigTest {
         Map<Object, Object> attribute = new HashMap<Object, Object>();
         MethodConfig.appendAttributes(attribute, method);
         assertThat(attribute, hasEntry((Object) Constants.ON_INVOKE_INSTANCE_KEY, (Object) "on-invoke-object"));
-        Map<String, String> parameters = new HashMap<String, String>();
-        MethodConfig.appendParameters(parameters, method);
-        assertThat(parameters.size(), is(0));
     }
 
     @Test
@@ -168,9 +148,6 @@ public class MethodConfigTest {
         Map<Object, Object> attribute = new HashMap<Object, Object>();
         MethodConfig.appendAttributes(attribute, method);
         assertThat(attribute, hasEntry((Object) Constants.ON_INVOKE_METHOD_KEY, (Object) "on-invoke-method"));
-        Map<String, String> parameters = new HashMap<String, String>();
-        MethodConfig.appendParameters(parameters, method);
-        assertThat(parameters.size(), is(0));
     }
 
     @Test

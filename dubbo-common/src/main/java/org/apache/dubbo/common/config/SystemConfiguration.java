@@ -36,10 +36,6 @@ public class SystemConfiguration extends AbstractPrefixConfiguration {
 
     @Override
     public boolean containsKey(String key) {
-        String value = System.getProperty(key);
-        if (value == null) {
-            return false;
-        }
-        return true;
+        return getProperty(key) != null;
     }
 }

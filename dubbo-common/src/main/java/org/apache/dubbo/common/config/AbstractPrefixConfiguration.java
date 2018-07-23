@@ -20,9 +20,10 @@ package org.apache.dubbo.common.config;
  * This is an abstraction specially customized for the sequence Dubbo retrieves properties.
  */
 public abstract class AbstractPrefixConfiguration extends AbstractConfiguration {
+    public static final String DEFAULT_PREFIX = "dubbo";
 
-    private String id;
-    private String prefix;
+    protected String id;
+    protected String prefix;
 
     public AbstractPrefixConfiguration(String prefix, String id) {
         super();
@@ -32,14 +33,16 @@ public abstract class AbstractPrefixConfiguration extends AbstractConfiguration 
 
     @Override
     public Object getProperty(String key, Object defaultValue) {
-        Object value = getInternalProperty(key);
-        if (value == null && prefix != null) {
-            if (id != null) {
-                value = getInternalProperty(prefix + id + "." + key);
-            }
-            if (value == null) {
-                value = getInternalProperty(prefix + key);
-            }
+        if (prefix == null) {
+            prefix = DEFAULT_PREFIX;
+        }
+
+        Object value = null;
+        if (id != null) {
+            value = getInternalProperty(prefix + id + "." + key);
+        }
+        if (value == null) {
+            value = getInternalProperty(prefix + key);
         }
         return value;
     }

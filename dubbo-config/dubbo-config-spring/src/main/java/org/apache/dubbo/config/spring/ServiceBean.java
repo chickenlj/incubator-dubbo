@@ -16,13 +16,14 @@
  */
 package org.apache.dubbo.config.spring;
 
+import org.apache.dubbo.bootstrap.DubboBootstrap;
+import org.apache.dubbo.bootstrap.ServiceConfigBuilder;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ModuleConfig;
 import org.apache.dubbo.config.MonitorConfig;
 import org.apache.dubbo.config.ProtocolConfig;
 import org.apache.dubbo.config.ProviderConfig;
 import org.apache.dubbo.config.RegistryConfig;
-import org.apache.dubbo.config.ServiceConfig;
 import org.apache.dubbo.config.annotation.Service;
 import org.apache.dubbo.config.spring.extension.SpringExtensionFactory;
 import org.springframework.aop.support.AopUtils;
@@ -41,12 +42,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+
 /**
  * ServiceFactoryBean
  *
  * @export
  */
-public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean, DisposableBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent>, BeanNameAware {
+public class ServiceBean<T> extends ServiceConfigBuilder<T> implements InitializingBean, DisposableBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent>, BeanNameAware {
 
     private static final long serialVersionUID = 213195494150089726L;
 
@@ -116,11 +118,11 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        if (isDelay() && !isExported() && !isUnexported()) {
+        if (isDelay()) {
             if (logger.isInfoEnabled()) {
                 logger.info("The service ready on spring started. service: " + getInterface());
             }
-            export();
+            DubboBootstrap.getInstance().export(this);
         }
     }
 
@@ -144,7 +146,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
                         && providerConfigMap.size() > 1) { // backward compatibility
                     List<ProviderConfig> providerConfigs = new ArrayList<ProviderConfig>();
                     for (ProviderConfig config : providerConfigMap.values()) {
-                        if (config.isDefault() != null && config.isDefault().booleanValue()) {
+                        if (config.isDefault() != null && config.isDefault()) {
                             providerConfigs.add(config);
                         }
                     }
@@ -154,7 +156,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
                 } else {
                     ProviderConfig providerConfig = null;
                     for (ProviderConfig config : providerConfigMap.values()) {
-                        if (config.isDefault() == null || config.isDefault().booleanValue()) {
+                        if (config.isDefault() == null || config.isDefault()) {
                             if (providerConfig != null) {
                                 throw new IllegalStateException("Duplicate provider configs: " + providerConfig + " and " + config);
                             }
@@ -214,7 +216,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
                         registryConfigs.add(config);
                     }
                 }
-                if (!registryConfigs.isEmpty()) {
+                if (registryConfigs != null && !registryConfigs.isEmpty()) {
                     super.setRegistries(registryConfigs);
                 }
             }
@@ -248,7 +250,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
                         protocolConfigs.add(config);
                     }
                 }
-                if (!protocolConfigs.isEmpty()) {
+                if (protocolConfigs != null && !protocolConfigs.isEmpty()) {
                     super.setProtocols(protocolConfigs);
                 }
             }
@@ -261,7 +263,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
             }
         }
         if (!isDelay()) {
-            export();
+            DubboBootstrap.getInstance().export(this);
         }
     }
 
@@ -274,7 +276,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
 
     // merged from dubbox
     @Override
-    protected Class getServiceClass(T ref) {
+    public Class getServiceClass(T ref) {
         if (AopUtils.isAopProxy(ref)) {
             return AopUtils.getTargetClass(ref);
         }

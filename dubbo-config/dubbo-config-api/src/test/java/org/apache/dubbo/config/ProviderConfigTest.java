@@ -19,14 +19,8 @@ package org.apache.dubbo.config;
 
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 public class ProviderConfigTest {
@@ -41,51 +35,36 @@ public class ProviderConfigTest {
     public void testDefault() throws Exception {
         ProviderConfig provider = new ProviderConfig();
         provider.setDefault(true);
-        Map<String, String> parameters = new HashMap<String, String>();
-        ProviderConfig.appendParameters(parameters, provider);
         assertThat(provider.isDefault(), is(true));
-        assertThat(parameters, not(hasKey("default")));
     }
 
     @Test
     public void testHost() throws Exception {
         ProviderConfig provider = new ProviderConfig();
         provider.setHost("demo-host");
-        Map<String, String> parameters = new HashMap<String, String>();
-        ProviderConfig.appendParameters(parameters, provider);
         assertThat(provider.getHost(), equalTo("demo-host"));
-        assertThat(parameters, not(hasKey("host")));
     }
 
     @Test
     public void testPort() throws Exception {
         ProviderConfig provider = new ProviderConfig();
         provider.setPort(8080);
-        Map<String, String> parameters = new HashMap<String, String>();
-        ProviderConfig.appendParameters(parameters, provider);
         assertThat(provider.getPort(), is(8080));
-        assertThat(parameters, not(hasKey("port")));
     }
 
     @Test
     public void testPath() throws Exception {
         ProviderConfig provider = new ProviderConfig();
         provider.setPath("/path");
-        Map<String, String> parameters = new HashMap<String, String>();
-        ProviderConfig.appendParameters(parameters, provider);
         assertThat(provider.getPath(), equalTo("/path"));
         assertThat(provider.getContextpath(), equalTo("/path"));
-        assertThat(parameters, not(hasKey("path")));
     }
 
     @Test
     public void testContextPath() throws Exception {
         ProviderConfig provider = new ProviderConfig();
         provider.setContextpath("/context-path");
-        Map<String, String> parameters = new HashMap<String, String>();
-        ProviderConfig.appendParameters(parameters, provider);
         assertThat(provider.getContextpath(), equalTo("/context-path"));
-        assertThat(parameters, not(hasKey("/context-path")));
     }
 
     @Test
@@ -169,10 +148,7 @@ public class ProviderConfigTest {
     public void testPrompt() throws Exception {
         ProviderConfig provider = new ProviderConfig();
         provider.setPrompt("#");
-        Map<String, String> parameters = new HashMap<String, String>();
-        ProviderConfig.appendParameters(parameters, provider);
         assertThat(provider.getPrompt(), equalTo("#"));
-        assertThat(parameters, hasEntry("prompt", "%23"));
     }
 
     @Test

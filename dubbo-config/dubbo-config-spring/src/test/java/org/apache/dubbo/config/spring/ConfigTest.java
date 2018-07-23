@@ -16,6 +16,8 @@
  */
 package org.apache.dubbo.config.spring;
 
+import org.apache.dubbo.bootstrap.ReferenceConfigBuilder;
+import org.apache.dubbo.bootstrap.ServiceConfigBuilder;
 import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.ExtensionLoader;
@@ -70,7 +72,7 @@ import static org.junit.matchers.JUnitMatchers.containsString;
 @Ignore
 public class ConfigTest {
 
-    private static void unexportService(ServiceConfig<?> config) {
+    private static void unexportService(ServiceConfigBuilder<?> config) {
         if (config != null) {
             config.unexport();
         }
@@ -125,7 +127,7 @@ public class ConfigTest {
     }
 
     private DemoService refer(String url) {
-        ReferenceConfig<DemoService> reference = new ReferenceConfig<DemoService>();
+        ReferenceConfigBuilder<DemoService> reference = new ReferenceConfigBuilder<>();
         reference.setApplication(new ApplicationConfig("consumer"));
         reference.setRegistry(new RegistryConfig(RegistryConfig.NO_AVAILABLE));
         reference.setInterface(DemoService.class);
@@ -323,7 +325,7 @@ public class ConfigTest {
     public void testAppendFilter() throws Exception {
         ProviderConfig provider = new ProviderConfig();
         provider.setFilter("classloader,monitor");
-        ServiceConfig<DemoService> service = new ServiceConfig<DemoService>();
+        ServiceConfigBuilder<DemoService> service = new ServiceConfigBuilder<DemoService>();
         service.setFilter("accesslog,trace");
         service.setProvider(provider);
         service.setProtocol(new ProtocolConfig("dubbo", 20880));
@@ -340,7 +342,7 @@ public class ConfigTest {
 
             ConsumerConfig consumer = new ConsumerConfig();
             consumer.setFilter("classloader,monitor");
-            ReferenceConfig<DemoService> reference = new ReferenceConfig<DemoService>();
+            ReferenceConfigBuilder<DemoService> reference = new ReferenceConfigBuilder<>();
             reference.setFilter("accesslog,trace");
             reference.setConsumer(consumer);
             reference.setApplication(new ApplicationConfig("consumer"));
@@ -522,7 +524,7 @@ public class ConfigTest {
         protocol.setName("dubbo");
         protocol.setPort(13123);
 
-        ServiceConfig<DemoService> service = new ServiceConfig<DemoService>();
+        ServiceConfigBuilder<DemoService> service = new ServiceConfigBuilder<DemoService>();
         service.setInterface(DemoService.class);
         service.setRef(new DemoServiceImpl());
         service.setApplication(application);
@@ -536,7 +538,7 @@ public class ConfigTest {
             assertEquals("world", url.getParameter("owner"));
             assertEquals(13123, url.getPort());
 
-            ReferenceConfig<DemoService> reference = new ReferenceConfig<DemoService>();
+            ReferenceConfigBuilder<DemoService> reference = new ReferenceConfigBuilder<DemoService>();
             reference.setApplication(new ApplicationConfig("consumer"));
             reference.setRegistry(new RegistryConfig(RegistryConfig.NO_AVAILABLE));
             reference.setInterface(DemoService.class);
@@ -598,7 +600,7 @@ public class ConfigTest {
         ClassPathXmlApplicationContext providerContext = new ClassPathXmlApplicationContext(ConfigTest.class.getPackage().getName().replace('.', '/') + "/system-properties-override-default.xml");
         providerContext.start();
         try {
-            ServiceConfig<DemoService> service = (ServiceConfig<DemoService>) providerContext.getBean("demoServiceConfig");
+            ServiceConfigBuilder<DemoService> service = (ServiceConfigBuilder<DemoService>) providerContext.getBean("demoServiceConfig");
             assertEquals("sysover", service.getApplication().getName());
             assertEquals("sysowner", service.getApplication().getOwner());
             assertEquals("N/A", service.getRegistry().getAddress());
@@ -627,7 +629,7 @@ public class ConfigTest {
         ClassPathXmlApplicationContext providerContext = new ClassPathXmlApplicationContext(ConfigTest.class.getPackage().getName().replace('.', '/') + "/system-properties-override.xml");
         providerContext.start();
         try {
-            ServiceConfig<DemoService> service = (ServiceConfig<DemoService>) providerContext.getBean("demoServiceConfig");
+            ServiceConfigBuilder<DemoService> service = (ServiceConfigBuilder<DemoService>) providerContext.getBean("demoServiceConfig");
             URL url = service.toUrls().get(0);
             assertEquals("sysover", url.getParameter("application"));
             assertEquals("sysowner", url.getParameter("owner"));
@@ -653,7 +655,7 @@ public class ConfigTest {
         System.setProperty("dubbo.reference.retries", "5");
 
         try {
-            ServiceConfig<DemoService> service = new ServiceConfig<DemoService>();
+            ServiceConfigBuilder<DemoService> service = new ServiceConfigBuilder<DemoService>();
             service.setInterface(DemoService.class);
             service.setRef(new DemoServiceImpl());
             service.setRegistry(new RegistryConfig(RegistryConfig.NO_AVAILABLE));
@@ -661,7 +663,7 @@ public class ConfigTest {
             service.setProtocol(protocolConfig);
             service.export();
 
-            ReferenceConfig<DemoService> reference = new ReferenceConfig<DemoService>();
+            ReferenceConfigBuilder<DemoService> reference = new ReferenceConfigBuilder<DemoService>();
             reference.setInterface(DemoService.class);
             reference.setInjvm(true);
             reference.setRetries(2);
@@ -680,7 +682,7 @@ public class ConfigTest {
         System.setProperty("dubbo.protocol.name", "dubbo");
         System.setProperty("dubbo.protocol.port", "20834");
         try {
-            ServiceConfig<DemoService> serviceConfig = new ServiceConfig<DemoService>();
+            ServiceConfigBuilder<DemoService> serviceConfig = new ServiceConfigBuilder<DemoService>();
             serviceConfig.setInterface(DemoService.class);
             serviceConfig.setRef(new DemoServiceImpl());
             serviceConfig.export();
@@ -720,7 +722,7 @@ public class ConfigTest {
             protocol.setName("rmi");
             protocol.setPort(1099);
 
-            ServiceConfig<DemoService> service = new ServiceConfig<DemoService>();
+            ServiceConfigBuilder<DemoService> service = new ServiceConfigBuilder<DemoService>();
             service.setInterface(DemoService.class);
             service.setRef(new DemoServiceImpl());
             service.setApplication(application);
@@ -762,7 +764,7 @@ public class ConfigTest {
             ProtocolConfig protocol = new ProtocolConfig();
             protocol.setName("rmi");
 
-            ServiceConfig<DemoService> service = new ServiceConfig<DemoService>();
+            ServiceConfigBuilder<DemoService> service = new ServiceConfigBuilder<DemoService>();
             service.setInterface(DemoService.class);
             service.setRef(new DemoServiceImpl());
             service.setApplication(application);
@@ -844,7 +846,7 @@ public class ConfigTest {
         String dubboPort = System.getProperty("dubbo.protocol.dubbo.port");
         int port = 55555;
         System.setProperty("dubbo.protocol.dubbo.port", String.valueOf(port));
-        ServiceConfig<DemoService> service = null;
+        ServiceConfigBuilder<DemoService> service = null;
         try {
             ApplicationConfig application = new ApplicationConfig();
             application.setName("dubbo-protocol-port-override");
@@ -854,7 +856,7 @@ public class ConfigTest {
 
             ProtocolConfig protocol = new ProtocolConfig();
 
-            service = new ServiceConfig<DemoService>();
+            service = new ServiceConfigBuilder<DemoService>();
             service.setInterface(DemoService.class);
             service.setRef(new DemoServiceImpl());
             service.setApplication(application);
@@ -875,8 +877,8 @@ public class ConfigTest {
 
     @Test
     public void testProtocolRandomPort() throws Exception {
-        ServiceConfig<DemoService> demoService = null;
-        ServiceConfig<HelloService> helloService = null;
+        ServiceConfigBuilder<DemoService> demoService = null;
+        ServiceConfigBuilder<HelloService> helloService = null;
 
         ApplicationConfig application = new ApplicationConfig();
         application.setName("test-protocol-random-port");
@@ -888,14 +890,14 @@ public class ConfigTest {
         protocol.setName("dubbo");
         protocol.setPort(-1);
 
-        demoService = new ServiceConfig<DemoService>();
+        demoService = new ServiceConfigBuilder<DemoService>();
         demoService.setInterface(DemoService.class);
         demoService.setRef(new DemoServiceImpl());
         demoService.setApplication(application);
         demoService.setRegistry(registry);
         demoService.setProtocol(protocol);
 
-        helloService = new ServiceConfig<HelloService>();
+        helloService = new ServiceConfigBuilder<HelloService>();
         helloService.setInterface(HelloService.class);
         helloService.setRef(new HelloServiceImpl());
         helloService.setApplication(application);
@@ -920,7 +922,7 @@ public class ConfigTest {
         RegistryConfig rc = new RegistryConfig();
         rc.setAddress(RegistryConfig.NO_AVAILABLE);
 
-        ServiceConfig<GenericService> sc = new ServiceConfig<GenericService>();
+        ServiceConfigBuilder<GenericService> sc = new ServiceConfigBuilder<>();
         sc.setApplication(ac);
         sc.setRegistry(rc);
         sc.setInterface(DemoService.class.getName());
@@ -931,7 +933,7 @@ public class ConfigTest {
             }
         });
 
-        ReferenceConfig<DemoService> ref = new ReferenceConfig<DemoService>();
+        ReferenceConfigBuilder<DemoService> ref = new ReferenceConfigBuilder<DemoService>();
         ref.setApplication(ac);
         ref.setRegistry(rc);
         ref.setInterface(DemoService.class.getName());
@@ -950,7 +952,7 @@ public class ConfigTest {
 
     @Test
     public void testGenericServiceConfig() throws Exception {
-        ServiceConfig<GenericService> service = new ServiceConfig<GenericService>();
+        ServiceConfigBuilder<GenericService> service = new ServiceConfigBuilder<>();
         service.setApplication(new ApplicationConfig("test"));
         service.setRegistry(new RegistryConfig("mock://localhost"));
         service.setInterface(DemoService.class.getName());

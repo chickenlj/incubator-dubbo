@@ -99,7 +99,7 @@ public class ServiceConfigBuilder<T> extends ServiceConfig<T> {
     }
 
     public synchronized void export() {
-        initConfig(bootstrap);
+        initConfig();
         if (provider != null) {
             if (export == null) {
                 export = provider.getExport();
@@ -548,7 +548,11 @@ public class ServiceConfigBuilder<T> extends ServiceConfig<T> {
         }
     }
 
-    private void initConfig(DubboBootstrap bootstrap) {
+    private void initConfig() {
+        if (bootstrap == null) {
+            bootstrap = DubboBootstrap.getInstance();
+        }
+
         if (provider == null) {
             this.setProvider(bootstrap.getProvider() == null ? new ProviderConfig() : bootstrap.getProvider());
         }

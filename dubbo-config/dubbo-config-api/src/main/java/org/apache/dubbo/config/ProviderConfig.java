@@ -163,7 +163,7 @@ public class ProviderConfig extends AbstractServiceConfig {
     }
 
     public void setThreadpool(String threadpool) {
-        checkExtension("com.alibaba.dubbo.common.threadpool.ThreadPool", "threadpool", threadpool);
+        checkExtension("org.apache.dubbo.common.threadpool.ThreadPool", "threadpool", threadpool);
         this.threadpool = threadpool;
     }
 
@@ -252,7 +252,7 @@ public class ProviderConfig extends AbstractServiceConfig {
     }
 
     public void setTelnet(String telnet) {
-        checkMultiExtension("com.alibaba.dubbo.remoting.telnet.TelnetHandler", "telnet", telnet);
+        checkMultiExtension("org.apache.dubbo.remoting.telnet.TelnetHandler", "telnet", telnet);
         this.telnet = telnet;
     }
 
@@ -270,7 +270,7 @@ public class ProviderConfig extends AbstractServiceConfig {
     }
 
     public void setStatus(String status) {
-        checkMultiExtension("com.alibaba.dubbo.common.status.StatusChecker", "status", status);
+        checkMultiExtension("org.apache.dubbo.common.status.StatusChecker", "status", status);
         this.status = status;
     }
 
@@ -323,7 +323,7 @@ public class ProviderConfig extends AbstractServiceConfig {
     }
 
     public void setExchanger(String exchanger) {
-        checkExtension("com.alibaba.dubbo.remoting.exchange.Exchanger", "exchanger", exchanger);
+        checkExtension("org.apache.dubbo.remoting.exchange.Exchanger", "exchanger", exchanger);
         this.exchanger = exchanger;
     }
 
@@ -353,8 +353,8 @@ public class ProviderConfig extends AbstractServiceConfig {
     }
 
     public void setDispatcher(String dispatcher) {
-        checkExtension("com.alibaba.dubbo.remoting.Dispatcher", Constants.DISPATCHER_KEY, exchanger);
-        checkExtension("com.alibaba.dubbo.remoting.Dispatcher", "dispather", exchanger);
+        checkExtension("org.apache.dubbo.remoting.Dispatcher", Constants.DISPATCHER_KEY, exchanger);
+        checkExtension("org.apache.dubbo.remoting.Dispatcher", "dispather", exchanger);
         this.dispatcher = dispatcher;
     }
 

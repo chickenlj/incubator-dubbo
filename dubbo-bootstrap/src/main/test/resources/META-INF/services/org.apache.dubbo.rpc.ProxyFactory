@@ -1,0 +1,1 @@
+testproxyfactory=org.apache.dubbo.bootstrap.mock.TestProxyFactory

@@ -19,49 +19,57 @@ package org.apache.dubbo.config.archaius;
 import com.netflix.config.ConfigurationManager;
 import com.netflix.config.DynamicPropertyFactory;
 import com.netflix.config.DynamicWatchedConfiguration;
-import com.netflix.config.source.ZooKeeperConfigurationSource;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.dubbo.common.URL;
 import org.apache.dubbo.config.AbstractDynamicConfiguration;
 import org.apache.dubbo.config.ConfigurationListener;
+import org.apache.dubbo.config.archaius.sources.ZooKeeperConfigurationSource;
 
 /**
- *
+ * Archaius supports various sources and it's extensiable: JDBC, ZK, Properties, ..., so should we make it extensiable?
  */
 public class ArchaiusDynamicConfiguration extends AbstractDynamicConfiguration {
 
-    /**
-     * Ensure that this extension get loaded during app start.
-     */
     public ArchaiusDynamicConfiguration() {
-        String zkConfigRootPath = "/dubbo/config/archaius";
+        if (address != null) {
+            System.setProperty(ZooKeeperConfigurationSource.ARCHAIUS_SOURCE_ADDRESS_KEY, address);
+        }
+        if (app != null) {
+            System.setProperty(ZooKeeperConfigurationSource.ARCHAIUS_CONFIG_ROOT_PATH_KEY, ZooKeeperConfigurationSource.DEFAULT_CONFIG_ROOT_PATH + "/" + app);
+        }
 
-        CuratorFramework client = CuratorFrameworkFactory.newClient("127.0.0.1:2181", 60 * 1000, 60 * 1000,
-                new ExponentialBackoffRetry(1000, 3));
-
-        ZooKeeperConfigurationSource zkConfigSource = new ZooKeeperConfigurationSource(client, zkConfigRootPath);
         try {
-            client.start();
+            ZooKeeperConfigurationSource zkConfigSource = new ZooKeeperConfigurationSource();
             zkConfigSource.start();
+            DynamicWatchedConfiguration zkDynamicConfig = new DynamicWatchedConfiguration(zkConfigSource);
+            ConfigurationManager.install(zkDynamicConfig);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        DynamicWatchedConfiguration zkDynamicConfig = new DynamicWatchedConfiguration(zkConfigSource);
-
-        ConfigurationManager.install(zkDynamicConfig);
     }
 
     @Override
-    public void addListener(ConfigurationListener listener) {
+    public void addListener(URL url, ConfigurationListener listener) {
 
+    }
+
+    @Override
+    public URL instrument(URL url) {
+        return null;
+    }
+
+    @Override
+    protected String getInternalProperty(String key, String group, long timeout) {
+        return DynamicPropertyFactory.getInstance()
+                .getStringProperty(key, null)
+                .get();
     }
 
     @Override
     protected Object getInternalProperty(String key) {
-        return DynamicPropertyFactory.getInstance()
-                .getStringProperty(key, null)
-                .get();
+        return getInternalProperty(key, null, 0L);
+    }
+
+    private class ArchaiusListener {
+
     }
 }

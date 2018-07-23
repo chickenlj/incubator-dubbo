@@ -318,6 +318,9 @@ public class ReferenceConfigBuilder<T> extends ReferenceConfig<T> {
     }
 
     private void initReferenceConfig() {
+        if (bootstrap == null) {
+            bootstrap = DubboBootstrap.getInstance();
+        }
         if (this.getConsumer() == null) {
             this.setConsumer(bootstrap.getConsumer() == null ? new ConsumerConfig() : bootstrap.getConsumer());
         }
@@ -451,6 +454,11 @@ public class ReferenceConfigBuilder<T> extends ReferenceConfig<T> {
     public ReferenceConfigBuilder<T> monitor(MonitorConfig monitorConfig) {
         this.setMonitor(monitorConfig);
         return this;
+    }
+
+    // just for test
+    Invoker<?> getInvoker() {
+        return invoker;
     }
 
 }

@@ -21,33 +21,20 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
 public class ModuleConfigTest {
-    @Test(expected = IllegalStateException.class)
-    public void testName1() throws Exception {
-        ModuleConfig module = new ModuleConfig();
-        Map<String, String> parameters = new HashMap<String, String>();
-        ModuleConfig.appendParameters(parameters, module);
-    }
-
     @Test
     public void testName2() throws Exception {
         ModuleConfig module = new ModuleConfig();
         module.setName("module-name");
         assertThat(module.getName(), equalTo("module-name"));
         assertThat(module.getId(), equalTo("module-name"));
-        Map<String, String> parameters = new HashMap<String, String>();
-        ModuleConfig.appendParameters(parameters, module);
-        assertThat(parameters, hasEntry("module", "module-name"));
     }
 
     @Test
@@ -56,9 +43,6 @@ public class ModuleConfigTest {
         module.setName("module-name");
         module.setVersion("1.0.0");
         assertThat(module.getVersion(), equalTo("1.0.0"));
-        Map<String, String> parameters = new HashMap<String, String>();
-        ModuleConfig.appendParameters(parameters, module);
-        assertThat(parameters, hasEntry("module.version", "1.0.0"));
     }
 
     @Test

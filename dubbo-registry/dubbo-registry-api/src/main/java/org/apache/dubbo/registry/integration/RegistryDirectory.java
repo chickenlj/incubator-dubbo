@@ -24,6 +24,8 @@ import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.common.utils.NetUtils;
 import org.apache.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.config.ConfigurationListener;
+import org.apache.dubbo.config.DynamicConfiguration;
 import org.apache.dubbo.registry.NotifyListener;
 import org.apache.dubbo.registry.Registry;
 import org.apache.dubbo.rpc.Invocation;
@@ -52,12 +54,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * RegistryDirectory
  *
  */
-public class RegistryDirectory<T> extends AbstractDirectory<T> implements NotifyListener {
+public class RegistryDirectory<T> extends AbstractDirectory<T> implements NotifyListener, ConfigurationListener {
 
     private static final Logger logger = LoggerFactory.getLogger(RegistryDirectory.class);
 
@@ -74,6 +77,7 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
     private final boolean multiGroup;
     private Protocol protocol; // Initialization at the time of injection, the assertion is not null
     private Registry registry; // Initialization at the time of injection, the assertion is not null
+    private DynamicConfiguration dynamicConfiguration;
     private volatile boolean forbidden = false;
 
     private volatile URL overrideDirectoryUrl; // Initialization at construction time, assertion not null, and always assign non null value
@@ -85,6 +89,7 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
      * Rule two: for all providers <* ,timeout=5000>
      */
     private volatile List<Configurator> configurators; // The initial value is null and the midway may be assigned to null, please use the local variable reference
+    private volatile List<Configurator> dynamicConfigurators;
 
     // Map<url, Invoker> cache service url to invoker mapping.
     private volatile Map<String, Invoker<T>> urlInvokerMap; // The initial value is null and the midway may be assigned to null, please use the local variable reference
@@ -156,7 +161,20 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
 
     public void subscribe(URL url) {
         setConsumerUrl(url);
+        String rawConfig = (String) dynamicConfiguration.getProperty("");
+        String rawConfigApp = (String) dynamicConfiguration.getProperty("");
+        configToConfiguratiors(rawConfig);
         registry.subscribe(url, this);
+        // For dynamic configuration, we only allow one item for a service
+        dynamicConfiguration.addListener(url, this);
+    }
+
+    private void configToConfiguratiors(String rawConfig) {
+        URL url = parse(rawConfig);
+        if (dynamicConfigurators == null) {
+            dynamicConfigurators = new ArrayList<>();
+        }
+        this.dynamicConfigurators.add(configuratorFactory.getConfigurator(url));
     }
 
     @Override
@@ -220,7 +238,12 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
             }
         }
         // providers
+        invokerUrls = compositeDynamicConfiguration(invokerUrls);
         refreshInvoker(invokerUrls);
+    }
+
+    private List<URL> compositeDynamicConfiguration(List<URL> urls) {
+        return urls.stream().map(u -> dynamicConfiguration.instrument(u)).collect(Collectors.toList());
     }
 
     /**
@@ -625,6 +648,10 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
             }
         }
         return false;
+    }
+
+    public void setDynamicConfiguration(DynamicConfiguration dynamicConfiguration) {
+        this.dynamicConfiguration = dynamicConfiguration;
     }
 
     /**

@@ -55,17 +55,29 @@ public class BootstrapUtils {
     private static final String[] SUFFIXES = new String[]{"Config", "Bean"};
 
     public static String getCompositeProperty(AbstractConfig config, String key, String defaultValue) {
-        return getCompositeConfiguration(config, "default").getString(key, defaultValue);
+        return getCompositeConfiguration(config, null).getString(key, defaultValue);
     }
 
     public static String getCompositeDynamicProperty(AbstractConfig config, ApplicationConfig application, String key, String defaultValue) {
-        CompositeConfiguration compositeConfiguration = getCompositeConfiguration(config, "default");
+        CompositeConfiguration compositeConfiguration = getCompositeConfiguration(config, null);
         String dynamicType = getCompositeProperty(application, "dynamic.type", "archaius");
         AbstractDynamicConfiguration dynamic = (AbstractDynamicConfiguration) ExtensionLoader.getExtensionLoader(DynamicConfiguration.class).getExtension(dynamicType);
-        dynamic.setEnv(application.getEnvironment());
-        dynamic.setPrefix("dubbo." + getTagName(config.getClass()) + ".");
+        initDynamicConfig(dynamic, application);
         compositeConfiguration.addConfigurationFirst(dynamic);
         return compositeConfiguration.getString(key, defaultValue);
+    }
+
+    private static void initDynamicConfig(AbstractDynamicConfiguration dynamic, ApplicationConfig applicationConfig) {
+        String env = getCompositeProperty(applicationConfig, "environment", "");
+        String address = getCompositeProperty(applicationConfig, "address", "");
+        if (StringUtils.isNotEmpty(env)) {
+            dynamic.setEnv(env);
+        }
+        if (StringUtils.isNotEmpty(address)) {
+            dynamic.setAddress(address);
+        }
+        dynamic.setApp(applicationConfig.getName());
+        // TODO other configuration items to set.
     }
 
     public static Map<String, String> configToMap(AbstractConfig config, String defaultPrefix) {
@@ -73,9 +85,7 @@ public class BootstrapUtils {
         if (config == null) {
             return map;
         }
-        String prefix = "dubbo." + getTagName(config.getClass()) + ".";
-        String id = config.getId();
-        Configuration configuration = getCompositeConfiguration(config, defaultPrefix, prefix, id);
+        Configuration configuration = getCompositeConfiguration(config, defaultPrefix);
         Set<String> keys = config.getMetaData(defaultPrefix).keySet();
         keys.forEach(key -> {
             String value = configuration.getString(key);
@@ -92,14 +102,10 @@ public class BootstrapUtils {
         if (config == null) {
             return map;
         }
-        String prefix = "dubbo." + getTagName(config.getClass()) + ".";
-        String id = config.getId();
-
-        CompositeConfiguration compositeConfiguration = getCompositeConfiguration(config, defaultPrefix, prefix, id);
+        CompositeConfiguration compositeConfiguration = getCompositeConfiguration(config, defaultPrefix);
         String dynamicType = getCompositeProperty(application, "dynamic.type", "archaius");
         AbstractDynamicConfiguration dynamic = (AbstractDynamicConfiguration) ExtensionLoader.getExtensionLoader(DynamicConfiguration.class).getExtension(dynamicType);
-        dynamic.setEnv(application.getEnvironment());
-        dynamic.setPrefix(prefix);
+        initDynamicConfig(dynamic, application);
         compositeConfiguration.addConfigurationFirst(dynamic);
         Set<String> keys = config.getMetaData(defaultPrefix).keySet();
         keys.forEach(key -> {

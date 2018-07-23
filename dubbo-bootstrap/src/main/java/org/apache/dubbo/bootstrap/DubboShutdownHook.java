@@ -16,11 +16,11 @@
  */
 package org.apache.dubbo.bootstrap;
 
-import com.alibaba.dubbo.common.extension.ExtensionLoader;
-import com.alibaba.dubbo.common.logger.Logger;
-import com.alibaba.dubbo.common.logger.LoggerFactory;
-import com.alibaba.dubbo.registry.support.AbstractRegistryFactory;
-import com.alibaba.dubbo.rpc.Protocol;
+import org.apache.dubbo.common.extension.ExtensionLoader;
+import org.apache.dubbo.common.logger.Logger;
+import org.apache.dubbo.common.logger.LoggerFactory;
+import org.apache.dubbo.registry.support.AbstractRegistryFactory;
+import org.apache.dubbo.rpc.Protocol;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

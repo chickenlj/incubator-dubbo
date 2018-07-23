@@ -21,6 +21,7 @@ import org.apache.dubbo.bootstrap.ServiceConfigBuilder;
 /**
  *
  */
+@Deprecated
 public class ServiceConfig<T> extends ServiceConfigBuilder<T> {
 
 }

@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -74,8 +73,6 @@ public class AbstractServiceConfigTest {
         serviceConfig.setDocument("http://dubbo.io");
         assertThat(serviceConfig.getDocument(), equalTo("http://dubbo.io"));
         Map<String, String> parameters = new HashMap<String, String>();
-        AbstractServiceConfig.appendParameters(parameters, serviceConfig);
-        assertThat(parameters, hasEntry("document", "http%3A%2F%2Fdubbo.io"));
     }
 
     @Test
@@ -138,8 +135,6 @@ public class AbstractServiceConfigTest {
         assertThat(serviceConfig.getFilter(), equalTo("mockfilter"));
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(Constants.SERVICE_FILTER_KEY, "prefilter");
-        AbstractServiceConfig.appendParameters(parameters, serviceConfig);
-        assertThat(parameters, hasEntry(Constants.SERVICE_FILTER_KEY, "prefilter,mockfilter"));
     }
 
     @Test
@@ -149,8 +144,6 @@ public class AbstractServiceConfigTest {
         assertThat(serviceConfig.getListener(), equalTo("mockexporterlistener"));
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(Constants.EXPORTER_LISTENER_KEY, "prelistener");
-        AbstractServiceConfig.appendParameters(parameters, serviceConfig);
-        assertThat(parameters, hasEntry(Constants.EXPORTER_LISTENER_KEY, "prelistener,mockexporterlistener"));
     }
 
     @Test
@@ -172,10 +165,5 @@ public class AbstractServiceConfigTest {
         ServiceConfig serviceConfig = new ServiceConfig();
         serviceConfig.setSerialization("serialization");
         assertThat(serviceConfig.getSerialization(), equalTo("serialization"));
-    }
-
-
-    private static class ServiceConfig extends AbstractServiceConfig {
-
     }
 }

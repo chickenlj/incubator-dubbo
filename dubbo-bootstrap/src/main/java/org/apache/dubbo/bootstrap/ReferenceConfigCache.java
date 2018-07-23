@@ -16,7 +16,7 @@
  */
 package org.apache.dubbo.bootstrap;
 
-import com.alibaba.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.common.utils.StringUtils;
 
 import java.util.HashSet;
 import java.util.Set;

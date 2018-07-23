@@ -21,6 +21,7 @@ import org.apache.dubbo.bootstrap.ReferenceConfigBuilder;
 /**
  *
  */
+@Deprecated
 public class ReferenceConfig<T> extends ReferenceConfigBuilder<T> {
 
 }

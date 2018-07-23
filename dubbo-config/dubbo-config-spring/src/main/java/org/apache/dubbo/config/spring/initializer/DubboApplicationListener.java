@@ -31,7 +31,8 @@ public class DubboApplicationListener implements ApplicationListener<Application
     private DubboBootstrap dubboBootstrap;
 
     public DubboApplicationListener() {
-        dubboBootstrap = new DubboBootstrap(false);
+        dubboBootstrap = DubboBootstrap.getInstance();
+        dubboBootstrap.setRegisterShutdownHookOnStart(false);
     }
 
     public DubboApplicationListener(DubboBootstrap dubboBootstrap) {
@@ -47,3 +48,4 @@ public class DubboApplicationListener implements ApplicationListener<Application
         }
     }
 }
+

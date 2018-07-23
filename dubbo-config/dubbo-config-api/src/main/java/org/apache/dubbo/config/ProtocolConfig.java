@@ -194,7 +194,7 @@ public class ProtocolConfig extends AbstractConfig {
     }
 
     public void setThreadpool(String threadpool) {
-        checkExtension("com.alibaba.dubbo.common.threadpool.ThreadPool", "threadpool", threadpool);
+        checkExtension("org.apache.dubbo.common.threadpool.ThreadPool", "threadpool", threadpool);
         this.threadpool = threadpool;
     }
 
@@ -236,7 +236,7 @@ public class ProtocolConfig extends AbstractConfig {
 
     public void setCodec(String codec) {
         if ("dubbo".equals(name)) {
-            checkMultiExtension("com.alibaba.dubbo.remoting.Codec", "codec", codec);
+            checkMultiExtension("org.apache.dubbo.remoting.Codec", "codec", codec);
         }
         this.codec = codec;
     }
@@ -247,7 +247,7 @@ public class ProtocolConfig extends AbstractConfig {
 
     public void setSerialization(String serialization) {
         if ("dubbo".equals(name)) {
-            checkMultiExtension("com.alibaba.dubbo.common.serialize.Serialization", "serialization", serialization);
+            checkMultiExtension("org.apache.dubbo.common.serialize.Serialization", "serialization", serialization);
         }
         this.serialization = serialization;
     }
@@ -290,7 +290,7 @@ public class ProtocolConfig extends AbstractConfig {
 
     public void setServer(String server) {
         if ("dubbo".equals(name)) {
-            checkMultiExtension("com.alibaba.dubbo.remoting.Transporter", "server", server);
+            checkMultiExtension("org.apache.dubbo.remoting.Transporter", "server", server);
         }
         this.server = server;
     }
@@ -301,7 +301,7 @@ public class ProtocolConfig extends AbstractConfig {
 
     public void setClient(String client) {
         if ("dubbo".equals(name)) {
-            checkMultiExtension("com.alibaba.dubbo.remoting.Transporter", "client", client);
+            checkMultiExtension("org.apache.dubbo.remoting.Transporter", "client", client);
         }
         this.client = client;
     }
@@ -319,7 +319,7 @@ public class ProtocolConfig extends AbstractConfig {
     }
 
     public void setTelnet(String telnet) {
-        checkMultiExtension("com.alibaba.dubbo.remoting.telnet.TelnetHandler", "telnet", telnet);
+        checkMultiExtension("org.apache.dubbo.remoting.telnet.TelnetHandler", "telnet", telnet);
         this.telnet = telnet;
     }
 
@@ -337,7 +337,7 @@ public class ProtocolConfig extends AbstractConfig {
     }
 
     public void setStatus(String status) {
-        checkMultiExtension("com.alibaba.dubbo.common.status.StatusChecker", "status", status);
+        checkMultiExtension("org.apache.dubbo.common.status.StatusChecker", "status", status);
         this.status = status;
     }
 
@@ -354,7 +354,7 @@ public class ProtocolConfig extends AbstractConfig {
     }
 
     public void setTransporter(String transporter) {
-        checkExtension("com.alibaba.dubbo.remoting.Transporter", "transporter", transporter);
+        checkExtension("org.apache.dubbo.remoting.Transporter", "transporter", transporter);
         this.transporter = transporter;
     }
 
@@ -363,7 +363,7 @@ public class ProtocolConfig extends AbstractConfig {
     }
 
     public void setExchanger(String exchanger) {
-        checkExtension("com.alibaba.dubbo.remoting.exchange.Exchanger", "exchanger", exchanger);
+        checkExtension("org.apache.dubbo.remoting.exchange.Exchanger", "exchanger", exchanger);
         this.exchanger = exchanger;
     }
 
@@ -393,7 +393,7 @@ public class ProtocolConfig extends AbstractConfig {
     }
 
     public void setDispatcher(String dispatcher) {
-        checkExtension("com.alibaba.dubbo.remoting.Dispatcher", "dispacther", dispatcher);
+        checkExtension("org.apache.dubbo.remoting.Dispatcher", "dispacther", dispatcher);
         this.dispatcher = dispatcher;
     }
 

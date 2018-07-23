@@ -16,10 +16,6 @@
  */
 package org.apache.dubbo.container.logback;
 
-import org.apache.dubbo.common.utils.ConfigUtils;
-import org.apache.dubbo.common.utils.StringUtils;
-import org.apache.dubbo.container.Container;
-
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
@@ -27,6 +23,10 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
+import org.apache.dubbo.common.config.Configuration;
+import org.apache.dubbo.common.config.ConfigurationHolder;
+import org.apache.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.container.Container;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -44,14 +44,15 @@ public class LogbackContainer implements Container {
 
     @Override
     public void start() {
-        String file = ConfigUtils.getProperty(LOGBACK_FILE);
+        Configuration conf = ConfigurationHolder.getCompositeConf();
+        String file = conf.getString(LOGBACK_FILE);
         if (file != null && file.length() > 0) {
-            String level = ConfigUtils.getProperty(LOGBACK_LEVEL);
+            String level = conf.getString(LOGBACK_LEVEL);
             if (level == null || level.length() == 0) {
                 level = DEFAULT_LOGBACK_LEVEL;
             }
             // maxHistory=0 Infinite history
-            int maxHistory = StringUtils.parseInteger(ConfigUtils.getProperty(LOGBACK_MAX_HISTORY));
+            int maxHistory = StringUtils.parseInteger(conf.getString(LOGBACK_MAX_HISTORY));
 
             doInitializer(file, level, maxHistory);
         }

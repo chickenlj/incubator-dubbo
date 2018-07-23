@@ -142,7 +142,7 @@ public class HeaderExchangeServer implements ExchangeServer {
                 if (channel.isConnected())
                     channel.send(request, getUrl().getParameter(Constants.CHANNEL_READONLYEVENT_SENT_KEY, true));
             } catch (RemotingException e) {
-                logger.warn("send cannot write message error.", e);
+                logger.warn("Cannot write readonly event message to consumer, channel: " + channel, e);
             }
         }
     }

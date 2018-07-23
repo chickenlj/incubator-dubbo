@@ -16,10 +16,10 @@
  */
 package org.apache.dubbo.common.config;
 
-import com.alibaba.dubbo.common.Constants;
-import com.alibaba.dubbo.common.logger.Logger;
-import com.alibaba.dubbo.common.logger.LoggerFactory;
-import com.alibaba.dubbo.common.utils.ClassHelper;
+import org.apache.dubbo.common.Constants;
+import org.apache.dubbo.common.logger.Logger;
+import org.apache.dubbo.common.logger.LoggerFactory;
+import org.apache.dubbo.common.utils.ClassHelper;
 
 import java.io.FileInputStream;
 import java.io.InputStream;

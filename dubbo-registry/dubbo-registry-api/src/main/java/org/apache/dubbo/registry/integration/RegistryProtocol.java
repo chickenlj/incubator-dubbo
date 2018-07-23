@@ -25,6 +25,9 @@ import org.apache.dubbo.common.utils.ConfigUtils;
 import org.apache.dubbo.common.utils.NamedThreadFactory;
 import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.common.utils.UrlUtils;
+import org.apache.dubbo.config.ConfigChangeType;
+import org.apache.dubbo.config.ConfigurationListener;
+import org.apache.dubbo.config.DynamicConfiguration;
 import org.apache.dubbo.registry.NotifyListener;
 import org.apache.dubbo.registry.Registry;
 import org.apache.dubbo.registry.RegistryFactory;
@@ -69,6 +72,7 @@ public class RegistryProtocol implements Protocol {
     private Protocol protocol;
     private RegistryFactory registryFactory;
     private ProxyFactory proxyFactory;
+    private DynamicConfiguration dynamicConfiguration;
 
     public RegistryProtocol() {
         INSTANCE = this;
@@ -154,6 +158,8 @@ public class RegistryProtocol implements Protocol {
         final OverrideListener overrideSubscribeListener = new OverrideListener(overrideSubscribeUrl, originInvoker);
         overrideListeners.put(overrideSubscribeUrl, overrideSubscribeListener);
         registry.subscribe(overrideSubscribeUrl, overrideSubscribeListener);
+
+        dynamicConfiguration.addListener(overrideSubscribeUrl, overrideSubscribeListener);
         //Ensure that a new exporter instance is returned every time export
         return new DestroyableExporter<T>(exporter, originInvoker, overrideSubscribeUrl, registedProviderUrl);
     }
@@ -254,6 +260,7 @@ public class RegistryProtocol implements Protocol {
         }
 
         URL providerUrl = URL.valueOf(export);
+        dynamicConfiguration.instrument(providerUrl);
         return providerUrl;
     }
 
@@ -298,6 +305,7 @@ public class RegistryProtocol implements Protocol {
         RegistryDirectory<T> directory = new RegistryDirectory<T>(type, url);
         directory.setRegistry(registry);
         directory.setProtocol(protocol);
+        directory.setDynamicConfiguration(dynamicConfiguration);
         // all attributes of REFER_KEY
         Map<String, String> parameters = new HashMap<String, String>(directory.getUrl().getParameters());
         URL subscribeUrl = new URL(Constants.CONSUMER_PROTOCOL, parameters.remove(Constants.REGISTER_IP_KEY), 0, type.getName(), parameters);
@@ -352,7 +360,7 @@ public class RegistryProtocol implements Protocol {
      * 2.No need to re-register to the registry after notify
      * 3.The invoker passed by the export method , would better to be the invoker of exporter
      */
-    private class OverrideListener implements NotifyListener {
+    private class OverrideListener implements NotifyListener, ConfigurationListener {
 
         private final URL subscribeUrl;
         private final Invoker originInvoker;
@@ -425,6 +433,12 @@ public class RegistryProtocol implements Protocol {
                 url = configurator.configure(url);
             }
             return url;
+        }
+
+        @Override
+        public void process(String rawConfig, ConfigChangeType changeType) {
+            List<URL> urls =
+                    notify(urls);
         }
     }
 

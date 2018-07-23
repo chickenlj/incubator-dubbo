@@ -20,4 +20,5 @@ package org.apache.dubbo.config;
  *
  */
 public interface ConfigurationListener {
+    void process(String rawConfig, ConfigChangeType changeType);
 }

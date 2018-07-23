@@ -319,6 +319,7 @@ public abstract class AbstractConfig implements Serializable {
                 try {
                     String name = method.getName();
                     if ((name.startsWith("get") || name.startsWith("is"))
+                            && !name.equals("get")
                             && !"getClass".equals(name)
                             && Modifier.isPublic(method.getModifiers())
                             && method.getParameterTypes().length == 0
@@ -376,6 +377,8 @@ public abstract class AbstractConfig implements Serializable {
                         }
                     }
                 } catch (Exception e) {
+                    System.out.println(this.getClass().getName());
+                    System.out.println(method.getName());
                     throw new IllegalStateException(e.getMessage(), e);
                 }
             }

@@ -20,7 +20,6 @@ package org.apache.dubbo.config;
 import org.junit.Test;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -34,9 +33,6 @@ public class MonitorConfigTest {
         MonitorConfig monitor = new MonitorConfig();
         monitor.setAddress("monitor-addr");
         assertThat(monitor.getAddress(), equalTo("monitor-addr"));
-        Map<String, String> parameters = new HashMap<String, String>();
-        MonitorConfig.appendParameters(parameters, monitor);
-        assertThat(parameters.isEmpty(), is(true));
     }
 
     @Test
@@ -44,9 +40,6 @@ public class MonitorConfigTest {
         MonitorConfig monitor = new MonitorConfig();
         monitor.setProtocol("protocol");
         assertThat(monitor.getProtocol(), equalTo("protocol"));
-        Map<String, String> parameters = new HashMap<String, String>();
-        MonitorConfig.appendParameters(parameters, monitor);
-        assertThat(parameters.isEmpty(), is(true));
     }
 
     @Test
@@ -54,9 +47,6 @@ public class MonitorConfigTest {
         MonitorConfig monitor = new MonitorConfig();
         monitor.setUsername("user");
         assertThat(monitor.getUsername(), equalTo("user"));
-        Map<String, String> parameters = new HashMap<String, String>();
-        MonitorConfig.appendParameters(parameters, monitor);
-        assertThat(parameters.isEmpty(), is(true));
     }
 
     @Test
@@ -64,9 +54,6 @@ public class MonitorConfigTest {
         MonitorConfig monitor = new MonitorConfig();
         monitor.setPassword("secret");
         assertThat(monitor.getPassword(), equalTo("secret"));
-        Map<String, String> parameters = new HashMap<String, String>();
-        MonitorConfig.appendParameters(parameters, monitor);
-        assertThat(parameters.isEmpty(), is(true));
     }
 
     @Test

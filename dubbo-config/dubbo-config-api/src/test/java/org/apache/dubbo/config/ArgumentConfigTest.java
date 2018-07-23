@@ -19,7 +19,6 @@ package org.apache.dubbo.config;
 
 import org.junit.Test;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -55,8 +54,7 @@ public class ArgumentConfigTest {
         argument.setIndex(1);
         argument.setType("int");
         argument.setCallback(true);
-        Map<String, String> parameters = new HashMap<String, String>();
-        AbstractServiceConfig.appendParameters(parameters, argument);
+        Map<String, Object> parameters = argument.getMetaData(null);
         assertThat(parameters, hasEntry("callback", "true"));
         assertThat(parameters.size(), is(1));
     }

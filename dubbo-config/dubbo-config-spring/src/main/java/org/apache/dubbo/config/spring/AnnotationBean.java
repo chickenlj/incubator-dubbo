@@ -28,12 +28,10 @@ import org.apache.dubbo.config.ModuleConfig;
 import org.apache.dubbo.config.MonitorConfig;
 import org.apache.dubbo.config.ProtocolConfig;
 import org.apache.dubbo.config.ProviderConfig;
-import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.config.ServiceConfig;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -124,7 +122,7 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
         //      }
         //  }
 
-        for (ReferenceConfig<?> referenceConfig : referenceConfigs.values()) {
+        for (ReferenceBean<?> referenceConfig : referenceConfigs.values()) {
             try {
                 referenceConfig.destroy();
             } catch (Throwable e) {

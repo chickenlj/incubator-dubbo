@@ -16,11 +16,12 @@
  */
 package org.apache.dubbo.config.spring;
 
+import org.apache.dubbo.bootstrap.DubboBootstrap;
+import org.apache.dubbo.bootstrap.ReferenceConfigBuilder;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ConsumerConfig;
 import org.apache.dubbo.config.ModuleConfig;
 import org.apache.dubbo.config.MonitorConfig;
-import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.spring.extension.SpringExtensionFactory;
@@ -41,7 +42,7 @@ import java.util.Map;
  *
  * @export
  */
-public class ReferenceBean<T> extends ReferenceConfig<T> implements FactoryBean, ApplicationContextAware, InitializingBean, DisposableBean {
+public class ReferenceBean<T> extends ReferenceConfigBuilder<T> implements FactoryBean, ApplicationContextAware, InitializingBean, DisposableBean {
 
     private static final long serialVersionUID = 213195494150089726L;
 
@@ -63,7 +64,7 @@ public class ReferenceBean<T> extends ReferenceConfig<T> implements FactoryBean,
 
     @Override
     public Object getObject() throws Exception {
-        return get();
+        return DubboBootstrap.getInstance().refer(this);
     }
 
     @Override

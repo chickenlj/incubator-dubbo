@@ -18,6 +18,7 @@ package com.alibaba.dubbo.config.spring.initializer;
 
 import org.apache.dubbo.bootstrap.DubboBootstrap;
 import org.apache.dubbo.bootstrap.DubboShutdownHook;
+import org.apache.dubbo.config.spring.initializer.DubboApplicationListener;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.context.support.ClassPathXmlApplicationContext;

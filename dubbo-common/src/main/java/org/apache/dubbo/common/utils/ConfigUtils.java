@@ -16,14 +16,10 @@
  */
 package org.apache.dubbo.common.utils;
 
-import com.alibaba.dubbo.common.Constants;
-import com.alibaba.dubbo.common.config.CompositeConfiguration;
-import com.alibaba.dubbo.common.config.Configuration;
-import com.alibaba.dubbo.common.config.PropertiesConfiguration;
-import com.alibaba.dubbo.common.config.SystemConfiguration;
-import com.alibaba.dubbo.common.extension.ExtensionLoader;
-import com.alibaba.dubbo.common.logger.Logger;
-import com.alibaba.dubbo.common.logger.LoggerFactory;
+import org.apache.dubbo.common.Constants;
+import org.apache.dubbo.common.extension.ExtensionLoader;
+import org.apache.dubbo.common.logger.Logger;
+import org.apache.dubbo.common.logger.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -46,12 +42,6 @@ public class ConfigUtils {
     private static int PID = -1;
 
     private ConfigUtils() {
-    }
-
-    public static CompositeConfiguration getCompositeConfiguration() {
-        Configuration system = new SystemConfiguration();
-        Configuration properties = new PropertiesConfiguration();
-        return new CompositeConfiguration(system, properties);
     }
 
     public static boolean isNotEmpty(String value) {

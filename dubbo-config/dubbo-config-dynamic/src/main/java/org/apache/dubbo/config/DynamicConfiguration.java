@@ -16,6 +16,7 @@
  */
 package org.apache.dubbo.config;
 
+import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.config.Configuration;
 import org.apache.dubbo.common.extension.SPI;
 
@@ -25,6 +26,12 @@ import org.apache.dubbo.common.extension.SPI;
 @SPI("archaius")
 public interface DynamicConfiguration extends Configuration {
 
-    void addListener(ConfigurationListener listener);
+    void addListener(URL url, ConfigurationListener listener);
+
+    URL instrument(URL url);
+
+    String getProperty(String key, String group);
+
+    String getProperty(String key, String group, long timeout);
 
 }

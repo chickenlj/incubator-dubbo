@@ -16,38 +16,39 @@
  */
 package org.apache.dubbo.config;
 
+import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.config.AbstractConfiguration;
-import org.apache.dubbo.common.utils.StringUtils;
 
 /**
  *
  */
 public abstract class AbstractDynamicConfiguration extends AbstractConfiguration implements DynamicConfiguration {
-    private String address;
-    private String basePath;
 
-    private String prefix;
-    private String env;
-    private String serviceKey;
-    private String app;
+    protected String env;
+    protected String address;
+    protected String group;
+    protected String namespace;
+    protected String cluster;
+    protected String app;
 
     @Override
-    public void addListener(ConfigurationListener listener) {
+    public void addListener(URL url, ConfigurationListener listener) {
 
     }
 
     @Override
     public Object getProperty(String key, Object defaultValue) {
-        Object value;
-        if (StringUtils.isNotEmpty(env) && StringUtils.isNotEmpty(prefix)) {
-            value = getInternalProperty(prefix + env + "." + key);
-        } else {
-            value = getInternalProperty(prefix + key);
-        }
-        if (value == null) {
-            value = getInternalProperty(key);
-        }
-        return value;
+        return getInternalProperty(key);
+    }
+
+    @Override
+    public String getProperty(String key, String group) {
+        return null;
+    }
+
+    @Override
+    public String getProperty(String key, String group, long timeout) {
+        return null;
     }
 
     @Override
@@ -55,15 +56,53 @@ public abstract class AbstractDynamicConfiguration extends AbstractConfiguration
         return getProperty(key) != null;
     }
 
-    public void setServiceKey(String serviceKey) {
-        this.serviceKey = serviceKey;
+    protected abstract String getInternalProperty(String key, String group, long timeout);
+
+    public String getEnv() {
+        return env;
     }
 
     public void setEnv(String env) {
         this.env = env;
     }
 
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
+    public String getCluster() {
+        return cluster;
+    }
+
+    public void setCluster(String cluster) {
+        this.cluster = cluster;
+    }
+
+    public String getApp() {
+        return app;
+    }
+
+    public void setApp(String app) {
+        this.app = app;
     }
 }

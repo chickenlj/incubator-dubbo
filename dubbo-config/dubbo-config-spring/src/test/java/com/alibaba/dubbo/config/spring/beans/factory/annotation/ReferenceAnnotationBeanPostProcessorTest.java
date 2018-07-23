@@ -16,12 +16,13 @@
  */
 package com.alibaba.dubbo.config.spring.beans.factory.annotation;
 
-import com.alibaba.dubbo.config.annotation.Reference;
-import com.alibaba.dubbo.config.spring.ReferenceBean;
-import com.alibaba.dubbo.config.spring.api.DemoService;
-import com.alibaba.dubbo.config.spring.context.annotation.DubboComponentScan;
-
 import org.apache.dubbo.bootstrap.DubboBootstrap;
+import org.apache.dubbo.config.annotation.Reference;
+import org.apache.dubbo.config.spring.ReferenceBean;
+import org.apache.dubbo.config.spring.api.DemoService;
+import org.apache.dubbo.config.spring.beans.factory.annotation.ReferenceAnnotationBeanPostProcessor;
+import org.apache.dubbo.config.spring.beans.factory.annotation.ServiceAnnotationBeanPostProcessorTest;
+import org.apache.dubbo.config.spring.context.annotation.DubboComponentScan;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -37,11 +38,11 @@ import org.springframework.context.annotation.ImportResource;
 import java.util.Collection;
 import java.util.Map;
 
-import static com.alibaba.dubbo.config.spring.beans.factory.annotation.ReferenceAnnotationBeanPostProcessor.BEAN_NAME;
+import static org.apache.dubbo.config.spring.beans.factory.annotation.ReferenceAnnotationBeanPostProcessor.BEAN_NAME;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertThat;
 
 /**
  * {@link ReferenceAnnotationBeanPostProcessor} Test

@@ -16,6 +16,7 @@
  */
 package org.apache.dubbo.common.extensionloader;
 
+import junit.framework.Assert;
 import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.ExtensionLoader;
@@ -46,8 +47,6 @@ import org.apache.dubbo.common.extensionloader.ext8_add.impl.AddExt3_ManualAdapt
 import org.apache.dubbo.common.extensionloader.ext8_add.impl.AddExt4_ManualAdaptive;
 import org.apache.dubbo.common.extensionloader.ext9_empty.Ext9Empty;
 import org.apache.dubbo.common.extensionloader.ext9_empty.impl.Ext9EmptyImpl;
-
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -69,7 +68,7 @@ public class ExtensionLoaderTest {
     @Test
     public void test_getExtensionLoader_Null() throws Exception {
         try {
-            ExtensionLoader.getExtensionLoader(null);
+            ExtensionLoader.getExtensionLoader((Class<?>) null);
             fail();
         } catch (IllegalArgumentException expected) {
             assertThat(expected.getMessage(),

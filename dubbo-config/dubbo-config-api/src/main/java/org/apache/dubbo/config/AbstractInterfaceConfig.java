@@ -242,7 +242,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     }
 
     public void setCluster(String cluster) {
-        checkExtension("com.alibaba.dubbo.rpc.cluster.Cluster", "cluster", cluster);
+        checkExtension("org.apache.dubbo.rpc.cluster.Cluster", "cluster", cluster);
         this.cluster = cluster;
     }
 
@@ -251,7 +251,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     }
 
     public void setProxy(String proxy) {
-        checkExtension("com.alibaba.dubbo.rpc.ProxyFactory", "proxy", proxy);
+        checkExtension("org.apache.dubbo.rpc.ProxyFactory", "proxy", proxy);
         this.proxy = proxy;
     }
 
@@ -269,7 +269,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     }
 
     public void setFilter(String filter) {
-        checkMultiExtension("com.alibaba.dubbo.rpc.Filter", "filter", filter);
+        checkMultiExtension("org.apache.dubbo.rpc.Filter", "filter", filter);
         this.filter = filter;
     }
 
@@ -279,7 +279,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     }
 
     public void setListener(String listener) {
-        checkMultiExtension("com.alibaba.dubbo.rpc.InvokerListener", "listener", listener);
+        checkMultiExtension("org.apache.dubbo.rpc.InvokerListener", "listener", listener);
         this.listener = listener;
     }
 
