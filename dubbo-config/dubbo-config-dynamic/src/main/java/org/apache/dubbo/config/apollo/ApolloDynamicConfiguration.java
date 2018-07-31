@@ -26,6 +26,7 @@ import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.config.AbstractDynamicConfiguration;
 import org.apache.dubbo.config.ConfigChangeType;
+import org.apache.dubbo.config.ConfigType;
 import org.apache.dubbo.config.ConfigurationListener;
 
 /**
@@ -33,6 +34,8 @@ import org.apache.dubbo.config.ConfigurationListener;
  */
 public class ApolloDynamicConfiguration extends AbstractDynamicConfiguration {
     private static final String APOLLO_ENV_KEY = "env";
+    // FIXME the key?
+    private static final String APOLLO_ADDR_KEY = "";
     private static final String APOLLO_CLUSTER_KEY = "apollo.cluster";
     /**
      * support two namespaces: application -> dubbo
@@ -41,14 +44,27 @@ public class ApolloDynamicConfiguration extends AbstractDynamicConfiguration {
     private Config appConfig;
 
     public ApolloDynamicConfiguration() {
+
+    }
+
+    @Override
+    public void init() {
         /**
-         * Instead of using Dubbo's configuration, I would suggest use the original configuration way Apollo provides.
+         * Instead of using Dubbo's configuration, I would suggest use the original configuration method Apollo provides.
          */
-        if (env != null) {
-            System.setProperty(APOLLO_ENV_KEY, env);
+//        String configEnv = env.getCompositeConf().getString(ENV_KEY);
+//        String configCluster = env.getCompositeConf().getString(CLUSTER_KEY);
+        String configEnv = url.getParameter(Constants.CONFIG_ENV_KEY);
+        String configAddr = url.getParameter(Constants.CONFIG_ADDRESS_KEY);
+        String configCluster = url.getParameter(Constants.CONFIG_CLUSTER_KEY);
+        if (configEnv != null) {
+            System.setProperty(APOLLO_ENV_KEY, configEnv);
         }
-        if (cluster != null) {
-            System.setProperty(APOLLO_CLUSTER_KEY, cluster);
+        if (configAddr != null) {
+            System.setProperty(APOLLO_ADDR_KEY, configAddr);
+        }
+        if (configCluster != null) {
+            System.setProperty(APOLLO_CLUSTER_KEY, configCluster);
         }
 
         dubboConfig = ConfigService.getConfig("dubbo");
@@ -56,9 +72,16 @@ public class ApolloDynamicConfiguration extends AbstractDynamicConfiguration {
     }
 
     @Override
-    public void addListener(URL url, ConfigurationListener listener) {
-        this.appConfig.addChangeListener(new ApolloListener(url, listener));
-        this.dubboConfig.addChangeListener(new ApolloListener(url, listener));
+    public void addListener(String key, ConfigurationListener listener) {
+        this.appConfig.addChangeListener(new ApolloListener(listener));
+        this.dubboConfig.addChangeListener(new ApolloListener(listener));
+    }
+
+    @Override
+    public String getConfig(String key, String group, ConfigurationListener listener) {
+        this.appConfig.addChangeListener(new ApolloListener(listener));
+        this.dubboConfig.addChangeListener(new ApolloListener(listener));
+        return getInternalProperty(key, group, 0L);
     }
 
     @Override
@@ -76,10 +99,6 @@ public class ApolloDynamicConfiguration extends AbstractDynamicConfiguration {
         return getInternalProperty(key, null, 0L);
     }
 
-    @Override
-    public URL instrument(URL url) {
-        return null;
-    }
 
     public ConfigChangeType getChangeType(PropertyChangeType changeType) {
         if (changeType.equals(PropertyChangeType.DELETED)) {
@@ -89,11 +108,12 @@ public class ApolloDynamicConfiguration extends AbstractDynamicConfiguration {
     }
 
     private class ApolloListener implements ConfigChangeListener {
-        private static final String SUFFIX = ".CONFIGURATORS";
         private ConfigurationListener listener;
         private URL url;
-        private String serviceKey;
-        private String app;
+
+        public ApolloListener(ConfigurationListener listener) {
+            this(listener.getUrl(), listener);
+        }
 
         public ApolloListener(URL url, ConfigurationListener listener) {
             this.url = url;
@@ -105,10 +125,12 @@ public class ApolloDynamicConfiguration extends AbstractDynamicConfiguration {
             System.out.println("Changes for namespace " + changeEvent.getNamespace());
             for (String key : changeEvent.changedKeys()) {
                 ConfigChange change = changeEvent.getChange(key);
-                if (change.getPropertyName().equals(url.getServiceKey() + SUFFIX)) {
-                    listener.process(change.getNewValue(), getChangeType(change.getChangeType()));
-                } else if (change.getPropertyName().equals(url.getParameter(Constants.APPLICATION_KEY) + SUFFIX)) {
-                    listener.process(change.getNewValue(), getChangeType(change.getChangeType()));
+                if (change.getPropertyName().equals(url.getServiceKey() + Constants.CONFIGURATORS_SUFFIX)) {
+                    listener.process(change.getNewValue(), ConfigType.CONFIGURATORS, getChangeType(change.getChangeType()));
+                } else if (change.getPropertyName().equals(url.getParameter(Constants.APPLICATION_KEY) + Constants.CONFIGURATORS_SUFFIX)) {
+                    listener.process(change.getNewValue(), ConfigType.CONFIGURATORS, getChangeType(change.getChangeType()));
+                } else if (change.getPropertyName().equals(url.getServiceKey() + Constants.ROUTERS_SUFFIX)) {
+                    listener.process(change.getNewValue(), ConfigType.ROUTERS, getChangeType(change.getChangeType()));
                 }
                 System.out.println(String.format("Found change - key: %s, oldValue: %s, newValue: %s, changeType: %s", change.getPropertyName(), change.getOldValue(), change.getNewValue(), change.getChangeType()));
             }

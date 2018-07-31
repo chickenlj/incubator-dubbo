@@ -16,14 +16,10 @@
  */
 package org.apache.dubbo.config;
 
-import org.apache.dubbo.common.URL;
-
 /**
  *
  */
-public interface ConfigurationListener {
-
-    void process(String rawConfig, ConfigType configType, ConfigChangeType changeType);
-
-    URL getUrl();
+public enum ConfigType {
+    CONFIGURATORS,
+    ROUTERS
 }

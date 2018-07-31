@@ -14,16 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.dubbo.config;
+package org.apache.dubbo.common.extension;
 
-import org.apache.dubbo.common.URL;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  *
  */
-public interface ConfigurationListener {
-
-    void process(String rawConfig, ConfigType configType, ConfigChangeType changeType);
-
-    URL getUrl();
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.METHOD})
+public @interface Inject {
+    boolean autoinject() default true;
 }

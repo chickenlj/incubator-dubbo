@@ -18,9 +18,13 @@ package org.apache.dubbo.config.archaius;
 
 import com.netflix.config.ConfigurationManager;
 import com.netflix.config.DynamicPropertyFactory;
+import com.netflix.config.DynamicStringProperty;
 import com.netflix.config.DynamicWatchedConfiguration;
+import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.config.AbstractDynamicConfiguration;
+import org.apache.dubbo.config.ConfigChangeType;
+import org.apache.dubbo.config.ConfigType;
 import org.apache.dubbo.config.ConfigurationListener;
 import org.apache.dubbo.config.archaius.sources.ZooKeeperConfigurationSource;
 
@@ -30,12 +34,19 @@ import org.apache.dubbo.config.archaius.sources.ZooKeeperConfigurationSource;
 public class ArchaiusDynamicConfiguration extends AbstractDynamicConfiguration {
 
     public ArchaiusDynamicConfiguration() {
+
+    }
+
+    @Override
+    public void init() {
+        //  String address = env.getCompositeConf().getString(ADDRESS_KEY);
+        //  String app = env.getCompositeConf().getString(APP_KEY);
+
+        String address = url.getParameter(Constants.CONFIG_ADDRESS_KEY);
         if (address != null) {
             System.setProperty(ZooKeeperConfigurationSource.ARCHAIUS_SOURCE_ADDRESS_KEY, address);
         }
-        if (app != null) {
-            System.setProperty(ZooKeeperConfigurationSource.ARCHAIUS_CONFIG_ROOT_PATH_KEY, ZooKeeperConfigurationSource.DEFAULT_CONFIG_ROOT_PATH + "/" + app);
-        }
+        System.setProperty(ZooKeeperConfigurationSource.ARCHAIUS_CONFIG_ROOT_PATH_KEY, ZooKeeperConfigurationSource.DEFAULT_CONFIG_ROOT_PATH + "/" + url.getParameter(Constants.APPLICATION_KEY));
 
         try {
             ZooKeeperConfigurationSource zkConfigSource = new ZooKeeperConfigurationSource();
@@ -48,13 +59,25 @@ public class ArchaiusDynamicConfiguration extends AbstractDynamicConfiguration {
     }
 
     @Override
-    public void addListener(URL url, ConfigurationListener listener) {
-
+    public void addListener(String key, ConfigurationListener listener) {
+        DynamicStringProperty prop = DynamicPropertyFactory.getInstance()
+                .getStringProperty(key, null);
+        prop.addCallback(new ArchaiusListener(key, listener));
     }
 
     @Override
-    public URL instrument(URL url) {
-        return null;
+    public String getConfig(String key, String group) {
+        return getConfig(key, group, null);
+    }
+
+    @Override
+    public String getConfig(String key, String group, ConfigurationListener listener) {
+        DynamicStringProperty prop = DynamicPropertyFactory.getInstance()
+                .getStringProperty(key, null);
+        if (listener != null) {
+            prop.addCallback(new ArchaiusListener(key, listener));
+        }
+        return prop.get();
     }
 
     @Override
@@ -69,7 +92,34 @@ public class ArchaiusDynamicConfiguration extends AbstractDynamicConfiguration {
         return getInternalProperty(key, null, 0L);
     }
 
-    private class ArchaiusListener {
+    private class ArchaiusListener implements Runnable {
+        private ConfigurationListener listener;
+        private URL url;
+        private String key;
+        private ConfigType type;
 
+        public ArchaiusListener(String key, ConfigurationListener listener) {
+            this.key = key;
+            this.listener = listener;
+            this.url = listener.getUrl();
+            if (key.endsWith(Constants.CONFIGURATORS_SUFFIX)) {
+                type = ConfigType.CONFIGURATORS;
+            } else if (key.endsWith(Constants.ROUTERS_SUFFIX)) {
+                type = ConfigType.ROUTERS;
+            }
+        }
+
+        @Override
+        public void run() {
+            DynamicStringProperty prop = DynamicPropertyFactory.getInstance()
+                    .getStringProperty(key, null);
+            String newValue = prop.get();
+            if (newValue == null) {
+                listener.process(newValue, type, ConfigChangeType.DELETED);
+            } else {
+                listener.process(newValue, type, ConfigChangeType.MODIFIED);
+            }
+            System.out.println(prop.get());
+        }
     }
 }

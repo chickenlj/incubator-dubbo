@@ -25,13 +25,26 @@ import org.apache.dubbo.common.extension.SPI;
  */
 @SPI("archaius")
 public interface DynamicConfiguration extends Configuration {
+    String TYPE_KEY = "dubbo.config.type";
+    String ENV_KEY = "dubbo.config.env";
+    String ADDRESS_KEY = "dubbo.config.address";
+    String GROUP_KEY = "dubbo.config.group";
+    String NAMESPACE_KEY = "dubbo.config.namespace";
+    String CLUSTER_KEY = "dubbo.config.cluster";
+    String APP_KEY = "dubbo.config.app";
 
-    void addListener(URL url, ConfigurationListener listener);
+    public void init();
 
-    URL instrument(URL url);
+    URL getUrl();
 
-    String getProperty(String key, String group);
+    void setUrl(URL url);
 
-    String getProperty(String key, String group, long timeout);
+    void addListener(String key, ConfigurationListener listener);
+
+    String getConfig(String key, String group);
+
+    String getConfig(String key, String group, long timeout);
+
+    String getConfig(String key, String group, ConfigurationListener listener);
 
 }

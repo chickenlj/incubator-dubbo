@@ -14,16 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.dubbo.config;
-
-import org.apache.dubbo.common.URL;
+package org.apache.dubbo.config.model;
 
 /**
  *
  */
-public interface ConfigurationListener {
+public class RouterRule {
 
-    void process(String rawConfig, ConfigType configType, ConfigChangeType changeType);
-
-    URL getUrl();
 }

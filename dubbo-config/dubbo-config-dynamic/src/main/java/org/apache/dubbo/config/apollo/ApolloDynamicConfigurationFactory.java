@@ -14,16 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.dubbo.config;
+package org.apache.dubbo.config.apollo;
 
 import org.apache.dubbo.common.URL;
+import org.apache.dubbo.config.DynamicConfiguration;
+import org.apache.dubbo.config.DynamicConfigurationFactory;
 
 /**
  *
  */
-public interface ConfigurationListener {
+public class ApolloDynamicConfigurationFactory implements DynamicConfigurationFactory {
 
-    void process(String rawConfig, ConfigType configType, ConfigChangeType changeType);
+    private DynamicConfiguration configuration;
 
-    URL getUrl();
+    @Override
+    public synchronized DynamicConfiguration getDynamicConfiguration(URL url) {
+        if (configuration == null) {
+            configuration = new ApolloDynamicConfiguration();
+            configuration.setUrl(url);
+            configuration.init();
+        }
+        return configuration;
+    }
 }

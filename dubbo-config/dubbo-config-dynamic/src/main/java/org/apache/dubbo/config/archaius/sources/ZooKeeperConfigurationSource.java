@@ -45,7 +45,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ZooKeeperConfigurationSource implements WatchedConfigurationSource, Closeable {
     public static final String ARCHAIUS_SOURCE_ADDRESS_KEY = "archaius.configurationSource.zk.address";
     public static final String ARCHAIUS_CONFIG_ROOT_PATH_KEY = "archaius.configurationSource.zk.rootpath";
-    public static final String DEFAULT_CONFIG_ROOT_PATH = "/archaius/dubbo";
+    public static final String DEFAULT_CONFIG_ROOT_PATH = "/dubbo/config";
 
     private static final Logger logger = LoggerFactory.getLogger(com.netflix.config.source.ZooKeeperConfigurationSource.class);
 

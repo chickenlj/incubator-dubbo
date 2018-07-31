@@ -16,14 +16,18 @@
  */
 package org.apache.dubbo.config;
 
+import org.apache.dubbo.common.Constants;
+import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.extension.Adaptive;
 import org.apache.dubbo.common.extension.SPI;
 
 /**
  *
  */
-@SPI("archaius")
+@SPI("nop")
 public interface DynamicConfigurationFactory {
 
-    DynamicConfiguration getDynamicConfiguration(String type);
+    @Adaptive(Constants.CONFIG_TYPE_KEY)
+    DynamicConfiguration getDynamicConfiguration(URL url);
 
 }

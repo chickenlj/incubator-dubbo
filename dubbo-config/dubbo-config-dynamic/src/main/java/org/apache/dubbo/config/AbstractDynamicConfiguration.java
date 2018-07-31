@@ -18,21 +18,22 @@ package org.apache.dubbo.config;
 
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.config.AbstractConfiguration;
+import org.apache.dubbo.common.config.Environment;
 
 /**
  *
  */
 public abstract class AbstractDynamicConfiguration extends AbstractConfiguration implements DynamicConfiguration {
+    protected URL url;
 
-    protected String env;
-    protected String address;
-    protected String group;
-    protected String namespace;
-    protected String cluster;
-    protected String app;
+    protected Environment env;
+
+    public AbstractDynamicConfiguration() {
+        env = Environment.getInstance();
+    }
 
     @Override
-    public void addListener(URL url, ConfigurationListener listener) {
+    public void addListener(String key, ConfigurationListener listener) {
 
     }
 
@@ -42,12 +43,17 @@ public abstract class AbstractDynamicConfiguration extends AbstractConfiguration
     }
 
     @Override
-    public String getProperty(String key, String group) {
+    public String getConfig(String key, String group) {
         return null;
     }
 
     @Override
-    public String getProperty(String key, String group, long timeout) {
+    public String getConfig(String key, String group, ConfigurationListener listener) {
+        return null;
+    }
+
+    @Override
+    public String getConfig(String key, String group, long timeout) {
         return null;
     }
 
@@ -56,53 +62,14 @@ public abstract class AbstractDynamicConfiguration extends AbstractConfiguration
         return getProperty(key) != null;
     }
 
+    public URL getUrl() {
+        return url;
+    }
+
+    public void setUrl(URL url) {
+        this.url = url;
+    }
+
     protected abstract String getInternalProperty(String key, String group, long timeout);
 
-    public String getEnv() {
-        return env;
-    }
-
-    public void setEnv(String env) {
-        this.env = env;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getGroup() {
-        return group;
-    }
-
-    public void setGroup(String group) {
-        this.group = group;
-    }
-
-    public String getNamespace() {
-        return namespace;
-    }
-
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
-    }
-
-    public String getCluster() {
-        return cluster;
-    }
-
-    public void setCluster(String cluster) {
-        this.cluster = cluster;
-    }
-
-    public String getApp() {
-        return app;
-    }
-
-    public void setApp(String app) {
-        this.app = app;
-    }
 }

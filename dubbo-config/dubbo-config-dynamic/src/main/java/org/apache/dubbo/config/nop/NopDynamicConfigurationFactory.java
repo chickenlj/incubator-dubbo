@@ -14,16 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.dubbo.config;
+package org.apache.dubbo.config.nop;
 
 import org.apache.dubbo.common.URL;
+import org.apache.dubbo.config.DynamicConfiguration;
+import org.apache.dubbo.config.DynamicConfigurationFactory;
 
 /**
  *
  */
-public interface ConfigurationListener {
-
-    void process(String rawConfig, ConfigType configType, ConfigChangeType changeType);
-
-    URL getUrl();
+public class NopDynamicConfigurationFactory implements DynamicConfigurationFactory {
+    @Override
+    public DynamicConfiguration getDynamicConfiguration(URL url) {
+        return new NopDynamicConfiguration();
+    }
 }

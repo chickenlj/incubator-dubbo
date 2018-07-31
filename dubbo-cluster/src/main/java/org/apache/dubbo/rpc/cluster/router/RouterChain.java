@@ -14,16 +14,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.dubbo.config;
+package org.apache.dubbo.rpc.cluster.router;
 
 import org.apache.dubbo.common.URL;
+import org.apache.dubbo.rpc.Invocation;
+import org.apache.dubbo.rpc.Invoker;
+import org.apache.dubbo.rpc.cluster.Router;
+
+import java.util.List;
 
 /**
- *
+ * 不具备路由结果缓存的能力
  */
-public interface ConfigurationListener {
+public class RouterChain {
 
-    void process(String rawConfig, ConfigType configType, ConfigChangeType changeType);
+    private final List<Router> routers;
 
-    URL getUrl();
+    private RouterChain(List<Router> routers) {
+        this.routers = routers;
+    }
+
+    public static RouterChain build() {
+        // SPI加载Router，并为每个Router自动启动Config监听（如果需要），每个Router要先getConfig再监听
+        return null;
+    }
+
+    public <T> void preRoute(List<Invoker<T>> invokers) {
+
+    }
+
+    public <T> List<Invoker<?>> route(List<Invoker<T>> invokers, URL url, Invocation invocation) {
+        return null;
+    }
 }
