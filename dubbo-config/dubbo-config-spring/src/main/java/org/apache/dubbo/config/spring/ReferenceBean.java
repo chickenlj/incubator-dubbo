@@ -18,6 +18,7 @@ package org.apache.dubbo.config.spring;
 
 import org.apache.dubbo.bootstrap.DubboBootstrap;
 import org.apache.dubbo.bootstrap.ReferenceConfigBuilder;
+import org.apache.dubbo.common.config.Environment;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ConsumerConfig;
 import org.apache.dubbo.config.ModuleConfig;
@@ -32,17 +33,24 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.MutablePropertySources;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 /**
  * ReferenceFactoryBean
  *
  * @export
  */
-public class ReferenceBean<T> extends ReferenceConfigBuilder<T> implements FactoryBean, ApplicationContextAware, InitializingBean, DisposableBean {
+public class ReferenceBean<T> extends ReferenceConfigBuilder<T> implements FactoryBean, ApplicationContextAware, InitializingBean, DisposableBean, EnvironmentAware {
 
     private static final long serialVersionUID = 213195494150089726L;
 
@@ -181,5 +189,19 @@ public class ReferenceBean<T> extends ReferenceConfigBuilder<T> implements Facto
     @Override
     public void destroy() {
         // do nothing
+    }
+
+    @Override
+    public void setEnvironment(org.springframework.core.env.Environment springEnv) {
+        Map<String, String> props = new HashMap<>();
+        MutablePropertySources propSrcs = ((AbstractEnvironment) springEnv).getPropertySources();
+        StreamSupport.stream(propSrcs.spliterator(), false)
+                .filter(ps -> ps instanceof EnumerablePropertySource)
+                .map(ps -> ((EnumerablePropertySource) ps).getPropertyNames())
+                .flatMap(Arrays::<String>stream)
+                .filter(propName -> propName.startsWith("dubbo."))
+                .forEach(propName -> props.put(propName, springEnv.getProperty(propName)));
+
+        Environment.getInstance().setExternalConfiguration(props);
     }
 }

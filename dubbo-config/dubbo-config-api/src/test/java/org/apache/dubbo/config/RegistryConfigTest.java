@@ -43,7 +43,7 @@ public class RegistryConfigTest {
         RegistryConfig registry = new RegistryConfig();
         registry.setAddress("localhost");
         assertThat(registry.getAddress(), equalTo("localhost"));
-        Map<String, Object> parameters = registry.getMetaData(null);
+        Map<String, String> parameters = registry.getMetaData(null);
         assertThat(parameters, not(hasKey("address")));
     }
 
@@ -162,7 +162,7 @@ public class RegistryConfigTest {
         RegistryConfig registry = new RegistryConfig();
         registry.setParameters(Collections.singletonMap("k1", "v1"));
         assertThat(registry.getParameters(), hasEntry("k1", "v1"));
-        Map<String, Object> parameters = registry.getMetaData(null);
+        Map<String, String> parameters = registry.getMetaData(null);
         assertThat(parameters, hasEntry("k1", "v1"));
     }
 

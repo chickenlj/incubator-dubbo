@@ -16,6 +16,7 @@
  */
 package org.apache.dubbo.bootstrap;
 
+import org.apache.dubbo.common.config.Environment;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ConsumerConfig;
 import org.apache.dubbo.config.ModuleConfig;
@@ -26,6 +27,7 @@ import org.apache.dubbo.config.RegistryConfig;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A bootstrap class to easily start and stop Dubbo via programmatic API.
@@ -54,7 +56,7 @@ public class DubboBootstrap {
 
     private ReferenceConfigCache cache = ReferenceConfigCache.getCache();
     /**
-     * The shutdown hook used when Dubbo is running under embedded environment
+     * The shutdown hook used when Dubbo is running under embedded context
      */
     private DubboShutdownHook shutdownHook;
 
@@ -244,6 +246,13 @@ public class DubboBootstrap {
         });
     }
 
+    public void setExternalConfiguration(Map<String, String> properties) {
+        if (properties == null) {
+            return;
+        }
+        Environment.getInstance().setExternalConfiguration(properties);
+    }
+
     public synchronized void unexport() {
         serviceConfigList.forEach(ServiceConfigBuilder::unexport);
     }
@@ -295,4 +304,6 @@ public class DubboBootstrap {
     public ReferenceConfigCache getCache() {
         return cache;
     }
+
+
 }

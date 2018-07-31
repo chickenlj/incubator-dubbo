@@ -32,6 +32,11 @@ public abstract class AbstractPrefixConfiguration extends AbstractConfiguration 
     }
 
     @Override
+    public boolean containsKey(String key) {
+        return getProperty(key) != null;
+    }
+
+    @Override
     public Object getProperty(String key, Object defaultValue) {
         if (prefix == null) {
             prefix = DEFAULT_PREFIX;

@@ -167,6 +167,10 @@ public class ConfigUtils {
         }
     }
 
+    public static boolean containsKey(String key) {
+        return getProperty(key) != null;
+    }
+
     public static String getProperty(String key) {
         return getProperty(key, null);
     }

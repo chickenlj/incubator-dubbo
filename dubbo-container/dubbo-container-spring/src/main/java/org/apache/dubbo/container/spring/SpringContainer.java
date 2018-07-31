@@ -16,7 +16,7 @@
  */
 package org.apache.dubbo.container.spring;
 
-import org.apache.dubbo.common.config.ConfigurationHolder;
+import org.apache.dubbo.common.config.Environment;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.config.spring.initializer.DubboApplicationListener;
@@ -39,7 +39,7 @@ public class SpringContainer implements Container {
 
     @Override
     public void start() {
-        String configPath = ConfigurationHolder.getCompositeConf().getString(SPRING_CONFIG);
+        String configPath = Environment.getCompositeConf().getString(SPRING_CONFIG);
         if (configPath == null || configPath.length() == 0) {
             configPath = DEFAULT_SPRING_CONFIG;
         }

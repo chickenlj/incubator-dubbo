@@ -34,12 +34,4 @@ public class EnvironmentConfiguration extends AbstractPrefixConfiguration {
         return System.getenv(key);
     }
 
-    @Override
-    public boolean containsKey(String key) {
-        String value = System.getenv(key);
-        if (value == null) {
-            return false;
-        }
-        return true;
-    }
 }

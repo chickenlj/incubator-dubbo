@@ -19,22 +19,15 @@ package org.apache.dubbo.bootstrap;
 import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.Version;
-import org.apache.dubbo.common.config.CompositeConfiguration;
-import org.apache.dubbo.common.config.Configuration;
-import org.apache.dubbo.common.config.ConfigurationHolder;
-import org.apache.dubbo.common.config.InmemoryConfiguration;
 import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.common.utils.ConfigUtils;
 import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.common.utils.UrlUtils;
-import org.apache.dubbo.config.AbstractConfig;
-import org.apache.dubbo.config.AbstractDynamicConfiguration;
 import org.apache.dubbo.config.AbstractInterfaceConfig;
 import org.apache.dubbo.config.ApplicationConfig;
-import org.apache.dubbo.config.DynamicConfiguration;
 import org.apache.dubbo.config.MonitorConfig;
 import org.apache.dubbo.config.RegistryConfig;
-import org.apache.dubbo.config.ServiceConfig;
+import org.apache.dubbo.config.utils.ConfigConverter;
 import org.apache.dubbo.monitor.MonitorFactory;
 import org.apache.dubbo.monitor.MonitorService;
 import org.apache.dubbo.registry.RegistryFactory;
@@ -44,80 +37,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  *
  */
 public class BootstrapUtils {
-
-
-    private static final String[] SUFFIXES = new String[]{"Config", "Bean"};
-
-    public static String getCompositeProperty(AbstractConfig config, String key, String defaultValue) {
-        return getCompositeConfiguration(config, null).getString(key, defaultValue);
-    }
-
-    public static String getCompositeDynamicProperty(AbstractConfig config, ApplicationConfig application, String key, String defaultValue) {
-        CompositeConfiguration compositeConfiguration = getCompositeConfiguration(config, null);
-        String dynamicType = getCompositeProperty(application, "dynamic.type", "archaius");
-        AbstractDynamicConfiguration dynamic = (AbstractDynamicConfiguration) ExtensionLoader.getExtensionLoader(DynamicConfiguration.class).getExtension(dynamicType);
-        initDynamicConfig(dynamic, application);
-        compositeConfiguration.addConfigurationFirst(dynamic);
-        return compositeConfiguration.getString(key, defaultValue);
-    }
-
-    private static void initDynamicConfig(AbstractDynamicConfiguration dynamic, ApplicationConfig applicationConfig) {
-        String env = getCompositeProperty(applicationConfig, "environment", "");
-        String address = getCompositeProperty(applicationConfig, "address", "");
-        if (StringUtils.isNotEmpty(env)) {
-            dynamic.setEnv(env);
-        }
-        if (StringUtils.isNotEmpty(address)) {
-            dynamic.setAddress(address);
-        }
-        dynamic.setApp(applicationConfig.getName());
-        // TODO other configuration items to set.
-    }
-
-    public static Map<String, String> configToMap(AbstractConfig config, String defaultPrefix) {
-        Map<String, String> map = new HashMap<>();
-        if (config == null) {
-            return map;
-        }
-        Configuration configuration = getCompositeConfiguration(config, defaultPrefix);
-        Set<String> keys = config.getMetaData(defaultPrefix).keySet();
-        keys.forEach(key -> {
-            String value = configuration.getString(key);
-            if (value != null) {
-                map.put(key, value);
-            }
-        });
-
-        return map;
-    }
-
-    public static Map<String, String> configToMapConsideringDynamic(AbstractConfig config, String defaultPrefix, ApplicationConfig application) {
-        Map<String, String> map = new HashMap<>();
-        if (config == null) {
-            return map;
-        }
-        CompositeConfiguration compositeConfiguration = getCompositeConfiguration(config, defaultPrefix);
-        String dynamicType = getCompositeProperty(application, "dynamic.type", "archaius");
-        AbstractDynamicConfiguration dynamic = (AbstractDynamicConfiguration) ExtensionLoader.getExtensionLoader(DynamicConfiguration.class).getExtension(dynamicType);
-        initDynamicConfig(dynamic, application);
-        compositeConfiguration.addConfigurationFirst(dynamic);
-        Set<String> keys = config.getMetaData(defaultPrefix).keySet();
-        keys.forEach(key -> {
-            String value = compositeConfiguration.getString(key);
-            if (value != null) {
-                map.put(key, value);
-            }
-        });
-
-        return map;
-    }
-
     public static List<URL> loadRegistries(AbstractInterfaceConfig interfaceConfig, boolean provider) {
         List<URL> registryList = new ArrayList<>();
         ApplicationConfig application = interfaceConfig.getApplication();
@@ -125,8 +49,8 @@ public class BootstrapUtils {
         if (registries != null && !registries.isEmpty()) {
             for (RegistryConfig registryConfig : registries) {
                 Map<String, String> map = new HashMap<>();
-                map.putAll(configToMap(application, null));
-                map.putAll(configToMapConsideringDynamic(registryConfig, null, application));
+                map.putAll(ConfigConverter.configToMap(application, null));
+                map.putAll(ConfigConverter.configToMap(registryConfig, null));
                 map.put("path", RegistryService.class.getName());
                 map.put("dubbo", Version.getProtocolVersion());
                 map.put(Constants.TIMESTAMP_KEY, String.valueOf(System.currentTimeMillis()));
@@ -172,7 +96,7 @@ public class BootstrapUtils {
         if (ConfigUtils.getPid() > 0) {
             map.put(Constants.PID_KEY, String.valueOf(ConfigUtils.getPid()));
         }
-        map.putAll(configToMapConsideringDynamic(monitor, null, interfaceConfig.getApplication()));
+        map.putAll(ConfigConverter.configToMap(monitor, null));
 
         String address = map.get("address");
         if (ConfigUtils.isNotEmpty(address)) {
@@ -189,69 +113,4 @@ public class BootstrapUtils {
         }
         return null;
     }
-
-    private static CompositeConfiguration getCompositeConfiguration(AbstractConfig config, String defaultPrefix) {
-        String prefix = "dubbo." + getTagName(config.getClass()) + ".";
-        String id = config.getId();
-        return getCompositeConfiguration(config, defaultPrefix, prefix, id);
-    }
-
-    /**
-     * @param config
-     * @param defaultPrefix "default", only used when {@param config} is ConsumerConfig or ProviderConfig
-     * @param prefix        "dubbo.service", "dubbo.provider", ...
-     * @param id            {@link ServiceConfig#getId()}
-     * @return
-     */
-    private static CompositeConfiguration getCompositeConfiguration(AbstractConfig config, String defaultPrefix, String prefix, String id) {
-        CompositeConfiguration compositeConfiguration = new CompositeConfiguration();
-        compositeConfiguration.addConfiguration(ConfigurationHolder.getSystemConf(prefix, id));
-        if (config != null) {
-            compositeConfiguration.addConfiguration(toConfiguration(config, defaultPrefix));
-        }
-        compositeConfiguration.addConfiguration(ConfigurationHolder.getPropertiesConf(prefix, id));
-        return compositeConfiguration;
-    }
-
-    /**
-     * @param config
-     * @param defaultPrefix
-     * @return
-     */
-    private static Configuration toConfiguration(AbstractConfig config, String defaultPrefix) {
-        InmemoryConfiguration configuration = new InmemoryConfiguration();
-        if (config == null) {
-            return configuration;
-        }
-        configuration.addPropertys(config.getMetaData(defaultPrefix));
-        return configuration;
-    }
-
-    private static String getTagName(Class<?> cls) {
-        String tag = cls.getSimpleName();
-        for (String suffix : SUFFIXES) {
-            if (tag.endsWith(suffix)) {
-                tag = tag.substring(0, tag.length() - suffix.length());
-                break;
-            }
-        }
-        tag = tag.toLowerCase();
-        return tag;
-    }
-
-    private static boolean isPrimitive(Class<?> type) {
-        return type.isPrimitive()
-                || type == String.class
-                || type == Character.class
-                || type == Boolean.class
-                || type == Byte.class
-                || type == Short.class
-                || type == Integer.class
-                || type == Long.class
-                || type == Float.class
-                || type == Double.class
-                || type == Object.class;
-    }
-
-
 }

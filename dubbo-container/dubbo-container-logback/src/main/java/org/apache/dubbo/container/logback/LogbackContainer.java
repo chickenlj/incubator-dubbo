@@ -24,7 +24,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
 import org.apache.dubbo.common.config.Configuration;
-import org.apache.dubbo.common.config.ConfigurationHolder;
+import org.apache.dubbo.common.config.Environment;
 import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.container.Container;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ public class LogbackContainer implements Container {
 
     @Override
     public void start() {
-        Configuration conf = ConfigurationHolder.getCompositeConf();
+        Configuration conf = Environment.getCompositeConf();
         String file = conf.getString(LOGBACK_FILE);
         if (file != null && file.length() > 0) {
             String level = conf.getString(LOGBACK_LEVEL);

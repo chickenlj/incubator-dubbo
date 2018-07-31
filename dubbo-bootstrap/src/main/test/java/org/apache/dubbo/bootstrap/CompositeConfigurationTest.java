@@ -18,6 +18,7 @@ package org.apache.dubbo.bootstrap;
 
 import junit.framework.TestCase;
 import org.apache.dubbo.bootstrap.config.PropertiesConfig;
+import org.apache.dubbo.config.utils.ConfigConverter;
 import org.junit.Test;
 
 import java.util.Map;
@@ -40,7 +41,7 @@ public class CompositeConfigurationTest {
             System.setProperty("dubbo.properties.str", "dubbo");
             System.setProperty("dubbo.properties.bool", "true");
             PropertiesConfig config = new PropertiesConfig();
-            Map<String, String> map = BootstrapUtils.configToMap(config, null);
+            Map<String, String> map = ConfigConverter.configToMap(config, null);
             TestCase.assertEquals("1", map.get("i"));
             TestCase.assertEquals("c", map.get("c"));
             TestCase.assertEquals("2", map.get("b"));
@@ -68,7 +69,7 @@ public class CompositeConfigurationTest {
         try {
             System.setProperty("dubbo.properties.two.i", "2");
             PropertiesConfig config = new PropertiesConfig("two");
-            Map<String, String> map = BootstrapUtils.configToMap(config, null);
+            Map<String, String> map = ConfigConverter.configToMap(config, null);
             TestCase.assertEquals(2, map.get("i"));
         } finally {
             System.clearProperty("dubbo.properties.two.i");

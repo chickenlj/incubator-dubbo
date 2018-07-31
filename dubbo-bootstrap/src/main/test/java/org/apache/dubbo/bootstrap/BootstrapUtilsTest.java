@@ -24,6 +24,7 @@ import org.apache.dubbo.common.utils.ConfigUtils;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.MonitorConfig;
 import org.apache.dubbo.config.RegistryConfig;
+import org.apache.dubbo.config.utils.ConfigConverter;
 import org.apache.dubbo.monitor.MonitorService;
 import org.apache.dubbo.registry.RegistryService;
 import org.junit.AfterClass;
@@ -130,7 +131,7 @@ public class BootstrapUtilsTest {
             interfaceConfig.setApplication(new ApplicationConfig());
             interfaceConfig.checkApplication();
             ApplicationConfig appConfig = interfaceConfig.getApplication();
-            TestCase.assertEquals("demo", BootstrapUtils.getCompositeProperty(appConfig, "name", null));
+            TestCase.assertEquals("demo", ConfigConverter.getCompositeProperty(appConfig, "name", null));
 //            TestCase.assertEquals("100", System.getProperty(Constants.SHUTDOWN_WAIT_KEY));
 
             System.clearProperty(Constants.SHUTDOWN_WAIT_KEY);

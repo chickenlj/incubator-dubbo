@@ -59,7 +59,7 @@ public abstract class AbstractConfig implements Serializable {
 
     private static final Pattern PATTERN_KEY = Pattern.compile("[*,\\-._0-9a-zA-Z]+");
     private static final String[] SUFFIXES = new String[]{"Config", "Bean"};
-    private volatile Map<String, Object> metaData;
+    private volatile Map<String, String> metaData;
 
     protected String id;
 
@@ -305,7 +305,7 @@ public abstract class AbstractConfig implements Serializable {
      * @param prefix
      * @return
      */
-    public Map<String, Object> getMetaData(String prefix) {
+    public Map<String, String> getMetaData(String prefix) {
         if (metaData != null) {
             return metaData;
         }

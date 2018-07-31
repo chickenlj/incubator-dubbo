@@ -47,7 +47,7 @@ public class ApiProvider {
         DemoService demoService = new DemoServiceImpl();
         bootstrap.serviceConfig(
                 ServiceConfigBuilder.create()
-                        .interfaceName("com.alibaba.dubbo.demo.DemoService")
+                        .interfaceName("org.apache.dubbo.demo.DemoService")
                         .ref(demoService)
                         .timeout(5000)
         ).export();

@@ -49,7 +49,11 @@ public class CompositeConfiguration extends AbstractConfiguration {
     }
 
     public void addConfigurationFirst(Configuration configuration) {
-        this.configList.add(0, configuration);
+        this.addConfiguration(0, configuration);
+    }
+
+    public void addConfiguration(int pos, Configuration configuration) {
+        this.configList.add(pos, configuration);
     }
 
     @Override

@@ -39,6 +39,7 @@ import org.apache.dubbo.config.annotation.Service;
 import org.apache.dubbo.config.invoker.DelegateProviderMetaDataInvoker;
 import org.apache.dubbo.config.model.ApplicationModel;
 import org.apache.dubbo.config.model.ProviderModel;
+import org.apache.dubbo.config.utils.ConfigConverter;
 import org.apache.dubbo.rpc.Exporter;
 import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.Protocol;
@@ -265,14 +266,14 @@ public class ServiceConfigBuilder<T> extends ServiceConfig<T> {
         if (ConfigUtils.getPid() > 0) {
             map.put(Constants.PID_KEY, String.valueOf(ConfigUtils.getPid()));
         }
-        map.putAll(BootstrapUtils.configToMap(application, null));
-        map.putAll(BootstrapUtils.configToMap(module, null));
-        map.putAll(BootstrapUtils.configToMap(provider, Constants.DEFAULT_KEY));
-        map.putAll(BootstrapUtils.configToMap(protocolConfig, null));
-        map.putAll(BootstrapUtils.configToMap(this, null));
+        map.putAll(ConfigConverter.configToMap(application, null));
+        map.putAll(ConfigConverter.configToMap(module, null));
+        map.putAll(ConfigConverter.configToMap(provider, Constants.DEFAULT_KEY));
+        map.putAll(ConfigConverter.configToMap(protocolConfig, null));
+        map.putAll(ConfigConverter.configToMap(this, null));
         if (methods != null && !methods.isEmpty()) {
             for (MethodConfig method : methods) {
-                map.putAll(BootstrapUtils.configToMap(method, method.getName()));
+                map.putAll(ConfigConverter.configToMap(method, method.getName()));
                 String retryKey = method.getName() + ".retry";
                 if (map.containsKey(retryKey)) {
                     String retryValue = map.remove(retryKey);
@@ -296,7 +297,7 @@ public class ServiceConfigBuilder<T> extends ServiceConfig<T> {
                                         // one callback in the method
                                         if (argument.getIndex() != -1) {
                                             if (argtypes[argument.getIndex()].getName().equals(argument.getType())) {
-                                                map.putAll(BootstrapUtils.configToMap(argument, method.getName() + "." + argument.getIndex()));
+                                                map.putAll(ConfigConverter.configToMap(argument, method.getName() + "." + argument.getIndex()));
                                             } else {
                                                 throw new IllegalArgumentException("argument config error : the index attribute and type attribute not match :index :" + argument.getIndex() + ", type:" + argument.getType());
                                             }
@@ -305,7 +306,7 @@ public class ServiceConfigBuilder<T> extends ServiceConfig<T> {
                                             for (int j = 0; j < argtypes.length; j++) {
                                                 Class<?> argclazz = argtypes[j];
                                                 if (argclazz.getName().equals(argument.getType())) {
-                                                    map.putAll(BootstrapUtils.configToMap(argument, method.getName() + "." + j));
+                                                    map.putAll(ConfigConverter.configToMap(argument, method.getName() + "." + j));
                                                     if (argument.getIndex() != -1 && argument.getIndex() != j) {
                                                         throw new IllegalArgumentException("argument config error : the index attribute and type attribute not match :index :" + argument.getIndex() + ", type:" + argument.getType());
                                                     }
@@ -316,7 +317,7 @@ public class ServiceConfigBuilder<T> extends ServiceConfig<T> {
                                 }
                             }
                         } else if (argument.getIndex() != -1) {
-                            map.putAll(BootstrapUtils.configToMap(argument, method.getName() + "." + argument.getIndex()));
+                            map.putAll(ConfigConverter.configToMap(argument, method.getName() + "." + argument.getIndex()));
                         } else {
                             throw new IllegalArgumentException("argument config must set index or type attribute.eg: <dubbo:argument index='0' .../> or <dubbo:argument type=xxx .../>");
                         }
@@ -382,7 +383,7 @@ public class ServiceConfigBuilder<T> extends ServiceConfig<T> {
 
     /**
      * Register & bind IP address for service provider, can be configured separately.
-     * Configuration priority: environment variables -> java system properties -> host property in config file ->
+     * Configuration priority: context variables -> java system properties -> host property in config file ->
      * /etc/hosts -> default network address -> first available network address
      *
      * @param protocolConfig
@@ -398,7 +399,7 @@ public class ServiceConfigBuilder<T> extends ServiceConfig<T> {
             throw new IllegalArgumentException("Specified invalid bind ip from property:" + Constants.DUBBO_IP_TO_BIND + ", value:" + hostToBind);
         }
 
-        // if bind ip is not found in environment, keep looking up
+        // if bind ip is not found in context, keep looking up
         if (hostToBind == null || hostToBind.length() == 0) {
             hostToBind = protocolConfig.getHost();
             if (provider != null && (hostToBind == null || hostToBind.length() == 0)) {
@@ -461,7 +462,7 @@ public class ServiceConfigBuilder<T> extends ServiceConfig<T> {
 
     /**
      * Register port and bind port for the provider, can be configured separately
-     * Configuration priority: environment variable -> java system properties -> port property in protocol config file
+     * Configuration priority: context variable -> java system properties -> port property in protocol config file
      * -> protocol default port
      *
      * @param protocolConfig
@@ -471,11 +472,11 @@ public class ServiceConfigBuilder<T> extends ServiceConfig<T> {
         String name = protocolConfig.getName();
         Integer portToBind = null;
 
-        // parse bind port from environment
+        // parse bind port from context
         String port = getValueFromConfig(protocolConfig, Constants.DUBBO_PORT_TO_BIND);
         portToBind = parsePort(port);
 
-        // if there's no bind port found from environment, keep looking up.
+        // if there's no bind port found from context, keep looking up.
         if (portToBind == null) {
             portToBind = protocolConfig.getPort();
             if (provider != null && (portToBind == null || portToBind == 0)) {

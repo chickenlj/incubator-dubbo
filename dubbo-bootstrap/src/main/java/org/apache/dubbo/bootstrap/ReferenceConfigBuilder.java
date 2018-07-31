@@ -35,6 +35,7 @@ import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.model.ApplicationModel;
 import org.apache.dubbo.config.model.ConsumerModel;
+import org.apache.dubbo.config.utils.ConfigConverter;
 import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.Protocol;
 import org.apache.dubbo.rpc.ProxyFactory;
@@ -189,14 +190,14 @@ public class ReferenceConfigBuilder<T> extends ReferenceConfig<T> {
         }
         map.put(Constants.INTERFACE_KEY, interfaceName);
 
-        map.putAll(BootstrapUtils.configToMap(application, null));
-        map.putAll(BootstrapUtils.configToMap(module, null));
-        map.putAll(BootstrapUtils.configToMap(consumer, Constants.DEFAULT_KEY));
-        map.putAll(BootstrapUtils.configToMap(this, null));
+        map.putAll(ConfigConverter.configToMap(application, null));
+        map.putAll(ConfigConverter.configToMap(module, null));
+        map.putAll(ConfigConverter.configToMap(consumer, Constants.DEFAULT_KEY));
+        map.putAll(ConfigConverter.configToMap(this, null));
         String prefix = StringUtils.getServiceKey(map);
         if (methods != null && !methods.isEmpty()) {
             for (MethodConfig method : methods) {
-                map.putAll(BootstrapUtils.configToMap(method, method.getName()));
+                map.putAll(ConfigConverter.configToMap(method, method.getName()));
                 String retryKey = method.getName() + ".retry";
                 if (map.containsKey(retryKey)) {
                     String retryValue = map.remove(retryKey);

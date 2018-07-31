@@ -54,7 +54,7 @@ public class ArgumentConfigTest {
         argument.setIndex(1);
         argument.setType("int");
         argument.setCallback(true);
-        Map<String, Object> parameters = argument.getMetaData(null);
+        Map<String, String> parameters = argument.getMetaData(null);
         assertThat(parameters, hasEntry("callback", "true"));
         assertThat(parameters.size(), is(1));
     }

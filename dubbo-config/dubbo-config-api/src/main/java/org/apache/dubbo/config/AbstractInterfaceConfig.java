@@ -17,10 +17,11 @@
 package org.apache.dubbo.config;
 
 import org.apache.dubbo.common.Constants;
-import org.apache.dubbo.common.config.ConfigurationHolder;
+import org.apache.dubbo.common.config.Environment;
 import org.apache.dubbo.common.utils.ConfigUtils;
 import org.apache.dubbo.common.utils.ReflectUtils;
 import org.apache.dubbo.config.support.Parameter;
+import org.apache.dubbo.config.utils.ConfigConverter;
 import org.apache.dubbo.rpc.support.MockInvoker;
 
 import java.util.ArrayList;
@@ -101,11 +102,13 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     public void checkApplication() {
         // for backward compatibility
         if (application == null) {
-            String applicationName = ConfigurationHolder.getCompositeConf().getString("dubbo.application.name");
+            String applicationName = Environment.getInstance().getCompositeConf().getString("dubbo.application.name");
             if (applicationName != null && applicationName.length() > 0) {
                 application = new ApplicationConfig();
+                application.setName(applicationName);
             }
         }
+        Environment.getInstance().setAppConfiguration(ConfigConverter.configToMap(application, null));
         if (application == null) {
             throw new IllegalStateException(
                     "No such application config! Please add <dubbo:application name=\"...\" /> to your spring config.");

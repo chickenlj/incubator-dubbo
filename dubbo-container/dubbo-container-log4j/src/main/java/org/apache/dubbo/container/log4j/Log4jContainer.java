@@ -17,7 +17,7 @@
 package org.apache.dubbo.container.log4j;
 
 import org.apache.dubbo.common.config.Configuration;
-import org.apache.dubbo.common.config.ConfigurationHolder;
+import org.apache.dubbo.common.config.Environment;
 import org.apache.dubbo.container.Container;
 import org.apache.log4j.Appender;
 import org.apache.log4j.FileAppender;
@@ -43,7 +43,7 @@ public class Log4jContainer implements Container {
     @Override
     @SuppressWarnings("unchecked")
     public void start() {
-        Configuration conf = ConfigurationHolder.getCompositeConf();
+        Configuration conf = Environment.getInstance().getCompositeConf();
         String file = conf.getString(LOG4J_FILE);
         if (file != null && file.length() > 0) {
             String level = conf.getString(LOG4J_LEVEL);

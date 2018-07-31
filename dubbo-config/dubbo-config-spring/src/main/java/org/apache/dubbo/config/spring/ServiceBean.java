@@ -18,6 +18,7 @@ package org.apache.dubbo.config.spring;
 
 import org.apache.dubbo.bootstrap.DubboBootstrap;
 import org.apache.dubbo.bootstrap.ServiceConfigBuilder;
+import org.apache.dubbo.common.config.Environment;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ModuleConfig;
 import org.apache.dubbo.config.MonitorConfig;
@@ -34,13 +35,20 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.MutablePropertySources;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 
 /**
@@ -48,7 +56,7 @@ import java.util.Map;
  *
  * @export
  */
-public class ServiceBean<T> extends ServiceConfigBuilder<T> implements InitializingBean, DisposableBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent>, BeanNameAware {
+public class ServiceBean<T> extends ServiceConfigBuilder<T> implements InitializingBean, DisposableBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent>, BeanNameAware, EnvironmentAware {
 
     private static final long serialVersionUID = 213195494150089726L;
 
@@ -281,5 +289,19 @@ public class ServiceBean<T> extends ServiceConfigBuilder<T> implements Initializ
             return AopUtils.getTargetClass(ref);
         }
         return super.getServiceClass(ref);
+    }
+
+    @Override
+    public void setEnvironment(org.springframework.core.env.Environment environment) {
+        Map<String, String> props = new HashMap<>();
+        MutablePropertySources propSrcs = ((AbstractEnvironment) environment).getPropertySources();
+        StreamSupport.stream(propSrcs.spliterator(), false)
+                .filter(ps -> ps instanceof EnumerablePropertySource)
+                .map(ps -> ((EnumerablePropertySource) ps).getPropertyNames())
+                .flatMap(Arrays::<String>stream)
+                .filter(propName -> propName.startsWith("dubbo."))
+                .forEach(propName -> props.put(propName, environment.getProperty(propName)));
+
+        Environment.getInstance().setExternalConfiguration(props);
     }
 }

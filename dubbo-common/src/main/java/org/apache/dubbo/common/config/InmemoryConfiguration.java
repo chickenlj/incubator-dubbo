@@ -27,11 +27,7 @@ public class InmemoryConfiguration extends AbstractConfiguration {
     /**
      * stores the configuration key-value pairs
      */
-    private Map<String, Object> store = new LinkedHashMap<>();
-
-    public InmemoryConfiguration(String prefix, String key, Object value) {
-        store.put(prefix + key, value);
-    }
+    private Map<String, String> store = new LinkedHashMap<>();
 
     public InmemoryConfiguration() {
     }
@@ -42,11 +38,11 @@ public class InmemoryConfiguration extends AbstractConfiguration {
      * @param key
      * @param value
      */
-    public void addProperty(String key, Object value) {
+    public void addProperty(String key, String value) {
         store.put(key, value);
     }
 
-    public void addPropertys(Map<String, Object> properties) {
+    public void addPropertys(Map<String, String> properties) {
         store.putAll(properties);
     }
 
@@ -58,7 +54,7 @@ public class InmemoryConfiguration extends AbstractConfiguration {
     @Override
     public String getString(String key, String defaultValue) {
         if (store.containsKey(key)) {
-            return (String) store.get(key);
+            return store.get(key);
         }
         return defaultValue;
     }

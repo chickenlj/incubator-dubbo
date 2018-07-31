@@ -31,4 +31,9 @@ public class MockDynamicConfiguration extends AbstractDynamicConfiguration {
     protected String getInternalProperty(String key, String group, long timeout) {
         return null;
     }
+
+    @Override
+    public void init() {
+
+    }
 }
