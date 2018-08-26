@@ -40,11 +40,10 @@ public class ApolloDynamicConfiguration extends AbstractDynamicConfiguration {
     private static final String APOLLO_ENV_KEY = "env";
     private static final String APOLLO_ADDR_KEY = "apollo.meta";
     private static final String APOLLO_CLUSTER_KEY = "apollo.cluster";
-    /**
-     * support two namespaces: application -> dubbo
-     */
+    private static final String APOLLO_DEFAULT_NAMESPACE = "application";
+
+    // support one namespace, shall we support more than one namespace?
     private Config dubboConfig;
-    private Config appConfig;
 
     public ApolloDynamicConfiguration() {
 
@@ -60,6 +59,7 @@ public class ApolloDynamicConfiguration extends AbstractDynamicConfiguration {
         String configEnv = url.getParameter(Constants.CONFIG_ENV_KEY);
         String configAddr = url.getAddress();
         String configCluster = url.getParameter(Constants.CONFIG_CLUSTER_KEY);
+        String configNamespace = url.getParameter(Constants.CONFIG_NAMESPACE_KEY);
         if (configEnv != null) {
             System.setProperty(APOLLO_ENV_KEY, configEnv);
         }
@@ -69,36 +69,29 @@ public class ApolloDynamicConfiguration extends AbstractDynamicConfiguration {
         if (configCluster != null) {
             System.setProperty(APOLLO_CLUSTER_KEY, configCluster);
         }
+        if (StringUtils.isEmpty(configNamespace)) {
+            configNamespace = APOLLO_DEFAULT_NAMESPACE;
+        }
 
-        dubboConfig = ConfigService.getConfig("dubbo");
-        appConfig = ConfigService.getAppConfig();
+        dubboConfig = ConfigService.getConfig(configNamespace);
     }
 
     @Override
     public void addListener(String key, ConfigurationListener listener) {
         Set<String> keys = new HashSet<>(1);
         keys.add(key);
-        this.appConfig.addChangeListener(new ApolloListener(listener), keys);
         this.dubboConfig.addChangeListener(new ApolloListener(listener), keys);
     }
 
     @Override
     public String getConfig(String key, String group, ConfigurationListener listener) {
-        Set<String> keys = new HashSet<>(1);
-        keys.add(key);
-        this.appConfig.addChangeListener(new ApolloListener(listener), keys);
-        this.dubboConfig.addChangeListener(new ApolloListener(listener), keys);
+        addListener(key, listener);
         return getInternalProperty(key, group, 0L);
     }
 
     @Override
     protected String getInternalProperty(String key, String group, long timeout) {
-        String value = appConfig.getProperty(key, null);
-        if (value == null) {
-            value = dubboConfig.getProperty(key, null);
-        }
-
-        return value;
+        return dubboConfig.getProperty(key, null);
     }
 
     public ConfigChangeType getChangeType(PropertyChangeType changeType) {
