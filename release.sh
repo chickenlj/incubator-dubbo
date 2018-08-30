@@ -212,19 +212,22 @@ git push staging :$branch >> release.out
 git push staging :refs/tags/$tag >> release.out
 
 echo "Creating release branch"
-git checkout -b $branch $GIT_BRANCH >> release.out
+git checkout -b $branch origin/$GIT_BRANCH >> release.out
 
 # Change version from SNAPSHOT to release ready
-#mvn release:update-versions --batch-mode
+mvn release:update-versions --batch-mode
 # Add tag
-mvn release:prepare -Darguments="-DskipTests" -DautoVersionSubmodules=true -Dusername=chickenlj -DupdateWorkingCopyVersions=false -DpushChanges=false -DdryRun=true
-if [ $? -ne 0 ] ; then
-    fail "ERROR: mvn release:prepare was not successful"
-fi
-mvn -Prelease release:perform  -Darguments="-DskipTests -Dmaven.deploy.skip=true" -DautoVersionSubmodules=true -Dusername=chickenlj -DdryRun=true
-if [ $? -ne 0 ] ; then
-    fail "ERROR: mvn release:perform was not successful"
-fi
+git tag -a dubbo-$version 'Tag for $version' >> release.out
+#git push origin dubbo-$version >> release.out
+
+#mvn release:prepare -Darguments="-DskipTests" -DautoVersionSubmodules=true -Dusername=chickenlj -DupdateWorkingCopyVersions=false -DpushChanges=false -DdryRun=true
+#if [ $? -ne 0 ] ; then
+#    fail "ERROR: mvn release:prepare was not successful"
+#fi
+#mvn -Prelease release:perform  -Darguments="-DskipTests -Dmaven.deploy.skip=true" -DautoVersionSubmodules=true -Dusername=chickenlj -DdryRun=true
+#if [ $? -ne 0 ] ; then
+#   fail "ERROR: mvn release:perform was not successful"
+#fi
 
 cd ./distribution
 mvn clean install -Prelease
@@ -241,6 +244,7 @@ svn add *
 #svn commit -m "Upload dubbo-$version to staging area"
 
 
+cd ../..
 generate_release_vote_email
 
 
@@ -276,19 +280,6 @@ Happy voting!
 
 git add release.txt
 
-echo "Adding post-release scripts and vote/release email templates to build branch"
-git commit -m "Added post-release scripts and vote/release email templates"
-
-echo "Signing the release tag"
-git checkout $tag
-git tag --sign --force --message \"Signed release tag for Apache Dubbo $version\" $tag >> $log
-git checkout $branch
-
-echo "Pushing build artifacts to the staging repository"
-git push staging $branch:refs/heads/$branch
-
-echo "Pushing release tag to the staging repository"
-git push staging $tag
 
 # 创建新分支并checkout
 # 检查tag是否存在，如果存在都删除？
