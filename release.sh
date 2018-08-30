@@ -155,7 +155,18 @@ git checkout -b $branch $GIT_BRANCH >> release.out
 #mvn release:update-versions --batch-mode
 # Add tag
 mvn release:prepare -Darguments="-DskipTests" -DautoVersionSubmodules=true -Dusername=chickenlj -DupdateWorkingCopyVersions=false -DpushChanges=false -DdryRun=true
+if [ $? -ne 0 ] ; then
+    fail "ERROR: mvn release:prepare was not successful"
+fi
 mvn -Prelease release:perform  -Darguments="-DskipTests -Dmaven.deploy.skip=true" -DautoVersionSubmodules=true -Dusername=chickenlj -DdryRun=true
+if [ $? -ne 0 ] ; then
+    fail "ERROR: mvn release:perform was not successful"
+fi
+
+cd ./distribution
+mvn clean install -Prelease
+shasum -a 512 apache-dubbo-incubating-${version}-source-release.zip >> apache-dubbo-incubating-${version}-source-release.zip.sha512
+shasum -a 512 apache-dubbo-incubating-${version}-bin-release.zip >> apache-dubbo-incubating-${version}-bin-release.zip.sha512
 
 # 创建新分支并checkout
 # 检查tag是否存在，如果存在都删除？
