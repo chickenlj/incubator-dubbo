@@ -74,6 +74,39 @@ echo "$script" > promote-$version.sh
     git add promote-$version.sh
 }
 
+function generate_rollback_script {
+	echo "Generating release rollback script 'revert-$version.sh'"
+read -d '' script <<- EOF
+#!/bin/bash
+echo -n "Reverting release $version
+Actions about to be performed:
+------------------------------
+\$(cat \$0 | tail -n +14)
+------------------------------------------
+Press enter to continue or CTRL-C to abort"
+read
+# clean up local repository
+git checkout $GIT_BRANCH
+git branch -D $branch
+git tag -d $tag
+# clean up staging repository
+git push staging --delete refs/heads/$branch
+git push staging --delete $tag
+# clean up staging dist area
+svn rm https://dist.apache.org/repos/dist/dev/wicket/$version -m "Release vote has failed"
+# clean up staging maven repository
+mvn org.sonatype.plugins:nexus-staging-maven-plugin:LATEST:rc-drop -DstagingRepositoryId=$stagingrepoid -DnexusUrl=https://repository.apache.org -DserverId=apache.releases.https -Ddescription="Release vote has failed"
+# clean up remaining release files
+find . -name "*.releaseBackup" -exec rm {} \\;
+[ -f release.properties ] && rm release.properties
+EOF
+echo "$script" > revert-$version.sh
+
+	chmod +x revert-$version.sh
+	git add revert-$version.sh
+}
+
+
 echo "Cleaning up any release artifacts that might linger"
 mvn -q release:clean
 
@@ -167,6 +200,65 @@ cd ./distribution
 mvn clean install -Prelease
 shasum -a 512 apache-dubbo-incubating-${version}-source-release.zip >> apache-dubbo-incubating-${version}-source-release.zip.sha512
 shasum -a 512 apache-dubbo-incubating-${version}-bin-release.zip >> apache-dubbo-incubating-${version}-bin-release.zip.sha512
+
+generate_promotion_script
+generate_rollback_script
+
+cd ./target
+svn mkdir https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version-test -m "Create $version release staging area"
+svn co --force --depth=empty https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version .
+svn add *
+#svn commit -m "Upload dubbo-$version to staging area"
+
+
+generate_release_vote_email
+
+
+echo "
+The release has been created. It is up to you to check if the release is up
+to par, and perform the following commands yourself when you start the vote
+to enable future development during the vote and after.
+A vote email has been generated in release-vote.txt, you can copy/paste it using:
+    cat release-vote.txt | pbcopy
+You can find the distribution in target/dist.
+Failed release
+--------------
+To rollback a release due to a failed vote or some other complication use:
+    $ ./revert-$version.sh
+This will clean up the artfifacts from the staging areas, including Nexus,
+dist.apache.org and the release branch and tag.
+Successful release
+------------------
+Congratulations on the successful release vote!
+Use the release-announce.txt as a starter for the release announcement:
+    cat release-announce.txt | pbcopy
+A Markdown file called wicket-$version-released.md has been also generated.
+You can use it to update the site with the release announcement.
+To promote the release after a successful vote, run:
+    $ ./promote-$version.sh
+This will promote the Nexus staging repository to Maven Central, and move
+the release artifacts from the staging area to dist.apache.org. It will
+also sign the release tag and push the release branch to git.apache.org
+You can read this message at a later time using:
+    $ cat release.txt
+Happy voting!
+" > release.txt
+
+git add release.txt
+
+echo "Adding post-release scripts and vote/release email templates to build branch"
+git commit -m "Added post-release scripts and vote/release email templates"
+
+echo "Signing the release tag"
+git checkout $tag
+git tag --sign --force --message \"Signed release tag for Apache Wicket $version\" $tag >> $log
+git checkout $branch
+
+echo "Pushing build artifacts to the staging repository"
+git push staging $branch:refs/heads/$branch
+
+echo "Pushing release tag to the staging repository"
+git push staging $tag
 
 # 创建新分支并checkout
 # 检查tag是否存在，如果存在都删除？
