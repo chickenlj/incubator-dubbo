@@ -53,7 +53,7 @@ read -p "Press enter to continue or CTRL-C to abort"
 # push the release tag to ASF git repo
 git push origin $tag
 # promote the source distribution by moving it from the staging area to the release area
-svn mv https://dist.apache.org/repos/dist/dev/wicket/$version https://dist.apache.org/repos/dist/release/wicket -m "Upload release to the mirrors"
+svn mv https://dist.apache.org/repos/dist/dev/Dubbo/$version https://dist.apache.org/repos/dist/release/Dubbo -m "Upload release to the mirrors"
 mvn org.sonatype.plugins:nexus-staging-maven-plugin:1.6.7:rc-release -DstagingRepositoryId=$stagingrepoid -DnexusUrl=https://repository.apache.org -DserverId=apache.releases.https -Ddescription="Release vote has passed"
 # Renumber the next development iteration $next_version:
 git checkout $GIT_BRANCH
@@ -64,8 +64,8 @@ echo "
 Check the new versions and commit and push them to origin:
   git commit -m \"Start next development version\"
   git push
-Remove the previous version of Wicket using this command:
-  svn rm https://dist.apache.org/repos/dist/release/wicket/$previous_version -m \\\"Remove previous version from mirrors\\\"
+Remove the previous version of Dubbo using this command:
+  svn rm https://dist.apache.org/repos/dist/release/Dubbo/$previous_version -m \\\"Remove previous version from mirrors\\\"
 "
 EOF
 
@@ -93,7 +93,7 @@ git tag -d $tag
 git push staging --delete refs/heads/$branch
 git push staging --delete $tag
 # clean up staging dist area
-svn rm https://dist.apache.org/repos/dist/dev/wicket/$version -m "Release vote has failed"
+svn rm https://dist.apache.org/repos/dist/dev/Dubbo/$version -m "Release vote has failed"
 # clean up staging maven repository
 mvn org.sonatype.plugins:nexus-staging-maven-plugin:LATEST:rc-drop -DstagingRepositoryId=$stagingrepoid -DnexusUrl=https://repository.apache.org -DserverId=apache.releases.https -Ddescription="Release vote has failed"
 # clean up remaining release files
@@ -104,6 +104,36 @@ echo "$script" > revert-$version.sh
 
 	chmod +x revert-$version.sh
 	git add revert-$version.sh
+}
+
+function generate_release_vote_email {
+
+    echo "Generating Vote email"
+
+    echo "
+This is a vote to release Apache Dubbo $version
+Please download the source distributions found in our staging area
+linked below.
+I have included the signatures for both the source archives. This vote
+lasts for 72 hours minimum.
+[ ] Yes, release Apache Dubbo $version
+[ ] No, don't release Apache Dubbo $version, because ...
+Distributions, changelog, keys and signatures can be found at:
+    https://dist.apache.org/repos/dist/dev/Dubbo/$version
+Staging repository:
+    https://repository.apache.org/content/repositories/$stagingrepoid/
+The binaries are available in the above link, as are a staging
+repository for Maven. Typically the vote is on the source, but should
+you find a problem with one of the binaries, please let me know, I can
+re-roll them some way or the other.
+Staging git repository data:
+    Repository:  $(git config --get remote.staging.url)
+    Branch:      $branch
+    Release tag: $tag
+" | tail -n+2 > release-vote.txt
+
+    cat /tmp/release-$version-sigs.txt >> release-vote.txt
+	git add release-vote.txt
 }
 
 
@@ -159,9 +189,9 @@ if [ ! $( git config --get remote.staging.url ) ] ; then
 No staging remote git repository found. The staging repository is used to temporarily
 publish the build artifacts during the voting process. Since no staging repository is
 available at Apache, it is best to use a git mirror on your personal github account.
-First fork the github Apache Wicket mirror (https://github.com/apache/wicket) and then
+First fork the github Apache Dubbo mirror (https://github.com/apache/Dubbo) and then
 add the remote staging repository with the following command:
-    $ git remote add staging git@github.com:<your github username>/wicket.git
+    $ git remote add staging git@github.com:<your github username>/Dubbo.git
     $ git fetch staging
     $ git push staging
 This will bring the staging area in sync with the origin and the release script can
@@ -232,7 +262,7 @@ Successful release
 Congratulations on the successful release vote!
 Use the release-announce.txt as a starter for the release announcement:
     cat release-announce.txt | pbcopy
-A Markdown file called wicket-$version-released.md has been also generated.
+A Markdown file called Dubbo-$version-released.md has been also generated.
 You can use it to update the site with the release announcement.
 To promote the release after a successful vote, run:
     $ ./promote-$version.sh
@@ -251,7 +281,7 @@ git commit -m "Added post-release scripts and vote/release email templates"
 
 echo "Signing the release tag"
 git checkout $tag
-git tag --sign --force --message \"Signed release tag for Apache Wicket $version\" $tag >> $log
+git tag --sign --force --message \"Signed release tag for Apache Dubbo $version\" $tag >> $log
 git checkout $branch
 
 echo "Pushing build artifacts to the staging repository"
