@@ -74,11 +74,18 @@ echo "$script" > promote-$version.sh
     git add promote-$version.sh
 }
 
+echo "Cleaning up any release artifacts that might linger"
+mvn -q release:clean
+
 JAVA_VERSION=$(getJavaVersionFromPom)
 POM_VERSION=$(getProjectVersionFromPom)
 
 echo $JAVA_VERSION
 echo $POM_VERSION
+
+# the branch on which the code base lives for this version
+read -p 'Input the branch on which the code base lives for this version: ' GIT_BRANCH
+echo $GIT_BRANCH
 
 version=$(getProjectVersionFromPom)
 while [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-M[0-9]+)?$ ]]
@@ -92,9 +99,6 @@ done
 tag=dubbo-$version
 branch=$version-release
 
-# the branch on which the code base lives for this version
-read -p 'Input the branch on which the code base lives for this version: ' GIT_BRANCH
-echo $GIT_BRANCH
 echo $(generate_promotion_script)
 
 major_version=$(expr $version : '\(.*\)\..*\..*')
@@ -132,8 +136,6 @@ push the build branch and the tag to the staging area.
 "
 fi
 
-git checkout $GIT_BRANCH
-
 echo "Removing previous release tag $tag (if exists)"
 oldtag=`git tag -l |grep -e "$tag"|wc -l` >> release.out
 [ "$oldtag" -ne 0 ] && git tag -d $tag >> release.out
@@ -146,10 +148,14 @@ echo "Removing previous staging branch (if exists)"
 git push staging :$branch >> release.out
 git push staging :refs/tags/$tag >> release.out
 
-# Change version from -SNAPSHOT to release ready
-mvn release:update-versions --batch-mode
+echo "Creating release branch"
+git checkout -b $branch $GIT_BRANCH >> release.out
+
+# Change version from SNAPSHOT to release ready
+#mvn release:update-versions --batch-mode
 # Add tag
-# Deploy to
+mvn release:prepare -Darguments="-DskipTests" -DautoVersionSubmodules=true -Dusername=chickenlj -DupdateWorkingCopyVersions=false -DpushChanges=false -DdryRun=true
+mvn -Prelease release:perform  -Darguments="-DskipTests -Dmaven.deploy.skip=true" -DautoVersionSubmodules=true -Dusername=chickenlj -DdryRun=true
 
 # 创建新分支并checkout
 # 检查tag是否存在，如果存在都删除？
