@@ -18,11 +18,14 @@
 # set -x
 
 function fail {
-    >&2 echo "\033[31m
-FATAL ERROR
------------
-$1
-\033[0m"
+    >&2 echo "\033[31m\033[01m[
+    FATAL ERROR:
+    ------------------
+    $1 ]\033[0m"
+
+    echo "Clear current work dir"
+    git add .
+    git commit -m 'Failed preparation for release.'
     exit 1
 }
 
@@ -170,7 +173,7 @@ else
 fi
 
 hasFileChanged=`git status|grep -e "nothing to commit, working tree clean"|wc -l`
-if [$hasFileChanged -lt 1] ; then
+if [ $hasFileChanged -lt 1 ] ; then
     fail "ERROR: there are changes that have not committed in current branch ."
 fi
 echo "$hasFileChanged"
@@ -191,8 +194,9 @@ mvn versions:set versions:commit -DprocessAllModules=true -DnewVersion=$version
 read -p "test"
 #mvn clean install -DskipTests
 cd ./distribution
-echo "Prepare for source and binary releases"
-mvn install -Prelease
+echo "Current dir: $(pwd)"
+echo "Prepare for source and binary releases: mvn install -Prelease"
+mvn install -Prelease >> release.out
 if [ $? -ne 0 ] ; then
    fail "ERROR: mvn clean install -Prelease"
 fi
@@ -200,6 +204,7 @@ cd ./target
 shasum -a 512 apache-dubbo-incubating-${version}-source-release.zip >> apache-dubbo-incubating-${version}-source-release.zip.sha512
 shasum -a 512 apache-dubbo-incubating-${version}-bin-release.zip >> apache-dubbo-incubating-${version}-bin-release.zip.sha512
 
+echo "Submit all release candidate packages to svn"
 #svn mkdir https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version-test -m "Create $version release staging area"
 #svn co --force --depth=empty https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version .
 #svn add *
@@ -214,5 +219,5 @@ generate_promotion_script
 generate_rollback_script
 generate_release_vote_email
 git add .
-git commit -m 'Prepare for release $version'
-git push staging staging-$branch
+git commit -m "Prepare for release $version"
+git push staging $branch staging-$branch
