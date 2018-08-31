@@ -18,11 +18,10 @@
 # set -x
 
 function fail {
-    >&2 echo "\033[31m
-FATAL ERROR
------------
-$1
-\033[0m"
+    >&2 echo "\033[31m\033[01m[
+    FATAL ERROR:
+    ------------------
+    $1 ]\033[0m"
     exit 1
 }
 
@@ -214,5 +213,5 @@ generate_promotion_script
 generate_rollback_script
 generate_release_vote_email
 git add .
-git commit -m 'Prepare for release $version'
-git push staging staging-$branch
+git commit -m "Prepare for release $version"
+git push staging $branch staging-$branch
