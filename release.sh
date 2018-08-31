@@ -107,7 +107,32 @@ function generate_release_vote_email {
     echo "Generating Vote email"
 
     echo "
-fasfds
+    Hello Dubbo Community,
+
+    This is a call for vote to release Apache Dubbo (Incubating) version $version.
+
+    The release candidates (RC5):
+    https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version
+
+    Git tag for the release (RC5):
+    https://github.com/apache/incubator-dubbo/tree/dubbo-$version
+    Hash for the release tag:
+    3963d8fd93642398375ea92acb7ed4d2bc1b0518
+
+    Release Notes:
+    https://github.com/apache/incubator-dubbo/blob/dubbo-$version/CHANGES.md
+
+    The artifacts have been signed with Key : 28681CB1, which can be found in the keys file:
+    https://dist.apache.org/repos/dist/dev/incubator/dubbo/KEYS
+
+    The vote will be open for at least 72 hours or until necessary number of votes are reached.
+
+    Please vote accordingly:
+
+    [ ] +1 approve
+    [ ] +0 no opinion
+    [ ] -1 disapprove with the reason
+
 " | tail -n+2 > release-vote.txt
 
 	git add release-vote.txt
