@@ -148,37 +148,37 @@ else
     previous_version="$major_version.$minor_version.$(expr $bugfix_version - 1)"
 fi
 
-log=../release.out
+log=../$log
 
 if [ -f $log ] ; then
     rm $log
 fi
 
 echo "Removing previous release tag $tag (if exists)"
-oldtag=`git tag -l |grep -e "$tag"|wc -l` >> release.out
-[ "$oldtag" -ne 0 ] && git tag -d $tag >> release.out
+oldtag=`git tag -l |grep -e "$tag"|wc -l` >> $log
+[ "$oldtag" -ne 0 ] && git tag -d $tag >> $log
 
 echo "Removing previous build branch $branch (if exists)"
-oldbranch=`git branch |grep -e "$branch"|wc -l` >> release.out
-[ "$oldbranch" -ne 0 ] && git branch -D $branch >> release.out
+oldbranch=`git branch |grep -e "$branch"|wc -l` >> $log
+[ "$oldbranch" -ne 0 ] && git branch -D $branch >> $log
 
 echo "Removing previous staging tag (if exists)"
-git push origin :refs/tags/$tag >> release.out
+git push origin :refs/tags/$tag >> $log
 
 echo "Creating release branch"
-releasebranch=`git branch -a |grep -e "origin/$branch$"|wc -l` >> release.out
+releasebranch=`git branch -a |grep -e "origin/$branch$"|wc -l` >> $log
 if [ $releasebranch -ne 0 ]
 then
     echo "git checkout -b $branch origin/$branch"
     read -p "test"
-    git checkout -b $branch origin/$branch >> release.out
+    git checkout -b $branch origin/$branch >> $log
     if [ $? -ne 0 ] ; then
        fail_noclear "ERROR: git checkout -b $branch origin/$branch"
     fi
 else
     echo "git checkout -b $branch origin/$GIT_BRANCH"
     read -p "test"
-    git checkout -b $branch origin/$GIT_BRANCH >> release.out
+    git checkout -b $branch origin/$GIT_BRANCH >> $log
     if [ $? -ne 0 ] ; then
        fail_noclear "ERROR: git checkout -b $branch origin/$GIT_BRANCH"
     fi
@@ -187,8 +187,8 @@ fi
 # Change version from SNAPSHOT to release ready
 #mvn versions:set versions:commit -DprocessAllModules=true -DnewVersion=$version
 # Add tag
-#git tag -a dubbo-$version -m "generate tag dubbo-version" >> release.out
-#git push origin dubbo-$version >> release.out
+#git tag -a dubbo-$version -m "generate tag dubbo-version" >> $log
+#git push origin dubbo-$version >> $log
 #mvn release:prepare -Darguments="-DskipTests" -DautoVersionSubmodules=true -Dusername=chickenlj -DupdateWorkingCopyVersions=true -DpushChanges=false -DdryRun=true
 #if [ $? -ne 0 ] ; then
 #    fail "ERROR: mvn release:prepare was not successful"
@@ -203,7 +203,7 @@ read -p "test"
 cd ./distribution
 echo "Current dir: $(pwd)"
 echo "Prepare for source and binary releases: mvn install -Prelease"
-mvn install -Prelease >> release.out
+mvn install -Prelease >> $log
 if [ $? -ne 0 ] ; then
    fail "ERROR: mvn clean install -Prelease"
 fi
