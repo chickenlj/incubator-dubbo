@@ -29,6 +29,14 @@ function fail {
     exit 1
 }
 
+function fail_noclear {
+    >&2 echo "\033[31m\033[01m[
+    FATAL ERROR:
+    ------------------
+    $1 ]\033[0m"
+    exit 1
+}
+
 function getProjectVersionFromPom {
     cat << EOF | xmllint --noent --shell pom.xml | grep content | cut -f2 -d=
 setns pom=http://maven.apache.org/POM/4.0.0
@@ -105,6 +113,11 @@ fasfds
 	git add release-vote.txt
 }
 
+hasFileChanged=`git status|grep -e "nothing to commit, working tree clean"|wc -l`
+if [ $hasFileChanged -lt 1 ] ; then
+    fail_noclear "ERROR: there are changes that have not committed in current branch ."
+fi
+echo "$hasFileChanged"
 
 echo "Cleaning up any release artifacts that might linger: mvn -q release:clean"
 mvn -q release:clean
@@ -161,22 +174,17 @@ then
     read -p "test"
     git checkout -b $branch origin/$branch >> release.out
     if [ $? -ne 0 ] ; then
-       fail "ERROR: git checkout -b $branch origin/$branch"
+       fail_noclear "ERROR: git checkout -b $branch origin/$branch"
     fi
 else
     echo "git checkout -b $branch origin/$GIT_BRANCH"
     read -p "test"
     git checkout -b $branch origin/$GIT_BRANCH >> release.out
     if [ $? -ne 0 ] ; then
-       fail "ERROR: git checkout -b $branch origin/$GIT_BRANCH"
+       fail_noclear "ERROR: git checkout -b $branch origin/$GIT_BRANCH"
     fi
 fi
 
-hasFileChanged=`git status|grep -e "nothing to commit, working tree clean"|wc -l`
-if [ $hasFileChanged -lt 1 ] ; then
-    fail "ERROR: there are changes that have not committed in current branch ."
-fi
-echo "$hasFileChanged"
 # Change version from SNAPSHOT to release ready
 #mvn versions:set versions:commit -DprocessAllModules=true -DnewVersion=$version
 # Add tag
