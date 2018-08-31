@@ -170,7 +170,7 @@ else
 fi
 
 hasFileChanged=`git status|grep -e "nothing to commit, working tree clean"|wc -l`
-if [$hasFileChanged -lt 1] ; then
+if [ $hasFileChanged -lt 1 ] ; then
     fail "ERROR: there are changes that have not committed in current branch ."
 fi
 echo "$hasFileChanged"
