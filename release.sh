@@ -22,6 +22,10 @@ function fail {
     FATAL ERROR:
     ------------------
     $1 ]\033[0m"
+
+    echo "Clear current work dir"
+    git add .
+    git commit -m 'Failed preparation for release.'
     exit 1
 }
 
@@ -190,8 +194,9 @@ mvn versions:set versions:commit -DprocessAllModules=true -DnewVersion=$version
 read -p "test"
 #mvn clean install -DskipTests
 cd ./distribution
-echo "Prepare for source and binary releases"
-mvn install -Prelease
+echo "Current dir: $(pwd)"
+echo "Prepare for source and binary releases: mvn install -Prelease"
+mvn install -Prelease >> release.out
 if [ $? -ne 0 ] ; then
    fail "ERROR: mvn clean install -Prelease"
 fi
@@ -199,6 +204,7 @@ cd ./target
 shasum -a 512 apache-dubbo-incubating-${version}-source-release.zip >> apache-dubbo-incubating-${version}-source-release.zip.sha512
 shasum -a 512 apache-dubbo-incubating-${version}-bin-release.zip >> apache-dubbo-incubating-${version}-bin-release.zip.sha512
 
+echo "Submit all release candidate packages to svn"
 #svn mkdir https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version-test -m "Create $version release staging area"
 #svn co --force --depth=empty https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version .
 #svn add *
