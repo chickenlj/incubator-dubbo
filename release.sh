@@ -56,7 +56,7 @@ Actions about to be performed:
 read -p "Press enter to continue or CTRL-C to abort"
 # promote the source distribution by moving it from the staging area to the release area
 # mv https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version https://dist.apache.org/repos/dist/release/incubator/dubbo/ -m "Upload release to the mirrors"
-#mvn org.sonatype.plugins:nexus-staging-maven-plugin:1.6.7:rc-release -DstagingRepositoryId=$stagingrepoid -DnexusUrl=https://repository.apache.org -DserverId=apache.releases.https -Ddescription="Release vote has passed"
+#mvn org.sonatype.plugins:nexus-staging-maven-plugin:1.6.7:rc-release -DstagingRepositoryId=$stagingRepositoryId -DnexusUrl=https://oss.sonatype.org/ -DserverId=sonatype-nexus-staging -Ddescription="Release vote has passed"
 # Renumber the next development iteration $next_version:
 git checkout $branch
 mvn release:update-versions --batch-mode
@@ -91,7 +91,7 @@ git tag -d $tag
 # clean up staging dist area
 #svn rm https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version -m "Release vote has failed"
 # clean up staging maven repository
-mvn org.sonatype.plugins:nexus-staging-maven-plugin:LATEST:rc-drop -DstagingRepositoryId=$stagingrepoid -DnexusUrl=https://repository.apache.org -DserverId=apache.releases.https -Ddescription="Release vote has failed"
+#mvn org.sonatype.plugins:nexus-staging-maven-plugin:1.6.7:rc-drop -DstagingRepositoryId=$stagingrepoid -DnexusUrl=https://oss.sonatype.org/ -DserverId=sonatype-nexus-staging -Ddescription="Release vote has failed"
 # clean up remaining release files
 find . -name "*.releaseBackup" -exec rm {} \\;
 [ -f release.properties ] && rm release.properties
@@ -117,6 +117,22 @@ hasFileChanged=`git status|grep -e "nothing to commit, working tree clean"|wc -l
 if [ $hasFileChanged -lt 1 ] ; then
     fail_noclear "ERROR: there are changes that have not committed in current branch ."
 fi
+
+if [ ! $( git config --get remote.staging.url ) ] ; then
+    fail "
+No staging remote git repository found. The staging repository is used to temporarily
+publish the build artifacts during the voting process. Since no staging repository is
+available at Apache, it is best to use a git mirror on your personal github account.
+First fork the github Apache Dubbo (Incubating) mirror (https://github.com/apache/dubbo) and then
+add the remote staging repository with the following command:
+    $ git remote add staging git@github.com:<your personal github username>/dubbo.git
+    $ git fetch staging
+    $ git push staging
+This will bring the staging area in sync with the origin and the release script can
+push the build branch and the tag to the staging area.
+"
+fi
+
 
 echo "Cleaning up any release artifacts that might linger: mvn -q release:clean"
 mvn -q release:clean
@@ -198,6 +214,13 @@ fi
 #   fail "ERROR: mvn release:perform was not successful"
 #fi
 mvn versions:set versions:commit -DprocessAllModules=true -DnewVersion=$version >> $log
+
+# Determine the staging repository and close it after deploying the release to the staging area
+stagingrepoid=$(mvn org.sonatype.plugins:nexus-staging-maven-plugin:1.6.7:rc-list -DnexusUrl=https://oss.sonatype.org/ -DserverId=sonatype-nexus-staging | grep -v "CLOSED" | grep -Eo "(comalibaba-\d+)";)
+
+echo "Closing staging repository with id $stagingrepoid"
+#mvn org.sonatype.plugins:nexus-staging-maven-plugin:1.6.7:rc-close -DstagingRepositoryId=$stagingrepoid -DnexusUrl=https://oss.sonatype.org/ -DserverId=sonatype-nexus-staging -Ddescription="Release has been built, awaiting vote"
+
 read -p "test"
 #mvn clean install -DskipTests
 cd ./distribution
