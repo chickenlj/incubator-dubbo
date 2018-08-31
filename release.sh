@@ -55,8 +55,8 @@ Actions about to be performed:
 ------------------------------------------"
 read -p "Press enter to continue or CTRL-C to abort"
 # promote the source distribution by moving it from the staging area to the release area
-svn mv https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version https://dist.apache.org/repos/dist/release/incubator/dubbo/ -m "Upload release to the mirrors"
-mvn org.sonatype.plugins:nexus-staging-maven-plugin:1.6.7:rc-release -DstagingRepositoryId=$stagingrepoid -DnexusUrl=https://repository.apache.org -DserverId=apache.releases.https -Ddescription="Release vote has passed"
+# mv https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version https://dist.apache.org/repos/dist/release/incubator/dubbo/ -m "Upload release to the mirrors"
+#mvn org.sonatype.plugins:nexus-staging-maven-plugin:1.6.7:rc-release -DstagingRepositoryId=$stagingrepoid -DnexusUrl=https://repository.apache.org -DserverId=apache.releases.https -Ddescription="Release vote has passed"
 # Renumber the next development iteration $next_version:
 git checkout $branch
 mvn release:update-versions --batch-mode
@@ -89,7 +89,7 @@ git checkout $GIT_BRANCH
 git branch -D $branch
 git tag -d $tag
 # clean up staging dist area
-svn rm https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version -m "Release vote has failed"
+#svn rm https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version -m "Release vote has failed"
 # clean up staging maven repository
 mvn org.sonatype.plugins:nexus-staging-maven-plugin:LATEST:rc-drop -DstagingRepositoryId=$stagingrepoid -DnexusUrl=https://repository.apache.org -DserverId=apache.releases.https -Ddescription="Release vote has failed"
 # clean up remaining release files
@@ -227,4 +227,4 @@ generate_rollback_script
 generate_release_vote_email
 git add .
 git commit -m "Prepare for release $version"
-git push staging $branch staging-$branch
+git push staging $branch:$branch-staging
