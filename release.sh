@@ -225,6 +225,7 @@ git push origin $branch
 generate_promotion_script
 generate_rollback_script
 generate_release_vote_email
+git checkout -b $branch-staging
 git add .
 git commit -m "Prepare for release $version"
-git push staging $branch:$branch-staging
+git push staging $branch-staging
