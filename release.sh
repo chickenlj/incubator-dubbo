@@ -148,7 +148,7 @@ else
     previous_version="$major_version.$minor_version.$(expr $bugfix_version - 1)"
 fi
 
-log=../$log
+log=../release.out
 
 if [ -f $log ] ; then
     rm $log
