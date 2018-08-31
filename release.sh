@@ -117,7 +117,6 @@ hasFileChanged=`git status|grep -e "nothing to commit, working tree clean"|wc -l
 if [ $hasFileChanged -lt 1 ] ; then
     fail_noclear "ERROR: there are changes that have not committed in current branch ."
 fi
-echo "$hasFileChanged"
 
 echo "Cleaning up any release artifacts that might linger: mvn -q release:clean"
 mvn -q release:clean
