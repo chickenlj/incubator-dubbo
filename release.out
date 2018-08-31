@@ -1,0 +1,58 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Building dubbo-distribution 2.6.2
+[INFO] ------------------------------------------------------------------------
+Downloading: http://mvnrepo.alibaba-inc.com/mvn/repository/com/alibaba/dubbo-parent/2.7.0-SNAPSHOT/maven-metadata.xml
+Downloading: http://maven.aliyun.com/nexus/content/groups/public/com/alibaba/dubbo-parent/2.7.0-SNAPSHOT/maven-metadata.xml
+Downloading: http://maven.aliyun.com/nexus/content/groups/public/com/alibaba/dubbo-dependencies-bom/2.7.0-SNAPSHOT/maven-metadata.xml
+Downloading: http://mvnrepo.alibaba-inc.com/mvn/repository/com/alibaba/dubbo-dependencies-bom/2.7.0-SNAPSHOT/maven-metadata.xml
+[INFO] 
+[INFO] --- maven-enforcer-plugin:1.0:enforce (enforce-maven) @ dubbo-distribution ---
+[INFO] 
+[INFO] --- jacoco-maven-plugin:0.8.1:prepare-agent (jacoco-initialize) @ dubbo-distribution ---
+[INFO] jacocoArgLine set to -javaagent:/Users/ken.lj/.m2/repository/org/jacoco/org.jacoco.agent/0.8.1/org.jacoco.agent-0.8.1-runtime.jar=destfile=/private/tmp/incubator-dubbo/distribution/target/jacoco.exec
+[INFO] 
+[INFO] >>> maven-source-plugin:3.0.1:jar (attach-sources) > generate-sources @ dubbo-distribution >>>
+[INFO] 
+[INFO] --- maven-enforcer-plugin:1.0:enforce (enforce-maven) @ dubbo-distribution ---
+[INFO] 
+[INFO] --- jacoco-maven-plugin:0.8.1:prepare-agent (jacoco-initialize) @ dubbo-distribution ---
+[INFO] jacocoArgLine set to -javaagent:/Users/ken.lj/.m2/repository/org/jacoco/org.jacoco.agent/0.8.1/org.jacoco.agent-0.8.1-runtime.jar=destfile=/private/tmp/incubator-dubbo/distribution/target/jacoco.exec
+[INFO] 
+[INFO] <<< maven-source-plugin:3.0.1:jar (attach-sources) < generate-sources @ dubbo-distribution <<<
+[INFO] 
+[INFO] 
+[INFO] --- maven-source-plugin:3.0.1:jar (attach-sources) @ dubbo-distribution ---
+[INFO] 
+[INFO] --- jacoco-maven-plugin:0.8.1:report (jacoco-site) @ dubbo-distribution ---
+[INFO] Skipping JaCoCo execution due to missing execution data file.
+[INFO] 
+[INFO] --- maven-javadoc-plugin:3.0.0:jar (attach-javadoc) @ dubbo-distribution ---
+[INFO] Not executing Javadoc as the project is not a Java classpath-capable package
+[INFO] 
+[INFO] --- maven-assembly-plugin:3.1.0:single (bin-release) @ dubbo-distribution ---
+[INFO] Reading assembly descriptor: src/assembly/bin-release.xml
+[WARNING] Cannot include project artifact: com.alibaba:dubbo-distribution:pom:2.6.2; it doesn't have an associated file or directory.
+[INFO] Building zip: /private/tmp/incubator-dubbo/distribution/target/dubbo-incubating-2.6.2-bin-release.zip
+[INFO] 
+[INFO] --- maven-assembly-plugin:3.1.0:single (source-release) @ dubbo-distribution ---
+[INFO] Reading assembly descriptor: src/assembly/source-release.xml
+[INFO] Building zip: /private/tmp/incubator-dubbo/distribution/target/dubbo-incubating-2.6.2-source-release.zip
+[INFO] 
+[INFO] --- maven-gpg-plugin:1.6:sign (default) @ dubbo-distribution ---
+[INFO] 
+[INFO] --- maven-install-plugin:2.4:install (default-install) @ dubbo-distribution ---
+[INFO] Installing /private/tmp/incubator-dubbo/distribution/pom.xml to /Users/ken.lj/.m2/repository/com/alibaba/dubbo-distribution/2.6.2/dubbo-distribution-2.6.2.pom
+[INFO] Installing /private/tmp/incubator-dubbo/distribution/target/dubbo-incubating-2.6.2-bin-release.zip to /Users/ken.lj/.m2/repository/com/alibaba/dubbo-distribution/2.6.2/dubbo-distribution-2.6.2-bin-release.zip
+[INFO] Installing /private/tmp/incubator-dubbo/distribution/target/dubbo-incubating-2.6.2-source-release.zip to /Users/ken.lj/.m2/repository/com/alibaba/dubbo-distribution/2.6.2/dubbo-distribution-2.6.2-source-release.zip
+[INFO] Installing /private/tmp/incubator-dubbo/distribution/target/dubbo-incubating-2.6.2.pom.asc to /Users/ken.lj/.m2/repository/com/alibaba/dubbo-distribution/2.6.2/dubbo-distribution-2.6.2.pom.asc
+[INFO] Installing /private/tmp/incubator-dubbo/distribution/target/dubbo-incubating-2.6.2-bin-release.zip.asc to /Users/ken.lj/.m2/repository/com/alibaba/dubbo-distribution/2.6.2/dubbo-distribution-2.6.2-bin-release.zip.asc
+[INFO] Installing /private/tmp/incubator-dubbo/distribution/target/dubbo-incubating-2.6.2-source-release.zip.asc to /Users/ken.lj/.m2/repository/com/alibaba/dubbo-distribution/2.6.2/dubbo-distribution-2.6.2-source-release.zip.asc
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 15.048 s
+[INFO] Finished at: 2018-08-31T16:15:50+08:00
+[INFO] Final Memory: 32M/477M
+[INFO] ------------------------------------------------------------------------
