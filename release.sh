@@ -181,11 +181,15 @@ echo "Creating release branch"
 releasebranch=`git branch -a |grep -e "$branch"|wc -l` >> release.out
 if [ $releasebranch -ne 0 ]
 then
+    echo "git checkout -b $branch origin/$branch"
+    read -p "test"
     git checkout -b $branch origin/$branch >> release.out
     if [ $? -ne 0 ] ; then
        fail "ERROR: git checkout -b $branch origin/$branch"
     fi
 else
+    echo "git checkout -b $branch origin/$GIT_BRANCH"
+    read -p "test"
     git checkout -b $branch origin/$GIT_BRANCH >> release.out
     if [ $? -ne 0 ] ; then
        fail "ERROR: git checkout -b $branch origin/$GIT_BRANCH"
