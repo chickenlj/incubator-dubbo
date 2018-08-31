@@ -215,7 +215,7 @@ echo "$hasFileChanged"
 #   fail "ERROR: mvn release:perform was not successful"
 #fi
 mvn versions:set versions:commit -DprocessAllModules=true -DnewVersion=$version
-mvn clean install
+mvn clean install -DskipTests
 cd ./distribution
 echo "Prepare for source and binary releases"
 mvn clean install -Prelease
