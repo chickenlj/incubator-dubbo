@@ -43,22 +43,17 @@ Actions about to be performed:
 \$(cat \$0 | tail -n +14)
 ------------------------------------------"
 read -p "Press enter to continue or CTRL-C to abort"
-# push the release tag to ASF git repo
-git push origin $tag
 # promote the source distribution by moving it from the staging area to the release area
-svn mv https://dist.apache.org/repos/dist/dev/Dubbo/$version https://dist.apache.org/repos/dist/release/Dubbo -m "Upload release to the mirrors"
+svn mv https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version https://dist.apache.org/repos/dist/release/incubator/dubbo/ -m "Upload release to the mirrors"
 mvn org.sonatype.plugins:nexus-staging-maven-plugin:1.6.7:rc-release -DstagingRepositoryId=$stagingrepoid -DnexusUrl=https://repository.apache.org -DserverId=apache.releases.https -Ddescription="Release vote has passed"
 # Renumber the next development iteration $next_version:
-git checkout $GIT_BRANCH
+git checkout $branch
 mvn release:update-versions --batch-mode
-mvn versions:set versions:commit -DnewVersion=$next_version
+mvn versions:set versions:commit -DprocessAllModules=true -DnewVersion=$next_version
 git add --all
+git commit -m 'Start the next development version'
 echo "
-Check the new versions and commit and push them to origin:
-  git commit -m \"Start next development version\"
-  git push
-Remove the previous version of Dubbo using this command:
-  svn rm https://dist.apache.org/repos/dist/release/Dubbo/$previous_version -m \\\"Remove previous version from mirrors\\\"
+Please check the new versions and merge $branch to the base branch.
 "
 EOF
 
@@ -82,11 +77,8 @@ read
 git checkout $GIT_BRANCH
 git branch -D $branch
 git tag -d $tag
-# clean up staging repository
-git push staging --delete refs/heads/$branch
-git push staging --delete $tag
 # clean up staging dist area
-svn rm https://dist.apache.org/repos/dist/dev/Dubbo/$version -m "Release vote has failed"
+svn rm https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version -m "Release vote has failed"
 # clean up staging maven repository
 mvn org.sonatype.plugins:nexus-staging-maven-plugin:LATEST:rc-drop -DstagingRepositoryId=$stagingrepoid -DnexusUrl=https://repository.apache.org -DserverId=apache.releases.https -Ddescription="Release vote has failed"
 # clean up remaining release files
@@ -104,33 +96,14 @@ function generate_release_vote_email {
     echo "Generating Vote email"
 
     echo "
-This is a vote to release Apache Dubbo $version
-Please download the source distributions found in our staging area
-linked below.
-I have included the signatures for both the source archives. This vote
-lasts for 72 hours minimum.
-[ ] Yes, release Apache Dubbo $version
-[ ] No, don't release Apache Dubbo $version, because ...
-Distributions, changelog, keys and signatures can be found at:
-    https://dist.apache.org/repos/dist/dev/Dubbo/$version
-Staging repository:
-    https://repository.apache.org/content/repositories/$stagingrepoid/
-The binaries are available in the above link, as are a staging
-repository for Maven. Typically the vote is on the source, but should
-you find a problem with one of the binaries, please let me know, I can
-re-roll them some way or the other.
-Staging git repository data:
-    Repository:  $(git config --get remote.staging.url)
-    Branch:      $branch
-    Release tag: $tag
+fasfds
 " | tail -n+2 > release-vote.txt
 
-    cat /tmp/release-$version-sigs.txt >> release-vote.txt
 	git add release-vote.txt
 }
 
 
-echo "Cleaning up any release artifacts that might linger"
+echo "Cleaning up any release artifacts that might linger: mvn -q release:clean"
 mvn -q release:clean
 
 # the branch on which the code base lives for this version
@@ -152,7 +125,7 @@ major_version=$(expr $version : '\(.*\)\..*\..*')
 minor_version=$(expr $version : '.*\.\(.*\)\..*')
 bugfix_version=$(expr $version : '.*\..*\.\(.*\)')
 
-next_version="$major_version.minor_version.$(expr $bugfix_version + 1)-SNAPSHOT"
+next_version="$major_version.$minor_version.$(expr $bugfix_version + 1)-SNAPSHOT"
 previous_minor_version=$(expr $bugfix_version - 1)
 if [ $previous_minor_version -lt 0 ] ; then
     previous_version="$major_version.$minor_version.0-SNAPSHOT"
@@ -197,7 +170,7 @@ else
 fi
 
 hasFileChanged=`git status|grep -e "nothing to commit, working tree clean"|wc -l`
-if ["$hasFileChanged" -lt 1] ; then
+if [$hasFileChanged -lt 1] ; then
     fail "ERROR: there are changes that have not committed in current branch ."
 fi
 echo "$hasFileChanged"
@@ -219,7 +192,7 @@ read -p "test"
 #mvn clean install -DskipTests
 cd ./distribution
 echo "Prepare for source and binary releases"
-mvn clean install -Prelease
+mvn install -Prelease
 if [ $? -ne 0 ] ; then
    fail "ERROR: mvn clean install -Prelease"
 fi
@@ -227,15 +200,19 @@ cd ./target
 shasum -a 512 apache-dubbo-incubating-${version}-source-release.zip >> apache-dubbo-incubating-${version}-source-release.zip.sha512
 shasum -a 512 apache-dubbo-incubating-${version}-bin-release.zip >> apache-dubbo-incubating-${version}-bin-release.zip.sha512
 
-generate_promotion_script
-generate_rollback_script
-
 #svn mkdir https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version-test -m "Create $version release staging area"
 #svn co --force --depth=empty https://dist.apache.org/repos/dist/dev/incubator/dubbo/$version .
 #svn add *
 #svn commit -m "Upload dubbo-$version to staging area"
 
-
 cd ../..
-generate_release_vote_email
+git add .
+git commit -m "Prepare for release $version"
+git push origin $branch
 
+generate_promotion_script
+generate_rollback_script
+generate_release_vote_email
+git add .
+git commit -m 'Prepare for release $version'
+git push staging staging-$branch
