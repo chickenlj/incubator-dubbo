@@ -178,7 +178,7 @@ echo "Removing previous staging tag (if exists)"
 git push origin :refs/tags/$tag >> release.out
 
 echo "Creating release branch"
-releasebranch=`git branch -a |grep -e "$branch"|wc -l` >> release.out
+releasebranch=`git branch -a |grep -e "origin/$branch"|wc -l` >> release.out
 if [ $releasebranch -ne 0 ]
 then
     echo "git checkout -b $branch origin/$branch"
