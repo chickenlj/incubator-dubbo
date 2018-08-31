@@ -219,6 +219,9 @@ mvn clean install -DskipTests
 cd ./distribution
 echo "Prepare for source and binary releases"
 mvn clean install -Prelease
+if [ $? -ne 0 ] ; then
+   fail "ERROR: mvn clean install -Prelease"
+fi
 cd ./target
 shasum -a 512 apache-dubbo-incubating-${version}-source-release.zip >> apache-dubbo-incubating-${version}-source-release.zip.sha512
 shasum -a 512 apache-dubbo-incubating-${version}-bin-release.zip >> apache-dubbo-incubating-${version}-bin-release.zip.sha512
