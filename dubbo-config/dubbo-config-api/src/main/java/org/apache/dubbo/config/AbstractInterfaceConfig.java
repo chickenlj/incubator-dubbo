@@ -239,24 +239,23 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         }
         // give jvm properties the chance to override local configs, e.g., -Ddubbo.configcenter.highestPriority
         configCenter.refresh();
-        startConfigCenter();
+        prepareEnvironment();
     }
 
-    private void startConfigCenter() {
+    private void prepareEnvironment() {
         if (configCenter.isValid()) {
             if (!configCenter.checkOrUpdateInited()) {
                 return;
             }
-            DynamicConfiguration dynamicConfiguration = startDynamicConfiguration(configCenter.toUrl());
+            DynamicConfiguration dynamicConfiguration = getDynamicConfiguration(configCenter.toUrl());
             String configContent = dynamicConfiguration.getConfig(configCenter.getConfigFile(), configCenter.getGroup());
 
             String appGroup = application != null ? application.getName() : null;
             String appConfigContent = null;
             if (StringUtils.isNotEmpty(appGroup)) {
-                appConfigContent = dynamicConfiguration.getConfig
-                        (StringUtils.isNotEmpty(configCenter.getAppConfigFile()) ? configCenter.getAppConfigFile() : configCenter.getConfigFile(),
-                         appGroup
-                        );
+                String key = StringUtils.isNotEmpty(configCenter.getAppConfigFile()) ? configCenter.getAppConfigFile() :
+                        configCenter.getConfigFile();
+                appConfigContent = dynamicConfiguration.getConfig(key, appGroup);
             }
             try {
                 Environment.getInstance().setConfigCenterFirst(configCenter.isHighestPriority());
@@ -268,9 +267,10 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         }
     }
 
-    private DynamicConfiguration startDynamicConfiguration(URL url) {
-        DynamicConfigurationFactory dynamicConfigurationFactory = ExtensionLoader.getExtensionLoader(DynamicConfigurationFactory.class).getExtension(url.getProtocol());
-        DynamicConfiguration configuration = dynamicConfigurationFactory.getDynamicConfiguration(url);
+    private DynamicConfiguration getDynamicConfiguration(URL url) {
+        DynamicConfigurationFactory factory = ExtensionLoader.getExtensionLoader(DynamicConfigurationFactory.class)
+                .getExtension(url.getProtocol());
+        DynamicConfiguration configuration = factory.getDynamicConfiguration(url);
         Environment.getInstance().setDynamicConfiguration(configuration);
         return configuration;
     }
@@ -569,7 +569,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                 cc.setAddress(rc.getAddress());
                 cc.setHighestPriority(false);
                 setConfigCenter(cc);
-                startConfigCenter();
+                prepareEnvironment();
                 return null;
             });
         });
