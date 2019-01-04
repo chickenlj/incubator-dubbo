@@ -416,8 +416,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         if (consumer != null) {
             return;
         }
-        setConsumer(ConfigManager.getInstance()
-                            .getDefaultConsumer().orElse(new ConsumerConfig()));
+        setConsumer(ConfigManager.getInstance().getDefaultConsumer().orElse(new ConsumerConfig()));
     }
 
     private void completeCompoundConfigs() {
@@ -534,7 +533,6 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
 
     public void setConsumer(ConsumerConfig consumer) {
         this.consumer = consumer;
-        ConfigManager.getInstance().addConsumer(consumer);
     }
 
     public String getProtocol() {
