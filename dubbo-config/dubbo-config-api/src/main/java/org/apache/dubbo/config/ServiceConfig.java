@@ -790,8 +790,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         if (provider != null) {
             return;
         }
-        setProvider(ConfigManager.getInstance()
-                            .getDefaultProvider().orElse(new ProviderConfig()));
+        setProvider(ConfigManager.getInstance().getDefaultProvider().orElse(new ProviderConfig()));
     }
 
     private void checkProtocol() {
@@ -933,7 +932,6 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     public void setProvider(ProviderConfig provider) {
         this.provider = provider;
-        ConfigManager.getInstance().addProvider(provider);
     }
 
     @Parameter(excluded = true)
