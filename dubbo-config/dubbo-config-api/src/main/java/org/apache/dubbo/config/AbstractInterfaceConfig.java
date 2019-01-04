@@ -685,7 +685,6 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
     public void setApplication(ApplicationConfig application) {
         this.application = application;
-        ConfigManager.getInstance().setApplication(this.application);
     }
 
     private void createApplicationIfAbsent() {
@@ -702,7 +701,6 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
     public void setModule(ModuleConfig module) {
         this.module = module;
-        ConfigManager.getInstance().setModule(module);
     }
 
     public RegistryConfig getRegistry() {
@@ -722,7 +720,6 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     @SuppressWarnings({"unchecked"})
     public void setRegistries(List<? extends RegistryConfig> registries) {
         this.registries = (List<RegistryConfig>) registries;
-        ConfigManager.getInstance().addRegistries(this.registries);
     }
 
     @Parameter(excluded = true)
