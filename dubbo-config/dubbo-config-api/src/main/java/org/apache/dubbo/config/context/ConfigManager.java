@@ -40,9 +40,10 @@ import static org.apache.dubbo.common.Constants.DEFAULT_KEY;
 /**
  * TODO
  * Experimental API, should only being used internally at present.
+ * <p>
  * Maybe we can consider open to end user in the following version by providing a fluent style builder.
  *
- * <pre>{@code
+ * <pre>
  *  public void class DubboBuilder() {
  *
  *      public static DubboBuilder create() {
@@ -62,31 +63,35 @@ import static org.apache.dubbo.common.Constants.DEFAULT_KEY;
  *      }
  *  }
  * </pre>
- *
+ * <p>
  * TODO
  * The properties defined here are duplicate with that in ReferenceConfig/ServiceConfig,
- * the properties here are currently only used for duplication check but are still not being used in the export/refer process yet.
- * Maybe we can remove the property definition in ReferenceConfig/ServiceConfig and only keep the setXxxConfig() as an entrance.
- * All workflow internally can rely on ConfigManager.
- * }
+ * the properties here are currently only used for duplication check but are still not being used in the export/refer
+ * process yet. Maybe we can remove the property definition in ReferenceConfig/ServiceConfig and only keep the
+ * setXxxConfig() as an entrance. All workflow internally can rely on ConfigManager.
  */
 public class ConfigManager {
     private static final Logger logger = LoggerFactory.getLogger(ConfigManager.class);
     private static final ConfigManager configManager = new ConfigManager();
 
+    private ApplicationConfig application;
+
+    private MonitorConfig monitor;
+    private ModuleConfig module;
+    private ConfigCenterConfig configCenter;
+    private Map<String, ProtocolConfig> protocols = new ConcurrentHashMap<>();
+
+    private Map<String, RegistryConfig> registries = new ConcurrentHashMap<>();
+    private Map<String, ProviderConfig> providers = new ConcurrentHashMap<>();
+    private Map<String, ConsumerConfig> consumers = new ConcurrentHashMap<>();
+
     public static ConfigManager getInstance() {
         return configManager;
     }
 
-    private ApplicationConfig application;
-    private MonitorConfig monitor;
-    private ModuleConfig module;
-    private ConfigCenterConfig configCenter;
+    private ConfigManager() {
 
-    private Map<String, ProtocolConfig> protocols = new ConcurrentHashMap<>();
-    private Map<String, RegistryConfig> registries = new ConcurrentHashMap<>();
-    private Map<String, ProviderConfig> providers = new ConcurrentHashMap<>();
-    private Map<String, ConsumerConfig> consumers = new ConcurrentHashMap<>();
+    }
 
     public Optional<ApplicationConfig> getApplication() {
         return Optional.ofNullable(application);
@@ -150,12 +155,14 @@ public class ConfigManager {
                 : (providerConfig.isDefault() == null || providerConfig.isDefault()) ? DEFAULT_KEY : null;
 
         if (StringUtils.isEmpty(key)) {
-            throw new IllegalStateException("A ProviderConfig should either has an id or it's the default one, " + providerConfig);
+            throw new IllegalStateException("A ProviderConfig should either has an id or it's the default one, " +
+                    providerConfig);
         }
 
         if (providers.containsKey(key) && !providerConfig.equals(providers.get(key))) {
-            logger.warn("Duplicate ProviderConfig found, there already has one default ProviderConfig or more than two ProviderConfigs have the same id, " +
-                                                    "you can try to give each ProviderConfig a different id. " + providerConfig);
+            logger.warn("Duplicate ProviderConfig found, there already has one default ProviderConfig or more than " +
+                    "two ProviderConfigs have the same id, you can try to give each ProviderConfig a different id. " +
+                    providerConfig);
         } else {
             providers.put(key, providerConfig);
         }
@@ -179,12 +186,14 @@ public class ConfigManager {
                 : (consumerConfig.isDefault() == null || consumerConfig.isDefault()) ? DEFAULT_KEY : null;
 
         if (StringUtils.isEmpty(key)) {
-            throw new IllegalStateException("A ConsumerConfig should either has an id or it's the default one, " + consumerConfig);
+            throw new IllegalStateException("A ConsumerConfig should either has an id or it's the default one, " +
+                    consumerConfig);
         }
 
         if (consumers.containsKey(key) && !consumerConfig.equals(consumers.get(key))) {
-            logger.warn("Duplicate ConsumerConfig found, there already has one default ConsumerConfig or more than two ConsumerConfigs have the same id, " +
-                                                    "you can try to give each ConsumerConfig a different id. " + consumerConfig);
+            logger.warn("Duplicate ConsumerConfig found, there already has one default ConsumerConfig or more than " +
+                    "two ConsumerConfigs have the same id, you can try to give each ConsumerConfig a different id. " +
+                    consumerConfig);
         } else {
             consumers.put(key, consumerConfig);
         }
@@ -222,12 +231,14 @@ public class ConfigManager {
                 : (protocolConfig.isDefault() == null || protocolConfig.isDefault()) ? DEFAULT_KEY : null;
 
         if (StringUtils.isEmpty(key)) {
-            throw new IllegalStateException("A ProtocolConfig should either has an id or it's the default one, " + protocolConfig);
+            throw new IllegalStateException("A ProtocolConfig should either has an id or it's the default one, " +
+                    protocolConfig);
         }
 
         if (protocols.containsKey(key) && !protocolConfig.equals(protocols.get(key))) {
-            logger.warn("Duplicate ProtocolConfig found, there already has one default ProtocolConfig or more than two ProtocolConfigs have the same id, " +
-                                                    "you can try to give each ProtocolConfig a different id. " + protocolConfig);
+            logger.warn("Duplicate ProtocolConfig found, there already has one default ProtocolConfig or more than " +
+                    "two ProtocolConfigs have the same id, you can try to give each ProtocolConfig a different id. " +
+                    protocolConfig);
         } else {
             protocols.put(key, protocolConfig);
         }
@@ -265,12 +276,14 @@ public class ConfigManager {
                 : (registryConfig.isDefault() == null || registryConfig.isDefault()) ? DEFAULT_KEY : null;
 
         if (StringUtils.isEmpty(key)) {
-            throw new IllegalStateException("A RegistryConfig should either has an id or it's the default one, " + registryConfig);
+            throw new IllegalStateException("A RegistryConfig should either has an id or it's the default one, " +
+                    registryConfig);
         }
 
         if (registries.containsKey(key) && !registryConfig.equals(registries.get(key))) {
-            logger.warn("Duplicate RegistryConfig found, there already has one default RegistryConfig or more than two RegistryConfigs have the same id, " +
-                                                    "you can try to give each RegistryConfig a different id. " + registryConfig);
+            logger.warn("Duplicate RegistryConfig found, there already has one default RegistryConfig or more than " +
+                    "two RegistryConfigs have the same id, you can try to give each RegistryConfig a different id. " +
+                    registryConfig);
         } else {
             registries.put(key, registryConfig);
         }
@@ -295,7 +308,8 @@ public class ConfigManager {
     private void checkDuplicate(AbstractConfig oldOne, AbstractConfig newOne) {
         if (oldOne != null && !oldOne.equals(newOne)) {
             String configName = oldOne.getClass().getSimpleName();
-            throw new IllegalStateException("Duplicate Config found for " + configName + ", you should use only one unique " + configName + " for one application.");
+            throw new IllegalStateException("Duplicate Config found for " + configName +
+                    ", you should use only one unique " + configName + " for one application.");
         }
     }
 
