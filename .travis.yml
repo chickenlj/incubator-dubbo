@@ -1,27 +1,23 @@
 language: java
-sudo: false # faster builds
-
+sudo: false
 jdk:
-  - oraclejdk11
-  - oraclejdk8
-
+- oraclejdk11
+- oraclejdk8
 cache:
   directories:
-    - $HOME/.m2
-
+  - "$HOME/.m2"
 install: true
-
 script:
-  - travis_wait 30 ./mvnw clean install -DskipTests=false -Dcheckstyle.skip=false -Drat.skip=false -Dmaven.javadoc.skip=true
-
+- travis_wait 30 ./mvnw clean install -DskipTests=false -Dcheckstyle.skip=false -Drat.skip=false
+  -Dmaven.javadoc.skip=true
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
-  - "[[ $TRAVIS_BRANCH == 'master' ]] && [[ ${TRAVIS_PULL_REQUEST} == 'false' ]] &&
-    [[ ${TRAVIS_TAG} == '' ]] && mvn clean deploy --settings .travis.settings.xml"
+- bash <(curl -s https://codecov.io/bash)
+- "[[ $TRAVIS_BRANCH == 'master' ]] && [[ ${TRAVIS_PULL_REQUEST} == 'false' ]] &&
+  [[ ${TRAVIS_TAG} == '' ]] && mvn clean deploy --settings .travis.settings.xml"
 after_failure:
-  - if [ -f dubbo.log ]; then echo "------TAIL of dubbo.log------"; tail -n 1000 dubbo.log;
-    echo "------END of dubbo.log------"; fi
+- if [ -f dubbo.log ]; then echo "------TAIL of dubbo.log------"; tail -n 1000 dubbo.log;
+  echo "------END of dubbo.log------"; fi
 env:
   global:
-  - secure: dDd1Bw6M2Xyi42El3SUX8ZZLQzjwsLc/fEhED/7k+GVOLi4XvqVCwCQCTHWbgLQ0anFPyOoB+wvO+dxwjJ++eYIgZ4V7IDRar8lQwURfIwXpVc3sQzhWYJEOUqWJznUDbIsyQ9yjnfwjcbqUD34HoadBcAk8AMWiQFErx38J/ok=
-  - secure: AmcdSdqB+AEbi7F2SqpJwFdlZegVr5Lfxh4TOheoaiwPI1IOkJuDuuZ6KEnYzZZVCnXpT6n9Z5kEJ6haL/s2LadCjBvnPsUXxTveVoIeAIwgP8oUyo87jWiPdiMBj14Hj7xWSb0cD9lE25VIUzhvwXBZuM62PAJ4bwAesW3Xz9w=
+  - secure: tadPK2byt59XcHfrNaNRlOJgP/iYiVxrhEDt8C3GvGyttfhK3Zigc3ayH98mDG8suDOVB4twlGiImD70W5TSS3YgJ6duhXtfEBFyc9SmXcFtA2hPxbOsD6gaDKuw6NRoq7KcKHbKmDHLJRtHoMQ+V7HcSl4xHvjAqdOvOXf+kT+HJ1dLANywD6gVUrne3WI7HLoqf4euduu00Pf4elPP5jSoYd/BiMWfL8ES0Sz3PEJnTMKtkOvwH6Tc0hW5pzzlsNqh+OeGHMxcMIrZEnqtYsqLCp+Vd72+94G07aLeehGMSP2afrXONpSHnF7A2LHnhOeDy3BR3nK6Rmjk0YLWZWGLZ6LUyGv1frVFZZOMU2q5DJwD496QY4zhR62dfQ18omvfA38BjLwLelHHjRaMrMHfM3zvQRZ20cKdGIYPAnsEcOyxv7TmVKh96QiJJlETAIrskC9/Rq7IVcsLV2Il1sGrJT3mliv8XixrO6zFgdrZAI0mZlwUTGC17I5J7/V+SCxNNcohN6ufiy7b3DmAZXwi4t1H9ghwGe1ciLcU7fyG2g3aMEIjb1b43JVTNDfqSkfwo2gpCigxT1tHEZqRN9kNxt1OxzkpPC18HPZNJzbsVtlLkJKkdiwfuWTk7P0P0lh91WgZ7vSOUAd4Eq2RG0e+Orm2ICUIoc21sz1URV4=
+  - secure: dZ8L/GogPnEvM/Wz/BKiRKijspi0K4Eosgetwx57qbawNDH3WaWKr1p15uAm2oXI/BnShvij9Ynpm/MfVRakoz5wpyB+UoEkrszn0teK0NJUPyWj3d0dqCGalHAWbPyxLSIEurw4uF/lvsV0JNODBhz/SgVexd4lu6/VCsuCyq/p/8fTxkVx19nwE1pDwLQ4z+3Yv0HHR+IXfdxxQDg5HGGDZxVB9xM1YSizZ8X5fYCUkalPeWbVQLYLGNoCluAJTK99Ps4/hoDL0meRx00759h+aB6Md+en7EMRDiaVnGLF10XqekJpIW6V7D2BurM9MEEP6Rh2uMPCVuUCfjzoFGmdpH4KkxfxkdNgKhrOy63+R58Nlt2abt1FmgE0DvzazbWr8FIaU7DroNykHZyNI1Bpz92c2ho7W7Kpl39M49WHk9/RxEMpxgFwu3O2HVcVU+iUZhu2H8PNE2cLWIt0iKtpdR/rDJ71X+m7TjN+RNgz2fSEthYaucAjs3laS74g1uM//OrtvtjpVIEDF0+5D2NIjM96vIbg0/p8/PkUimEJHcwKw3YLl8l1n/z0TsSkzt5g8ZDtbcUK9d1BB4NsDFJtDUURyXvFt4EK0p8HG1TDyJ5JzenM488XV3vDFKW715Z7k2JeltsRYUe3z2fuFUFZqn9xAORb5Dj2aG4eeBM=
