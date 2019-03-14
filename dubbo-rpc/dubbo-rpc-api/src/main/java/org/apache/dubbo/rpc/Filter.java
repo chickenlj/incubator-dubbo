@@ -61,11 +61,7 @@ public interface Filter {
      */
     Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException;
 
-    default void onResponse(Result result, Invoker<?> invoker, Invocation invocation) {
-
-    }
-
-    default void onError(Throwable t, Invoker<?> invoker, Invocation invocation) {
-
+    default Result onResponse(Result result, Invoker<?> invoker, Invocation invocation) {
+        return result;
     }
 }
