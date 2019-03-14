@@ -70,7 +70,6 @@ public class ProtocolFilterWrapper implements Protocol {
 
                     @Override
                     public Result invoke(Invocation invocation) throws RpcException {
-                        // TODO add try catch & change to handle() after add onError()
                         AsyncRpcResult asyncResult = (AsyncRpcResult) filter.invoke(next, invocation);
                         return asyncResult.thenApplyWithContext(r -> {
                             filter.onResponse(r, invoker, invocation);
