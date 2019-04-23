@@ -29,6 +29,7 @@ import org.apache.dubbo.common.utils.ConfigUtils;
 import org.apache.dubbo.common.utils.NamedThreadFactory;
 import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.config.annotation.Service;
+import org.apache.dubbo.config.builders.DubboServer;
 import org.apache.dubbo.config.context.ConfigManager;
 import org.apache.dubbo.config.invoker.DelegateProviderMetaDataInvoker;
 import org.apache.dubbo.config.support.Parameter;
@@ -72,6 +73,19 @@ import static org.apache.dubbo.common.utils.NetUtils.isInvalidPort;
 public class ServiceConfig<T> extends AbstractServiceConfig {
 
     private static final long serialVersionUID = 3033787999037024738L;
+
+    private DubboServer server;
+
+    void exportMetadata() {
+        URL dubboUrl = new URL("dubbo://ip:port/interface?key=value");
+        server.getProtocol(this).export(dubboUrl);
+
+        if (application) {
+            DubboServer.getDefaultInstance().export(service);
+        } else {
+            // 老逻辑
+        }
+    }
 
     /**
      * The {@link Protocol} implementation with adaptive functionality,it will be different in different scenarios.

@@ -85,6 +85,9 @@ public class ConfigManager {
     private Map<String, ProviderConfig> providers = new ConcurrentHashMap<>();
     private Map<String, ConsumerConfig> consumers = new ConcurrentHashMap<>();
 
+    private List<ServiceConfig> services;
+    private List<ReferenceConfig> references;
+
     public static ConfigManager getInstance() {
         return configManager;
     }
