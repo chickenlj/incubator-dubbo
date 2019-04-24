@@ -20,9 +20,10 @@ package org.apache.dubbo.registry.application;
  *
  */
 public class ApplicationAddressesRepository {
+
     Map<String, List<ServiceInstance>> appAddresses;
 
-    getAddresses();
+    List<ServiceInstance> getAddresses(String appName);
 
 
 }
