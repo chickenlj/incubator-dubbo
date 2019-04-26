@@ -17,9 +17,27 @@
 package org.apache.dubbo.registry.application;
 
 import org.apache.dubbo.common.Node;
+import org.apache.dubbo.registry.NotifyListener;
 
 /**
  *
  */
 public interface ApplicationRegistry extends ApplicationRegistryService, Node {
+
+    private Map<String, AddressListener> addressListeners;
+
+    private Map<String, Set<NotifyListener>> notifyListeners;
+
+
+    /**
+     * Refreshed by ApplicationRegistry
+     */
+    public static class ApplicationAddressesRepository {
+
+
+        Map<String, List<ServiceInstance>> appAddresses;
+
+        List<ServiceInstance> getAddresses(String appName);
+
+    }
 }

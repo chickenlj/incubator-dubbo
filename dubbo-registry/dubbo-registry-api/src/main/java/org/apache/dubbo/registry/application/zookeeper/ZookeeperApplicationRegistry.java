@@ -16,6 +16,7 @@
  */
 package org.apache.dubbo.registry.application.zookeeper;
 
+import org.apache.dubbo.common.URL;
 import org.apache.dubbo.registry.application.ApplicationRegistry;
 
 /**
@@ -23,4 +24,38 @@ import org.apache.dubbo.registry.application.ApplicationRegistry;
  */
 public class ZookeeperApplicationRegistry implements ApplicationRegistry {
 
+    @Override
+    public URL getUrl() {
+        return null;
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return false;
+    }
+
+    @Override
+    public void destroy() {
+
+    }
+
+    @Override
+    public void register(registration) {
+        // write ZK node
+    }
+
+    @Override
+    public void unRegister(registration) {
+        // delete ZK node
+    }
+
+    @Override
+    public void subscribe(serviceId) {
+
+    }
+
+    @Override
+    public void unsubscribe(sreviceId) {
+
+    }
 }

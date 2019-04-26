@@ -311,8 +311,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
                     for (URL url : urls) {
                         url = URLBuilder.from(url)
-                                .addParameter(Constants.REGISTRY_KEY, url.getProtocol())
-                                .setProtocol(Constants.REGISTRY_PROTOCOL)
+                                .addParameter(Constants.REGISTRY_KEY, url.getProtocol()).setProtocol(map.get("mode").equals("application") ? Constants.REGISTRY_PROTOCOL + "-application" : Constants.REGISTRY_PROTOCOL)
                                 .build();
                         if ((provider && url.getParameter(Constants.REGISTER_KEY, true))
                                 || (!provider && url.getParameter(Constants.SUBSCRIBE_KEY, true))) {

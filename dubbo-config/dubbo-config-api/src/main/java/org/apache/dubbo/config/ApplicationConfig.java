@@ -37,6 +37,8 @@ public class ApplicationConfig extends AbstractConfig {
 
     private static final long serialVersionUID = 5508512956753757169L;
 
+    private String consumes;
+
     /**
      * Application name
      */

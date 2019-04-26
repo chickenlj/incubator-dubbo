@@ -22,13 +22,15 @@ import java.util.List;
  *
  */
 public interface ApplicationRegistryService {
-    register(URL/ServiceInstance);
+    void register(Registration registration);
 
-    unRegister();
+    void unRegister(Registration registration);
 
-    subscribe();
+    void subscribe(String serviceId, AddressListener listener);
 
-    unsubscribe();
+    void unsubscribe(String serviceId, AddressListener listener);
+
+    addListener(String serviceId, NotifyListener notifyListener);
 
     /**
      * Get all ServiceInstances associated with a particular serviceId

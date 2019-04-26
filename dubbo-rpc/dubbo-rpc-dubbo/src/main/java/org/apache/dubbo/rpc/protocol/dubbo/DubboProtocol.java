@@ -61,11 +61,13 @@ public class DubboProtocol extends AbstractProtocol {
         new NettyServer; requestHandler to NettyServer;
     }
 
-    ;
-
     void export() {
-        register metadata;
+        register URL to ApplicationModel;
         exporterMap
+    }
+
+    void refer() {
+        DubboInvoker invoker = new DubboInvoker()
     }
 
 

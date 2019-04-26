@@ -23,6 +23,8 @@ import org.apache.dubbo.common.status.StatusChecker;
 import org.apache.dubbo.common.threadpool.ThreadPool;
 import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.config.support.Parameter;
+import org.apache.dubbo.registry.Registry;
+import org.apache.dubbo.registry.RegistryFactory;
 import org.apache.dubbo.remoting.Codec;
 import org.apache.dubbo.remoting.Dispatcher;
 import org.apache.dubbo.remoting.Transporter;
@@ -30,6 +32,7 @@ import org.apache.dubbo.remoting.exchange.Exchanger;
 import org.apache.dubbo.remoting.telnet.TelnetHandler;
 import org.apache.dubbo.rpc.Protocol;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -199,6 +202,8 @@ public class ProtocolConfig extends AbstractConfig {
      * If it's default
      */
     private Boolean isDefault;
+
+    private List<RegistryConfig> registries;
 
     public ProtocolConfig() {
     }
@@ -549,5 +554,57 @@ public class ProtocolConfig extends AbstractConfig {
     @Parameter(excluded = true)
     public boolean isValid() {
         return StringUtils.isNotEmpty(name);
+    }
+
+    private RegistryFactory registryFactory;
+
+    private Protocol protocol;
+
+    public void setRegistryFactory(RegistryFactory registryFactory) {
+        this.registryFactory = registryFactory;
+    }
+
+    public void register() {
+        protocol.startServer();
+
+        if (isEmpty(registries)) {
+            registries = server.getConfigManager().getRegistries();
+        }
+
+        for (RegistryConfig rc : registries) {
+            Registry registry = registryFactory.getRegistry(rc);
+
+            Registration registration = new Registration();
+            Endpoint endpoint = new Endpoint();
+            endpoint.setAddress(UrlUtils.getListenAddress());
+            endpoint.setProtocol(protocol);
+            endpoint.setPort(port);
+            registration.setEndpoint(endpoint);
+            registration.setMetadata(getMetadata());// metadata从哪里来？
+
+            registry.register(registration);
+
+        }
+    }
+
+    private Map<String, String> getMetadata() {
+        /**
+         * <application>
+         *     <parameters>
+         *         <key="" value=""/>
+         *         <key="" value=""/>
+         *         <key="" value=""/>
+         *         <key="" value=""/>
+         *     </parameters>
+         * </application>
+         */
+        getConfigMap();
+        /**
+         * -Ddubbo_env={aaa,bbb,ccc}
+         * 或者约定key，只是这就比pod的灵活性差很多
+         */
+        // getSystemProperty and parse
+        getProperty();
+        return map;
     }
 }

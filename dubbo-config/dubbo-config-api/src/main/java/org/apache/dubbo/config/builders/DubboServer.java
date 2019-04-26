@@ -18,11 +18,19 @@ package org.apache.dubbo.config.builders;
 
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ProtocolConfig;
+import org.apache.dubbo.config.ReferenceConfig;
+import org.apache.dubbo.config.ServiceConfig;
 import org.apache.dubbo.config.context.ConfigManager;
+import org.apache.dubbo.config.utils.ReferenceConfigCache;
+import org.apache.dubbo.configcenter.ConfigChangeEvent;
+import org.apache.dubbo.configcenter.ConfigurationListener;
+import org.apache.dubbo.rpc.model.ApplicationModel;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DubboServer {
+
+    private ApplicationModel applicationModel; //要实例化
 
     private ServerStatus status;
     private AtomicBoolean started;
@@ -44,13 +52,37 @@ public class DubboServer {
         configManager.addService(serviceConfig);
     }
 
+    void export(ServiceConfig sc) {
+
+    }
+
+    T refer(ReferenceConfig rc) {
+
+    }
+
     void start() {
-        for (Protocol p : protocols) {
+        // 先组织元数据
+        for (ServiceConfig sc : services) {
+            sc.export(applicationModel);
+        }
+        // 再开端口、发布地址
+        for (ProtocolConfig p : protocols) {
             p.startProtocolServer();
         }
 
-        for (ServiceConfig sc : services) {
-            sc.export();
+        application.
+
+        for (ReferenceConfig rc : references) {
+            ReferenceConfigCache.refer(rc);
         }
+    }
+
+    class GovernanceRule implements ConfigurationListener {
+
+        @Override
+        public void process(ConfigChangeEvent event) {
+
+        }
+
     }
 }

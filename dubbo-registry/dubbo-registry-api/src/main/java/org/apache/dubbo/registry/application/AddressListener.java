@@ -14,17 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.dubbo.config.builders;
+package org.apache.dubbo.registry.application;
 
 /**
  *
  */
-public class DubboClient {
+public interface AddressListener {
 
-    ConfigManager configManager;
+    void notify(List<ServiceInstance> instances);
 
-    // Should registries be the entrance?
-    registries
-
-    refer();
 }

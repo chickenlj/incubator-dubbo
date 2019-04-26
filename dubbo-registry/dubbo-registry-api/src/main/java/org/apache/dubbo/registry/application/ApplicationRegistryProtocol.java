@@ -31,7 +31,6 @@ import org.apache.dubbo.configcenter.DynamicConfiguration;
 import org.apache.dubbo.registry.NotifyListener;
 import org.apache.dubbo.registry.Registry;
 import org.apache.dubbo.registry.RegistryFactory;
-import org.apache.dubbo.registry.RegistryService;
 import org.apache.dubbo.registry.integration.AbstractConfiguratorListener;
 import org.apache.dubbo.registry.integration.RegistryDirectory;
 import org.apache.dubbo.registry.support.ProviderConsumerRegTable;
@@ -167,6 +166,13 @@ public class ApplicationRegistryProtocol implements Protocol {
 
     @Override
     public <T> Exporter<T> export(final Invoker<T> originInvoker) throws RpcException {
+
+        // doLocalExport
+
+        // get simplified URL, register to ApplicationModel
+
+        // 监听service的动态配置规则？
+
         URL registryUrl = getRegistryUrl(originInvoker);
         // url to export locally
         URL providerUrl = getProviderUrl(originInvoker);
@@ -221,6 +227,9 @@ public class ApplicationRegistryProtocol implements Protocol {
     }
 
     public <T> void reExport(final Invoker<T> originInvoker, URL newInvokerUrl) {
+
+        // reExport 提到DubboServer来做?
+
         // update local exporter
         ApplicationRegistryProtocol.ExporterChangeableWrapper exporter = doChangeLocalExport(originInvoker, newInvokerUrl);
         // update registry
@@ -342,11 +351,14 @@ public class ApplicationRegistryProtocol implements Protocol {
     @Override
     @SuppressWarnings("unchecked")
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
+        // List<URL> urls = AddressRepository.getAddresses(appname)
+
+        //
         url = URLBuilder.from(url).setProtocol(url.getParameter(REGISTRY_KEY, DEFAULT_REGISTRY)).removeParameter(REGISTRY_KEY).build();
-        Registry registry = registryFactory.getRegistry(url);
-        if (RegistryService.class.equals(type)) {
-            return proxyFactory.getInvoker((T) registry, type, url);
-        }
+//        Registry registry = registryFactory.getRegistry(url);
+//        if (RegistryService.class.equals(type)) {
+//            return proxyFactory.getInvoker((T) registry, type, url);
+//        }
 
         // group="a,b" or group="*"
         Map<String, String> qs = StringUtils.parseQueryString(url.getParameterAndDecoded(REFER_KEY));
@@ -367,6 +379,10 @@ public class ApplicationRegistryProtocol implements Protocol {
         RegistryDirectory<T> directory = new RegistryDirectory<T>(type, url);
         directory.setRegistry(registry);
         directory.setProtocol(protocol);
+
+        // AddressRepository.addListener(directory);
+
+
         // all attributes of REFER_KEY
         Map<String, String> parameters = new HashMap<String, String>(directory.getUrl().getParameters());
         URL subscribeUrl = new URL(CONSUMER_PROTOCOL, parameters.remove(REGISTER_IP_KEY), 0, type.getName(), parameters);
@@ -375,6 +391,8 @@ public class ApplicationRegistryProtocol implements Protocol {
             registry.register(directory.getRegisteredConsumerUrl());
         }
         directory.buildRouterChain(subscribeUrl);
+
+        // We may not need to subscribe in here anymore
         directory.subscribe(subscribeUrl.addParameter(CATEGORY_KEY, PROVIDERS_CATEGORY + "," + CONFIGURATORS_CATEGORY + "," + ROUTERS_CATEGORY));
 
         Invoker invoker = cluster.join(directory);

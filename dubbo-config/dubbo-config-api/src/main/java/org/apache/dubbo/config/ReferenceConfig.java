@@ -27,6 +27,7 @@ import org.apache.dubbo.common.utils.ConfigUtils;
 import org.apache.dubbo.common.utils.NetUtils;
 import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.config.annotation.Reference;
+import org.apache.dubbo.config.builders.DubboServer;
 import org.apache.dubbo.config.context.ConfigManager;
 import org.apache.dubbo.config.support.Parameter;
 import org.apache.dubbo.metadata.integration.MetadataReportService;
@@ -323,8 +324,14 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         }
         return new ConsumerModel(serviceKey, serviceInterface, ref, methods, attributes);
     }
+
     @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
     private T createProxy(Map<String, String> map) {
+        if (isApplication(map)) {
+            // avoid start multiple times.
+            DubboServer.getDefaultInstance().refer(this);
+        }
+
         if (shouldJvmRefer(map)) {
             URL url = new URL(Constants.LOCAL_PROTOCOL, Constants.LOCALHOST_VALUE, 0, interfaceClass.getName()).addParameters(map);
             invoker = refprotocol.refer(interfaceClass, url);

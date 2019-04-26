@@ -14,16 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.dubbo.registry.application;
+package org.apache.dubbo.registry.application.metadata;
+
+import java.util.List;
 
 /**
  *
  */
-public class ApplicationAddressesRepository {
+public interface MetadataService {
 
-    Map<String, List<ServiceInstance>> appAddresses;
+    String VERSION = "1.0.0";
 
-    List<ServiceInstance> getAddresses(String appName);
+    String getVersion(); //如果要做版本隔离：metadataservice定义就需要注册到注册中心，或者就需要遍历每个实例的getVersion()
 
+    List<String> getExportedUrls();
 
+    List<String> getReferedUrls();
+
+    String getExportedURLs(String serviceInterface, String group, String version);
+
+    String getExportedURLs(String serviceInterface);
 }
