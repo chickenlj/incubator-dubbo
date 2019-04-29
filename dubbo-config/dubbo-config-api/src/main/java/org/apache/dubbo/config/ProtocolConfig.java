@@ -21,8 +21,10 @@ import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.common.serialize.Serialization;
 import org.apache.dubbo.common.status.StatusChecker;
 import org.apache.dubbo.common.threadpool.ThreadPool;
+import org.apache.dubbo.common.utils.CollectionUtils;
 import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.config.support.Parameter;
+import org.apache.dubbo.registry.Registry;
 import org.apache.dubbo.remoting.Codec;
 import org.apache.dubbo.remoting.Dispatcher;
 import org.apache.dubbo.remoting.Transporter;
@@ -30,6 +32,7 @@ import org.apache.dubbo.remoting.exchange.Exchanger;
 import org.apache.dubbo.remoting.telnet.TelnetHandler;
 import org.apache.dubbo.rpc.Protocol;
 
+import java.net.InetSocketAddress;
 import java.util.Map;
 
 /**
@@ -221,6 +224,7 @@ public class ProtocolConfig extends AbstractConfig {
         checkName("name", name);
         this.name = name;
         this.updateIdIfAbsent(name);
+        protocol = ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(name);
     }
 
     @Parameter(excluded = true)
@@ -550,4 +554,32 @@ public class ProtocolConfig extends AbstractConfig {
     public boolean isValid() {
         return StringUtils.isNotEmpty(name);
     }
+
+
+    public void register() {
+        // TODO
+        protocol.startServer(InetSocketAddress.createUnresolved(host, port));
+
+        if (CollectionUtils.isEmpty(registries)) {
+            registries = dubboServer.getConfigManager().getDefaultRegistries().get();
+        }
+
+        if (CollectionUtils.isNotEmpty(registries)) {
+            for (RegistryConfig rc : registries) {
+                Registry registry = registryFactory.getRegistry(rc);
+
+                Registration registration = new Registration();
+                Endpoint endpoint = new Endpoint();
+                endpoint.setAddress(UrlUtils.getListenAddress());
+                endpoint.setProtocol(protocol);
+                endpoint.setPort(port);
+                registration.setEndpoint(endpoint);
+                registration.setMetadata(getMetadata());// metadata从哪里来？
+
+                registry.register(registration);
+
+            }
+        }
+    }
+
 }

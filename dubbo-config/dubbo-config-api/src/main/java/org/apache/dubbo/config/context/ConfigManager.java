@@ -89,7 +89,7 @@ public class ConfigManager {
         return configManager;
     }
 
-    private ConfigManager() {
+    public ConfigManager() {
 
     }
 

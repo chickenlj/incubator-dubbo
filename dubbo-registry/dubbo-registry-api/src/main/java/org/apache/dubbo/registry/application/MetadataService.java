@@ -14,30 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.dubbo.common.config;
+package org.apache.dubbo.registry.application;
 
-import org.apache.dubbo.common.utils.StringUtils;
+import java.util.List;
 
 /**
- * Configuration from system environment
+ *
  */
-public class EnvironmentConfiguration extends AbstractPrefixConfiguration {
+public interface MetadataService {
 
-    public EnvironmentConfiguration(String prefix, String id) {
-        super(prefix, id);
-    }
+    String VERSION = "1.0.0";
 
-    public EnvironmentConfiguration() {
-        this(null, null);
-    }
+    String getVersion(); //如果要做版本隔离：metadataservice定义就需要注册到注册中心，或者就需要遍历每个实例的getVersion()
 
-    @Override
-    public Object getInternalProperty(String key) {
-        String value = System.getenv(key);
-        if (StringUtils.isEmpty(value)) {
-            value = System.getenv(key.toUpperCase());
-        }
-        return value;
-    }
+    List<String> getExportedUrls();
+
+    List<String> getReferredUrls();
+
+    String getExportedURLs(String serviceInterface, String group, String version);
+
+    String getExportedURLs(String serviceInterface);
+
+    void notify();
 
 }

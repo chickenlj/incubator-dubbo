@@ -20,6 +20,8 @@ import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.Adaptive;
 import org.apache.dubbo.common.extension.SPI;
 
+import java.net.InetSocketAddress;
+
 /**
  * Protocol. (API/SPI, Singleton, ThreadSafe)
  */
@@ -74,5 +76,9 @@ public interface Protocol {
      * 3. Protocol can continue to export and refer new service even after it's destroyed.
      */
     void destroy();
+
+    default void startServer(InetSocketAddress address) {
+
+    }
 
 }

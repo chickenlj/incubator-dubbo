@@ -1,1 +1,2 @@
 zookeeper=org.apache.dubbo.registry.zookeeper.ZookeeperRegistryFactory
+zookeeper-application=org.apache.dubbo.registry.zookeeper.ZookeeperApplicationRegistryFactory

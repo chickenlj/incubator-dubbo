@@ -14,30 +14,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.dubbo.common.config;
+package org.apache.dubbo.registry.zookeeper.application;
 
-import org.apache.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.common.URL;
+import org.apache.dubbo.registry.Registry;
+import org.apache.dubbo.registry.support.AbstractRegistryFactory;
+import org.apache.dubbo.remoting.zookeeper.ZookeeperTransporter;
 
 /**
- * Configuration from system environment
+ *
  */
-public class EnvironmentConfiguration extends AbstractPrefixConfiguration {
+public class ZookeeperApplicationRegistryFactory extends AbstractRegistryFactory {
 
-    public EnvironmentConfiguration(String prefix, String id) {
-        super(prefix, id);
-    }
+    private ZookeeperTransporter zookeeperTransporter;
 
-    public EnvironmentConfiguration() {
-        this(null, null);
+    /**
+     * Invisible injection of zookeeper client via IOC/SPI
+     *
+     * @param zookeeperTransporter
+     */
+    public void setZookeeperTransporter(ZookeeperTransporter zookeeperTransporter) {
+        this.zookeeperTransporter = zookeeperTransporter;
     }
 
     @Override
-    public Object getInternalProperty(String key) {
-        String value = System.getenv(key);
-        if (StringUtils.isEmpty(value)) {
-            value = System.getenv(key.toUpperCase());
-        }
-        return value;
+    protected Registry createRegistry(URL url) {
+        return new ZookeeperApplicationRegistry(url, zookeeperTransporter);
     }
-
 }
