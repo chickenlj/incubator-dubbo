@@ -46,6 +46,7 @@ public class DubboServer {
 
     private static DubboServer DEFAULT_INSTANCE;
 
+    // 用于对ServiceConfig.export()入口的老应用保持兼容
     public static synchronized DubboServer getDefault() {
         if (DEFAULT_INSTANCE == null) {
             DEFAULT_INSTANCE = new DubboServer();
@@ -100,6 +101,9 @@ public class DubboServer {
     }
 
     public void start() {
+        // 1. 遍历ProtocolConfig，做server端口监听
+
+        // 2. 生成内存元数据
         for (ServiceConfig sc : serviceConfigs) {
             // ProtocolConfig 记录endpoint
             // DubboProtocol写入url元数据
@@ -108,6 +112,7 @@ public class DubboServer {
 
         Optional<List<URL>> registryUrls = loadRegistries(configManager.getRegistries());
 
+        // 3. 注册中心注册instance信息
         registryUrls.ifPresent(urls -> {
             urls.forEach(registryUrl -> {
                 Registry registry = registryFactory.getRegistry(registryUrl);
@@ -115,6 +120,7 @@ public class DubboServer {
             });
         });
 
+        // 4. 如果消费服务，注册中心订阅instance信息；同时订阅通知后，可能触发MetadataService查询
         if (CollectionUtils.isNotEmpty(referenceConfigs)) {
             registryUrls.ifPresent(urls -> {
                 urls.forEach(registryUrl -> {
@@ -123,6 +129,7 @@ public class DubboServer {
                 });
             });
 
+            // 5. 生成proxy stub
             referenceConfigs.forEach(rc -> {
                 ReferenceConfigCache.getCache().get(rc);
             });
