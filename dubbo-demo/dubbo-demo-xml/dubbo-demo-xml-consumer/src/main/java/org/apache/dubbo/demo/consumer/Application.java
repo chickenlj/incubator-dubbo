@@ -20,21 +20,35 @@ import org.apache.dubbo.demo.DemoService;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Application {
     /**
      * In order to make sure multicast registry works, need to specify '-Djava.net.preferIPv4Stack=true' before
      * launch the application
      */
+
+    private static ExecutorService executor = Executors.newFixedThreadPool(100);
+
     public static void main(String[] args) throws Exception {
         ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("spring/dubbo-consumer.xml");
         context.start();
         DemoService demoService = context.getBean("demoService", DemoService.class);
-//        String hello = demoService.sayHello("world");
-        CompletableFuture<String> helloFuture = demoService.sayHelloAsync("world");
-//        System.out.println("result: " + hello);
-        System.out.println("result: " + helloFuture.get());
+//        CompletableFuture<String> helloFuture = demoService.sayHelloAsync("world");
+////        System.out.println("result: " + hello);
+//        System.out.println("result: " + helloFuture.get());
+        for (int i = 0; i < 5; i++) {
+            submit(demoService);
+        }
         System.in.read();
+    }
+
+    private static void submit(DemoService demoService) {
+        executor.execute(() -> {
+            while (true) {
+                demoService.sayHello("world");
+            }
+        });
     }
 }
