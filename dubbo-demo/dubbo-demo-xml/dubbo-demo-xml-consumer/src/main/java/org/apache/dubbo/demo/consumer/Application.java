@@ -38,7 +38,7 @@ public class Application {
 //        CompletableFuture<String> helloFuture = demoService.sayHelloAsync("world");
 ////        System.out.println("result: " + hello);
 //        System.out.println("result: " + helloFuture.get());
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 32; i++) {
             submit(demoService);
         }
         System.in.read();
