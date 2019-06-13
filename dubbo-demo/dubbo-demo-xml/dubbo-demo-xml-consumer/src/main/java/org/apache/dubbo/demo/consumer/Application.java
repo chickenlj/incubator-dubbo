@@ -16,11 +16,11 @@
  */
 package org.apache.dubbo.demo.consumer;
 
-import org.apache.dubbo.demo.DemoService;
-
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-import java.util.concurrent.CompletableFuture;
+import org.apache.dubbo.config.ApplicationConfig;
+import org.apache.dubbo.config.ReferenceConfig;
+import org.apache.dubbo.config.RegistryConfig;
+import org.apache.dubbo.config.utils.ReferenceConfigCache;
+import org.apache.dubbo.rpc.service.GenericService;
 
 public class Application {
     /**
@@ -28,10 +28,35 @@ public class Application {
      * launch the application
      */
     public static void main(String[] args) throws Exception {
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("spring/dubbo-consumer.xml");
-        context.start();
-        DemoService demoService = context.getBean("demoService", DemoService.class);
-        CompletableFuture<String> hello = demoService.sayHelloAsync("world");
-        System.out.println("result: " + hello.get());
+//        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("spring/dubbo-consumer.xml");
+//        context.start();
+//        DemoService demoService = context.getBean("demoService", DemoService.class);
+//        CompletableFuture<String> hello = demoService.sayHelloAsync("world");
+//        System.out.println("result: " + hello.get());
+        generateGenericReference();
+
+        try {
+            Thread.sleep(100000000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void generateGenericReference() {
+        ApplicationConfig applicationConfig = new ApplicationConfig();
+        applicationConfig.setName("generic-call-consumer");
+        RegistryConfig registryConfig = new RegistryConfig();
+        registryConfig.setAddress("zookeeper://11.164.235.9:2181");
+
+        for (int i = 0; i < 100; i++) {
+            ReferenceConfig<GenericService> referenceConfig = new ReferenceConfig<>();
+            referenceConfig.setInterface("org.apache.dubbo.demo.DemoService" + i);
+            applicationConfig.setRegistry(registryConfig);
+            referenceConfig.setApplication(applicationConfig);
+            referenceConfig.setGeneric(true);
+            referenceConfig.setCheck(false);
+            referenceConfig.setTimeout(1000);
+            ReferenceConfigCache.getCache().get(referenceConfig);
+        }
     }
 }
