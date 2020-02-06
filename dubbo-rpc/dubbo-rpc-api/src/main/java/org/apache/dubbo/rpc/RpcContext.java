@@ -261,7 +261,7 @@ public class RpcContext {
     }
 
     public List<URL> getUrls() {
-        return urls == null && url != null ? (List<URL>) Arrays.asList(url) : urls;
+        return urls == null && url != null ? Arrays.asList(url) : urls;
     }
 
     public void setUrls(List<URL> urls) {
@@ -605,7 +605,7 @@ public class RpcContext {
     @Deprecated
     @SuppressWarnings({"unchecked", "rawtypes"})
     public List<Invoker<?>> getInvokers() {
-        return invokers == null && invoker != null ? (List) Arrays.asList(invoker) : invokers;
+        return invokers == null && invoker != null ? Arrays.asList(invoker) : invokers;
     }
 
     public RpcContext setInvokers(List<Invoker<?>> invokers) {

@@ -267,7 +267,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
     @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
     private T createProxy(Map<String, String> map) {
         if (shouldJvmRefer(map)) {
-            URL url = new URL(LOCAL_PROTOCOL, LOCALHOST_VALUE, 0, interfaceClass.getName()).addParameters(map);
+            URL url = UrlUtils.unmodifiableURL(new URL(LOCAL_PROTOCOL, LOCALHOST_VALUE, 0, interfaceClass.getName()).addParameters(map));
             invoker = REF_PROTOCOL.refer(interfaceClass, url);
             if (logger.isInfoEnabled()) {
                 logger.info("Using injvm service " + interfaceClass.getName());
@@ -310,12 +310,12 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
             }
 
             if (urls.size() == 1) {
-                invoker = REF_PROTOCOL.refer(interfaceClass, urls.get(0));
+                invoker = REF_PROTOCOL.refer(interfaceClass, UrlUtils.unmodifiableURL(urls.get(0)));
             } else {
                 List<Invoker<?>> invokers = new ArrayList<Invoker<?>>();
                 URL registryURL = null;
                 for (URL url : urls) {
-                    invokers.add(REF_PROTOCOL.refer(interfaceClass, url));
+                    invokers.add(REF_PROTOCOL.refer(interfaceClass, UrlUtils.unmodifiableURL(url)));
                     if (UrlUtils.isRegistry(url)) {
                         registryURL = url; // use last registry url
                     }
@@ -353,7 +353,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
         String metadata = map.get(METADATA_KEY);
         WritableMetadataService metadataService = WritableMetadataService.getExtension(metadata == null ? DEFAULT_METADATA_STORAGE_TYPE : metadata);
         if (metadataService != null) {
-            URL consumerURL = new URL(CONSUMER_PROTOCOL, map.remove(REGISTER_IP_KEY), 0, map.get(INTERFACE_KEY), map);
+            URL consumerURL = UrlUtils.unmodifiableURL(new URL(CONSUMER_PROTOCOL, map.remove(REGISTER_IP_KEY), 0, map.get(INTERFACE_KEY), map));
             metadataService.publishServiceDefinition(consumerURL);
         }
         // create service proxy

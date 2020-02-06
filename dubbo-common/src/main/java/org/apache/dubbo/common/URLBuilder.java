@@ -18,30 +18,29 @@ package org.apache.dubbo.common;
 
 import org.apache.dubbo.common.utils.CollectionUtils;
 import org.apache.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.common.utils.UrlUtils.UnmodifiableURL;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public final class URLBuilder {
-    private String protocol;
+public class URLBuilder {
+    protected String protocol;
 
-    private String username;
+    protected String username;
 
-    private String password;
+    protected String password;
 
     // by default, host to registry
-    private String host;
+    protected String host;
 
     // by default, port to registry
-    private int port;
+    protected int port;
 
-    private String path;
+    protected String path;
 
-    private Map<String, String> parameters;
-
-    private boolean freeze;
+    protected Map<String, String> parameters;
 
     public URLBuilder() {
         protocol = null;
@@ -111,6 +110,20 @@ public final class URLBuilder {
     }
 
     public URL build() {
+        check();
+        URL url = new URL(protocol, username, password, host, port, path);
+        url.parameters = this.parameters;
+        return url;
+    }
+
+    public UnmodifiableURL buildUnmodifiable() {
+        check();
+        UnmodifiableURL unmodifiableURL = new UnmodifiableURL(protocol, username, password, host, port, path);
+        unmodifiableURL.parameters = this.parameters;
+        return unmodifiableURL;
+    }
+
+    private void check() {
         if (StringUtils.isEmpty(username) && StringUtils.isNotEmpty(password)) {
             throw new IllegalArgumentException("Invalid url, password without username!");
         }
@@ -127,15 +140,6 @@ public final class URLBuilder {
                 path = path.substring(firstNonSlash);
             }
         }
-
-        URL url = new URL(protocol, username, password, host, port, path);
-        url.parameters = this.parameters;
-
-        if (freeze) {
-            url.froze();
-        }
-
-        return url;
     }
 
     public URLBuilder setProtocol(String protocol) {
@@ -309,11 +313,6 @@ public final class URLBuilder {
         return addParameters(map);
     }
 
-    public URLBuilder freeze() {
-        this.freeze = true;
-        return this;
-    }
-
     public URLBuilder addParameterString(String query) {
         if (StringUtils.isEmpty(query)) {
             return this;
@@ -359,4 +358,36 @@ public final class URLBuilder {
         return parameters.get(key);
     }
 
+    public String getParameter(String key, String defaultValue) {
+        String value = getParameter(key);
+        return StringUtils.isEmpty(value) ? defaultValue : value;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public Map<String, String> getParameters() {
+        return parameters;
+    }
 }

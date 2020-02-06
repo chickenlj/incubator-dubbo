@@ -189,11 +189,7 @@ public class ConfigValidationUtils {
                     List<URL> urls = UrlUtils.parseURLs(address, map);
 
                     for (URL url : urls) {
-
-                        url = URLBuilder.from(url)
-                                .addParameter(REGISTRY_KEY, url.getProtocol())
-                                .setProtocol(extractRegistryType(url))
-                                .build();
+                        url.addParameter(REGISTRY_KEY, url.getProtocol()).setProtocol(extractRegistryType(url));
                         if ((provider && url.getParameter(REGISTER_KEY, true))
                                 || (!provider && url.getParameter(SUBSCRIBE_KEY, true))) {
                             registryList.add(url);

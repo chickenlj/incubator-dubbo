@@ -110,7 +110,7 @@ public class RpcUtils {
      */
     public static void attachInvocationIdIfAsync(URL url, Invocation inv) {
         if (isAttachInvocationId(url, inv) && getInvocationId(inv) == null && inv instanceof RpcInvocation) {
-            ((RpcInvocation) inv).setAttachment(ID_KEY, String.valueOf(INVOKE_ID.getAndIncrement()));
+            inv.setAttachment(ID_KEY, String.valueOf(INVOKE_ID.getAndIncrement()));
         }
     }
 
@@ -119,11 +119,7 @@ public class RpcUtils {
         if (value == null) {
             // add invocationid in async operation by default
             return isAsync(url, invocation);
-        } else if (Boolean.TRUE.toString().equalsIgnoreCase(value)) {
-            return true;
-        } else {
-            return false;
-        }
+        } else return Boolean.TRUE.toString().equalsIgnoreCase(value);
     }
 
     public static String getMethodName(Invocation invocation) {

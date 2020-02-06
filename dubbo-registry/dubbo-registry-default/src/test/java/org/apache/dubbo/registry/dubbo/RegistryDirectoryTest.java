@@ -96,7 +96,7 @@ public class RegistryDirectoryTest {
     }
 
     private RegistryDirectory getRegistryDirectory(URL url) {
-        RegistryDirectory registryDirectory = new RegistryDirectory(URL.class, url);
+        RegistryDirectory registryDirectory = new RegistryDirectory(URL.class, url, url.getParameters());
         registryDirectory.setProtocol(protocol);
         registryDirectory.setRegistry(registry);
         registryDirectory.setRouterChain(RouterChain.buildChain(url));
@@ -115,21 +115,21 @@ public class RegistryDirectoryTest {
     @Test
     public void test_Constructor_WithErrorParam() {
         try {
-            new RegistryDirectory(null, null);
+            new RegistryDirectory(null, null, new HashMap<>());
             fail();
         } catch (IllegalArgumentException e) {
 
         }
         try {
             // null url
-            new RegistryDirectory(null, noMeaningUrl);
+            new RegistryDirectory(null, noMeaningUrl, noMeaningUrl.getParameters());
             fail();
         } catch (IllegalArgumentException e) {
 
         }
         try {
             // no servicekey
-            new RegistryDirectory(RegistryDirectoryTest.class, URL.valueOf("dubbo://10.20.30.40:9090"));
+            new RegistryDirectory(RegistryDirectoryTest.class, URL.valueOf("dubbo://10.20.30.40:9090"), new HashMap<>());
             fail();
         } catch (IllegalArgumentException e) {
 
@@ -335,7 +335,8 @@ public class RegistryDirectoryTest {
                 "key=query&" + LOADBALANCE_KEY + "=" + LeastActiveLoadBalance.NAME);
         RegistryDirectory<RegistryDirectoryTest> registryDirectory2 = new RegistryDirectory(
                 RegistryDirectoryTest.class,
-                regurl);
+                regurl,
+                regurl.getParameters());
         registryDirectory2.setProtocol(protocol);
 
         List<URL> serviceUrls = new ArrayList<URL>();

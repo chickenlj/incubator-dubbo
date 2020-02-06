@@ -43,7 +43,7 @@ public class MockInvokerTest {
         Assertions.assertEquals(123, MockInvoker.parseMockValue("123"));
         Assertions.assertEquals("foo", MockInvoker.parseMockValue("foo"));
         Assertions.assertEquals("foo", MockInvoker.parseMockValue("\"foo\""));
-        Assertions.assertEquals("foo", MockInvoker.parseMockValue("\'foo\'"));
+        Assertions.assertEquals("foo", MockInvoker.parseMockValue("'foo'"));
 
         Assertions.assertEquals(
                 new HashMap<>(), MockInvoker.parseMockValue("{}"));

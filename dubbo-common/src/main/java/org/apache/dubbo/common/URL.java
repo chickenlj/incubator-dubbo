@@ -91,8 +91,6 @@ class URL implements Serializable {
 
     private static final long serialVersionUID = -1985165475234910535L;
 
-    private volatile transient boolean frozen;
-
     protected String protocol;
 
     protected String username;
@@ -132,18 +130,6 @@ class URL implements Serializable {
     private transient String serviceKey;
 
     private transient String address;
-
-    public boolean isFrozen() {
-        return frozen;
-    }
-
-    public void froze() {
-        this.frozen = true;
-    }
-
-    public void deFroze() {
-        this.frozen = false;
-    }
 
     protected URL() {
         this.protocol = null;
@@ -389,9 +375,6 @@ class URL implements Serializable {
     }
 
     public URL setProtocol(String protocol) {
-        if (frozen) {
-            return new URL(protocol, username, password, host, port, path, getParameters());
-        }
         this.protocol = protocol;
         return this;
     }
@@ -401,9 +384,6 @@ class URL implements Serializable {
     }
 
     public URL setUsername(String username) {
-        if (frozen) {
-            return new URL(protocol, username, password, host, port, path, getParameters());
-        }
         this.username = username;
         return this;
     }
@@ -413,9 +393,6 @@ class URL implements Serializable {
     }
 
     public URL setPassword(String password) {
-        if (frozen) {
-            return new URL(protocol, username, password, host, port, path, getParameters());
-        }
         this.password = password;
         return this;
     }
@@ -434,9 +411,6 @@ class URL implements Serializable {
     }
 
     public URL setHost(String host) {
-        if (frozen) {
-            return new URL(protocol, username, password, host, port, path, getParameters());
-        }
         this.host = host;
         return this;
     }
@@ -461,7 +435,8 @@ class URL implements Serializable {
     }
 
     public URL setPort(int port) {
-        return new URL(protocol, username, password, host, port, path, getParameters());
+        this.port = Math.max(port, 0);
+        return this;
     }
 
     public int getPort(int defaultPort) {
@@ -485,7 +460,10 @@ class URL implements Serializable {
         } else {
             host = address;
         }
-        return new URL(protocol, username, password, host, port, path, getParameters());
+
+        setHost(host);
+        setPort(port);
+        return this;
     }
 
     public String getBackupAddress() {
@@ -521,9 +499,6 @@ class URL implements Serializable {
     }
 
     public URL setPath(String path) {
-        if (frozen) {
-            return new URL(protocol, username, password, host, port, path, getParameters());
-        }
         // trim the beginning "/"
         while (path != null && path.startsWith("/")) {
             path = path.substring(1);
@@ -1099,17 +1074,10 @@ class URL implements Serializable {
         return addParameter0(key, value);
     }
 
-    private URL addParameter0(String key, String value) {
-        if (frozen) {
-            Map<String, String> map = new HashMap<>(getParameters());
-            map.put(key, value);
-
-            return new URL(protocol, username, password, host, port, path, map);
-        } else {
-            parameters.put(key, value);
-            resetMethodParameters();
-            return this;
-        }
+    protected URL addParameter0(String key, String value) {
+        parameters.put(key, value);
+        resetMethodParameters();
+        return this;
     }
 
     /**
@@ -1143,34 +1111,22 @@ class URL implements Serializable {
             return this;
         }
 
-        if (frozen) {
-            Map<String, String> map = new HashMap<>(getParameters());
-            map.putAll(parameters);
-            return new URL(protocol, username, password, host, port, path, map);
-        } else {
-            getParameters().putAll(parameters);
-            resetMethodParameters();
-            return this;
-        }
+        getParameters().putAll(parameters);
+        resetMethodParameters();
+        return this;
     }
 
     public URL addParametersIfAbsent(Map<String, String> parameters) {
         if (CollectionUtils.isEmptyMap(parameters)) {
             return this;
         }
-        if (frozen) {
-            Map<String, String> map = new HashMap<>(parameters);
-            map.putAll(getParameters());
-            return new URL(protocol, username, password, host, port, path, map);
-        } else {
-            for (String key : parameters.keySet()) {
-                if (!getParameters().containsKey(key)) {
-                    getParameters().put(key, parameters.get(key));
-                }
+        for (String key : parameters.keySet()) {
+            if (!getParameters().containsKey(key)) {
+                getParameters().put(key, parameters.get(key));
             }
-            resetMethodParameters();
-            return this;
         }
+        resetMethodParameters();
+        return this;
     }
 
     public URL addParameters(String... pairs) {
@@ -1213,32 +1169,17 @@ class URL implements Serializable {
         if (keys == null || keys.length == 0) {
             return this;
         }
-        if (frozen) {
-            Map<String, String> map = new HashMap<>(getParameters());
-            for (String key : keys) {
-                map.remove(key);
-            }
-            if (map.size() == getParameters().size()) {
-                return this;
-            }
-            return new URL(protocol, username, password, host, port, path, map);
-        } else {
-            for (String key : keys) {
-                getParameters().remove(key);
-            }
-            resetMethodParameters();
-            return this;
+        for (String key : keys) {
+            getParameters().remove(key);
         }
+        resetMethodParameters();
+        return this;
     }
 
     public URL clearParameters() {
-        if (frozen) {
-            return new URL(protocol, username, password, host, port, path, new HashMap<>());
-        } else {
-            getParameters().clear();
-            resetMethodParameters();
-            return this;
-        }
+        getParameters().clear();
+        resetMethodParameters();
+        return this;
     }
 
     public String getRawParameter(String key) {

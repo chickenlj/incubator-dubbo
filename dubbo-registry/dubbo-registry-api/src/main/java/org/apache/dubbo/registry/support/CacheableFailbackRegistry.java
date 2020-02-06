@@ -19,6 +19,7 @@ package org.apache.dubbo.registry.support;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.URLBuilder;
 import org.apache.dubbo.common.utils.CollectionUtils;
+import org.apache.dubbo.common.utils.UrlUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,8 +53,7 @@ public abstract class CacheableFailbackRegistry extends FailbackRegistry {
                 if (cachedUrl == null) {
                     String decodedProvider = URL.decode(rawProvider);
                     if (decodedProvider.contains(PROTOCOL_SEPARATOR)) {
-                        URL url = URL.valueOf(decodedProvider);
-                        url.froze();
+                        URL url = UrlUtils.unmodifiableURL(URL.valueOf(decodedProvider));
                         if (isMatch(consumer, url)) {
                             consumerStringUrls.put(rawProvider, url);
                         }
@@ -63,7 +63,7 @@ public abstract class CacheableFailbackRegistry extends FailbackRegistry {
             copyOfStringUrls.keySet().forEach(consumerStringUrls::remove);
 
             List<URL> urls = new ArrayList<>(consumerStringUrls.size());
-            consumerStringUrls.values().forEach(u -> urls.add(URLBuilder.from(u).build()));
+            consumerStringUrls.values().forEach(u -> urls.add(UrlUtils.copyOf(u)));
             return urls;
         }
 

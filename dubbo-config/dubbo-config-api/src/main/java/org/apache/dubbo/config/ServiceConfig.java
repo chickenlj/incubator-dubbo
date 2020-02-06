@@ -28,6 +28,7 @@ import org.apache.dubbo.common.utils.CollectionUtils;
 import org.apache.dubbo.common.utils.ConfigUtils;
 import org.apache.dubbo.common.utils.NamedThreadFactory;
 import org.apache.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.common.utils.UrlUtils;
 import org.apache.dubbo.config.annotation.Service;
 import org.apache.dubbo.config.bootstrap.DubboBootstrap;
 import org.apache.dubbo.config.event.ServiceConfigExportedEvent;
@@ -420,7 +421,6 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         String host = findConfigedHosts(protocolConfig, registryURLs, map);
         Integer port = findConfigedPorts(protocolConfig, name, map);
         URL url = new URL(name, host, port, getContextPath(protocolConfig).map(p -> p + "/" + path).orElse(path), map);
-
         // You can customize Configurator to append extra parameters
         if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
                 .hasExtension(url.getProtocol())) {
@@ -463,7 +463,8 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                             registryURL = registryURL.addParameter(PROXY_KEY, proxy);
                         }
 
-                        Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(EXPORT_KEY, url.toFullString()));
+                        Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass,
+                                UrlUtils.unmodifiableURL(registryURL.addParameterAndEncoded(EXPORT_KEY, url.toFullString())));
                         Exporter<?> exporter = protocol.export(invoker);
                         exporters.add(exporter);
                     }
@@ -471,7 +472,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                     if (logger.isInfoEnabled()) {
                         logger.info("Export dubbo service " + interfaceClass.getName() + " to url " + url);
                     }
-                    Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, url);
+                    Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, UrlUtils.unmodifiableURL(url));
                     Exporter<?> exporter = protocol.export(invoker);
                     exporters.add(exporter);
                 }

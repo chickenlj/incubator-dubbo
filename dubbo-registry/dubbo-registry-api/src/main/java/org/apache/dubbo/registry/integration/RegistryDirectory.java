@@ -148,7 +148,8 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
         this.serviceKey = url.getServiceKey();
         this.queryMap = parameters;
         this.mergeMap = genMergeMap(parameters);
-        this.overrideDirectoryUrl = this.directoryUrl = turnRegistryUrlToConsumerUrl(url);
+        this.overrideDirectoryUrl = directoryUrl = turnRegistryUrlToConsumerUrl(url);
+        ;
         String group = directoryUrl.getParameter(GROUP_KEY, "");
         this.multiGroup = group != null && (ANY_VALUE.equals(group) || group.contains(","));
     }
@@ -167,7 +168,7 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
 
     private URL turnRegistryUrlToConsumerUrl(URL url) {
         // save any parameter in registry that will be useful to the new url.
-        URLBuilder builder = URLBuilder.from(url)
+        URLBuilder builder = UrlUtils.builder(url)
                 .setPath(url.getServiceInterface())
                 .clearParameters()
                 .addParameters(queryMap)
@@ -176,7 +177,7 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
         if (StringUtils.isNotEmpty(isDefault)) {
             builder.addParameter(REGISTRY_KEY + "." + PREFERRED_KEY, isDefault);
         }
-        return builder.build();
+        return builder.buildUnmodifiable();
     }
 
     public void setProtocol(Protocol protocol) {
@@ -439,8 +440,7 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
                         ExtensionLoader.getExtensionLoader(Protocol.class).getSupportedExtensions()));
                 continue;
             }
-            URL url = mergeUrl(providerUrl);
-            url.froze();
+            URL url = UrlUtils.unmodifiableURL(mergeUrl(providerUrl));
 
             if (keys.contains(url)) { // Repeated url
                 continue;
@@ -695,7 +695,7 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
 
     private void overrideDirectoryUrl() {
         // merge override parameters
-        this.overrideDirectoryUrl = directoryUrl;
+        this.overrideDirectoryUrl = UrlUtils.copyOf(directoryUrl);
         List<Configurator> localConfigurators = this.configurators; // local reference
         doOverrideUrl(localConfigurators);
         List<Configurator> localAppDynamicConfigurators = CONSUMER_CONFIGURATION_LISTENER.getConfigurators(); // local reference

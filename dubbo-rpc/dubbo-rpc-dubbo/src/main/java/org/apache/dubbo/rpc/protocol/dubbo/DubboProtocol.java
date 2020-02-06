@@ -17,7 +17,6 @@
 package org.apache.dubbo.rpc.protocol.dubbo;
 
 import org.apache.dubbo.common.URL;
-import org.apache.dubbo.common.URLBuilder;
 import org.apache.dubbo.common.config.ConfigurationUtils;
 import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.common.serialize.support.SerializableClassRegistry;
@@ -27,6 +26,7 @@ import org.apache.dubbo.common.utils.ConcurrentHashSet;
 import org.apache.dubbo.common.utils.ConfigUtils;
 import org.apache.dubbo.common.utils.NetUtils;
 import org.apache.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.common.utils.UrlUtils;
 import org.apache.dubbo.remoting.Channel;
 import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.RemotingServer;
@@ -330,7 +330,7 @@ public class DubboProtocol extends AbstractProtocol {
     }
 
     private ProtocolServer createServer(URL url) {
-        url = URLBuilder.from(url)
+        url = UrlUtils.builder(url)
                 // send readonly event when server closes, it's enabled by default
                 .addParameterIfAbsent(CHANNEL_READONLYEVENT_SENT_KEY, Boolean.TRUE.toString())
                 // enable heartbeat by default

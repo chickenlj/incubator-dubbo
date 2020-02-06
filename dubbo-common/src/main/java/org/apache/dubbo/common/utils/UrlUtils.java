@@ -17,6 +17,7 @@
 package org.apache.dubbo.common.utils;
 
 import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.URLBuilder;
 import org.apache.dubbo.common.constants.RemotingConstants;
 
 import java.util.ArrayList;
@@ -552,5 +553,175 @@ public class UrlUtils {
         }
         arr[1] = serviceKey;
         return arr;
+    }
+
+    public static URL copyOf(URL url) {
+        return URLBuilder.from(url).build();
+    }
+
+    public static URL unmodifiableURL(URL url) {
+        return new UnmodifiableURL(url);
+    }
+
+    public static URLBuilder builder(URL url) {
+        return URLBuilder.from(url);
+    }
+
+    public static class UnmodifiableURL extends URL {
+        public UnmodifiableURL(URL url) {
+            this.protocol = url.getProtocol();
+            this.username = url.getUsername();
+            this.password = url.getPassword();
+            this.host = url.getHost();
+            this.port = url.getPort();
+            this.path = url.getPath();
+            this.parameters = url.getParameters();
+
+            // copy of cache
+        }
+
+        public UnmodifiableURL(String protocol,
+                               String username,
+                               String password,
+                               String host,
+                               int port,
+                               String path,
+                               Map<String, String> parameters) {
+            super(protocol, username, password, host, port, path, parameters);
+        }
+
+        public UnmodifiableURL(String protocol,
+                               String username,
+                               String password,
+                               String host,
+                               int port,
+                               String path) {
+            this(protocol, username, password, host, port, path, (Map<String, String>) null);
+        }
+
+        @Override
+        public URL setProtocol(String protocol) {
+            return new UnmodifiableURL(protocol, username, password, host, port, path, getParameters());
+//            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public URL setUsername(String username) {
+            return new UnmodifiableURL(protocol, username, password, host, port, path, getParameters());
+//            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public URL setPassword(String password) {
+            return new UnmodifiableURL(protocol, username, password, host, port, path, getParameters());
+//            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public URL setHost(String host) {
+            return new UnmodifiableURL(protocol, username, password, host, port, path, getParameters());
+//            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public URL setPort(int port) {
+            return new UnmodifiableURL(protocol, username, password, host, port, path, getParameters());
+//            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public URL setAddress(String address) {
+            int i = address.lastIndexOf(':');
+            String host;
+            int port = this.port;
+            if (i >= 0) {
+                host = address.substring(0, i);
+                port = Integer.parseInt(address.substring(i + 1));
+            } else {
+                host = address;
+            }
+            return new UnmodifiableURL(protocol, username, password, host, port, path, getParameters());
+//            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public URL setPath(String path) {
+            return new UnmodifiableURL(protocol, username, password, host, port, path, getParameters());
+//            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        protected URL addParameter0(String key, String value) {
+            Map<String, String> map = new HashMap<>(getParameters());
+            map.put(key, value);
+
+            return new UnmodifiableURL(protocol, username, password, host, port, path, map);
+//            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public URL addParameters(Map<String, String> parameters) {
+//            if (CollectionUtils.isEmptyMap(parameters)) {
+//                return this;
+//            }
+//
+//            boolean hasAndEqual = true;
+//            for (Map.Entry<String, String> entry : parameters.entrySet()) {
+//                String value = getParameters().get(entry.getKey());
+//                if (value == null) {
+//                    if (entry.getValue() != null) {
+//                        hasAndEqual = false;
+//                        break;
+//                    }
+//                } else {
+//                    if (!value.equals(entry.getValue())) {
+//                        hasAndEqual = false;
+//                        break;
+//                    }
+//                }
+//            }
+//            // return immediately if there's no change
+//            if (hasAndEqual) {
+//                return this;
+//            }
+//
+//            Map<String, String> map = new HashMap<>(getParameters());
+//            map.putAll(parameters);
+//            return new UnmodifiableURL(protocol, username, password, host, port, path, map);
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public URL addParametersIfAbsent(Map<String, String> parameters) {
+//            if (CollectionUtils.isEmptyMap(parameters)) {
+//                return this;
+//            }
+//            Map<String, String> map = new HashMap<>(parameters);
+//            map.putAll(getParameters());
+//            return new UnmodifiableURL(protocol, username, password, host, port, path, map);
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public URL removeParameters(String... keys) {
+//            if (keys == null || keys.length == 0) {
+//                return this;
+//            }
+//            Map<String, String> map = new HashMap<>(getParameters());
+//            for (String key : keys) {
+//                map.remove(key);
+//            }
+//            if (map.size() == getParameters().size()) {
+//                return this;
+//            }
+//            return new UnmodifiableURL(protocol, username, password, host, port, path, map);
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public URL clearParameters() {
+//            return new UnmodifiableURL(protocol, username, password, host, port, path, new HashMap<>());
+            throw new UnsupportedOperationException();
+        }
     }
 }

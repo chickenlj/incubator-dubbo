@@ -28,6 +28,7 @@ import org.apache.dubbo.remoting.exchange.Response;
 import org.apache.dubbo.remoting.transport.AbstractChannelHandlerDelegate;
 
 import static org.apache.dubbo.common.constants.CommonConstants.HEARTBEAT_EVENT;
+import static org.apache.dubbo.remoting.Constants.DEFAULT_HEARTBEAT;
 
 public class HeartbeatHandler extends AbstractChannelHandlerDelegate {
 
@@ -70,13 +71,11 @@ public class HeartbeatHandler extends AbstractChannelHandlerDelegate {
                 Response res = new Response(req.getId(), req.getVersion());
                 res.setEvent(HEARTBEAT_EVENT);
                 channel.send(res);
-                if (logger.isInfoEnabled()) {
-                    int heartbeat = channel.getUrl().getParameter(Constants.HEARTBEAT_KEY, 0);
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Received heartbeat from remote channel " + channel.getRemoteAddress()
-                                + ", cause: The channel has no data-transmission exceeds a heartbeat period"
-                                + (heartbeat > 0 ? ": " + heartbeat + "ms" : ""));
-                    }
+                if (logger.isDebugEnabled()) {
+                    int heartbeat = channel.getUrl().getParameter(Constants.HEARTBEAT_KEY, DEFAULT_HEARTBEAT);
+                    logger.debug("Received heartbeat from remote channel " + channel.getRemoteAddress()
+                            + ", cause: The channel has no data-transmission exceeds a heartbeat period"
+                            + (heartbeat > 0 ? ": " + heartbeat + "ms" : ""));
                 }
             }
             return;
