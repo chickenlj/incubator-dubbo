@@ -136,19 +136,19 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
     private ReferenceConfigurationListener serviceConfigurationListener;
 
 
-    public RegistryDirectory(Class<T> serviceType, URL url, Map<String, String> parameters) {
-        super(url);
+    public RegistryDirectory(Class<T> serviceType, URL registryUrl, Map<String, String> parameters) {
+        super(registryUrl);
         if (serviceType == null) {
             throw new IllegalArgumentException("service type is null.");
         }
-        if (url.getServiceKey() == null || url.getServiceKey().length() == 0) {
+        if (registryUrl.getServiceKey() == null || registryUrl.getServiceKey().length() == 0) {
             throw new IllegalArgumentException("registry serviceKey is null.");
         }
         this.serviceType = serviceType;
-        this.serviceKey = url.getServiceKey();
+        this.serviceKey = registryUrl.getServiceKey();
         this.queryMap = parameters;
         this.mergeMap = genMergeMap(parameters);
-        this.overrideDirectoryUrl = directoryUrl = turnRegistryUrlToConsumerUrl(url);
+        this.overrideDirectoryUrl = directoryUrl = turnRegistryUrlToConsumerUrl(registryUrl);
         ;
         String group = directoryUrl.getParameter(GROUP_KEY, "");
         this.multiGroup = group != null && (ANY_VALUE.equals(group) || group.contains(","));
