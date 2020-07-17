@@ -17,6 +17,7 @@
 package com.alibaba.dubbo.config.spring.context.annotation;
 
 import com.alibaba.dubbo.config.ApplicationConfig;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -49,7 +50,7 @@ public class DubboConfigBindingsRegistrarTest {
 
     @EnableDubboConfigBindings({
             @EnableDubboConfigBinding(prefix = "${application.prefix}", type = ApplicationConfig.class),
-            @EnableDubboConfigBinding(prefix = "dubbo.applications.applicationBean", type = ApplicationConfig.class)
+            @EnableDubboConfigBinding(prefix = "dubbo.applications.applicationBean1", type = ApplicationConfig.class)
     })
     @PropertySource("META-INF/config.properties")
     private static class TestConfig {

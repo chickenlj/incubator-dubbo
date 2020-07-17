@@ -57,4 +57,12 @@ public interface DemoService {
 
     NonSerialized returnNonSerialized();
 
+    long add(int a, long b);
+
+    int getPerson(Person person);
+
+    int getPerson(Person person1, Person perso2);
+
+    String getPerson(Man man);
+
 }

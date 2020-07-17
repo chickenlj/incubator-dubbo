@@ -25,6 +25,7 @@ import java.lang.annotation.Annotation;
 
 import static com.alibaba.dubbo.config.spring.util.AnnotationUtils.getAttributes;
 
+
 /**
  * {@link Annotation} {@link PropertyValues} Adapter
  *

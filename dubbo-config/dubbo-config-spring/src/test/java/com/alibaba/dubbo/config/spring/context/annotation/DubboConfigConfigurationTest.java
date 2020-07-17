@@ -20,6 +20,7 @@ import com.alibaba.dubbo.config.ApplicationConfig;
 import com.alibaba.dubbo.config.ModuleConfig;
 import com.alibaba.dubbo.config.ProtocolConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -83,8 +84,8 @@ public class DubboConfigConfigurationTest {
         context.refresh();
 
         // application
-        ApplicationConfig applicationConfig = context.getBean("applicationBean", ApplicationConfig.class);
-        Assert.assertEquals("dubbo-demo-application", applicationConfig.getName());
+        ApplicationConfig applicationConfig = context.getBean("applicationBean1", ApplicationConfig.class);
+        Assert.assertEquals("dubbo-demo-application1", applicationConfig.getName());
 
         ApplicationConfig applicationBean2 = context.getBean("applicationBean2", ApplicationConfig.class);
         Assert.assertEquals("dubbo-demo-application2", applicationBean2.getName());

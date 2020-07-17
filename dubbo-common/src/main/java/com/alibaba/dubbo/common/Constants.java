@@ -599,6 +599,10 @@ public class Constants {
 
     public static final String EXECUTOR_SERVICE_COMPONENT_KEY = ExecutorService.class.getName();
 
+    public static final String SHARE_EXECUTOR_KEY = "share.threadpool";
+
+    public static final String SHARED_CONSUMER_EXECUTOR_PORT = "consumer.executor.port";
+
     public static final String GENERIC_SERIALIZATION_NATIVE_JAVA = "nativejava";
 
     public static final String GENERIC_SERIALIZATION_DEFAULT = "true";
@@ -634,6 +638,14 @@ public class Constants {
     public static final boolean DEFAULT_HESSIAN_OVERLOAD_METHOD = false;
 
     public static final String MULTICAST = "multicast";
+
+    public static final String SERVICE_IMPL_CLASS = "service.classimpl";
+
+    public static final String TAG_KEY = "dubbo.tag";
+
+    public static final String FORCE_USE_TAG = "dubbo.force.tag";
+
+    public static final String TELNET = "telnet";
 
     /*
      * private Constants(){ }

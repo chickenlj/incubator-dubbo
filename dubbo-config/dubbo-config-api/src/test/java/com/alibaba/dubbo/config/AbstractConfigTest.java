@@ -198,7 +198,8 @@ public class AbstractConfigTest {
     @Test
     public void checkNameHasSymbol() throws Exception {
         try {
-            AbstractConfig.checkNameHasSymbol("hello", ":*,/-0123abcdABCD");
+            AbstractConfig.checkNameHasSymbol("hello", ":*,/ -0123\tabcdABCD");
+            AbstractConfig.checkNameHasSymbol("mock", "force:return world");
         } catch (Exception e) {
             TestCase.fail("the value should be legal.");
         }
@@ -474,6 +475,16 @@ public class AbstractConfigTest {
         String[] listener() default {};
 
         String[] parameters() default {};
+
+        ConfigField[] configFields() default {};
+
+        ConfigField configField() default @ConfigField;
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.ANNOTATION_TYPE})
+    public @interface ConfigField {
+        String value() default "";
     }
 
     private static class AnnotationConfig extends AbstractConfig {
@@ -481,6 +492,7 @@ public class AbstractConfigTest {
         private String filter;
         private String listener;
         private Map<String, String> parameters;
+        private String[] configFields;
 
         public Class getInterface() {
             return interfaceClass;
@@ -512,6 +524,14 @@ public class AbstractConfigTest {
 
         public void setParameters(Map<String, String> parameters) {
             this.parameters = parameters;
+        }
+
+        public String[] getConfigFields() {
+            return configFields;
+        }
+
+        public void setConfigFields(String[] configFields) {
+            this.configFields = configFields;
         }
     }
 }

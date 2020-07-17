@@ -56,7 +56,7 @@ public abstract class AbstractConfig implements Serializable {
 
     private static final Pattern PATTERN_PATH = Pattern.compile("[/\\-$._0-9a-zA-Z]+");
 
-    private static final Pattern PATTERN_NAME_HAS_SYMBOL = Pattern.compile("[:*,/\\-._0-9a-zA-Z]+");
+    private static final Pattern PATTERN_NAME_HAS_SYMBOL = Pattern.compile("[:*,\\s/\\-._0-9a-zA-Z]+");
 
     private static final Pattern PATTERN_KEY = Pattern.compile("[*,\\-._0-9a-zA-Z]+");
     private static final Map<String, String> legacyProperties = new HashMap<String, String>();
@@ -423,7 +423,7 @@ public abstract class AbstractConfig implements Serializable {
                     }
                     String setter = "set" + property.substring(0, 1).toUpperCase() + property.substring(1);
                     Object value = method.invoke(annotation);
-                    if (value != null && !value.equals(method.getDefaultValue())) {
+                    if (!isAnnotationArray(method.getReturnType()) &&  value != null && !value.equals(method.getDefaultValue())) {
                         Class<?> parameterType = ReflectUtils.getBoxedClass(method.getReturnType());
                         if ("filter".equals(property) || "listener".equals(property)) {
                             parameterType = String.class;
@@ -446,6 +446,13 @@ public abstract class AbstractConfig implements Serializable {
         }
     }
 
+    boolean isAnnotationArray(Class target) {
+        if (target.isArray() && target.getComponentType().isAnnotation()) {
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public String toString() {
         try {
@@ -457,7 +464,8 @@ public abstract class AbstractConfig implements Serializable {
                 try {
                     String name = method.getName();
                     if ((name.startsWith("get") || name.startsWith("is"))
-                            && !"getClass".equals(name) && !"get".equals(name) && !"is".equals(name)
+                            && !"get".equals(name) && !"is".equals(name)
+                            && !"getClass".equals(name) && !"getObject".equals(name)
                             && Modifier.isPublic(method.getModifiers())
                             && method.getParameterTypes().length == 0
                             && isPrimitive(method.getReturnType())) {

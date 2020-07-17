@@ -1,4 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -10,7 +25,7 @@
 
     <groupId>com.alibaba</groupId>
     <artifactId>dubbo-dependencies-bom</artifactId>
-    <version>2.6.3-SNAPSHOT</version>
+    <version>2.6.8</version>
     <packaging>pom</packaging>
 
     <name>dubbo-dependencies-bom</name>
@@ -29,8 +44,8 @@
         <url>https://github.com/apache/incubator-dubbo</url>
         <connection>scm:git:https://github.com/apache/incubator-dubbo.git</connection>
         <developerConnection>scm:git:https://github.com/apache/incubator-dubbo.git</developerConnection>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
     <mailingLists>
         <mailingList>
             <name>Development List</name>
@@ -75,11 +90,11 @@
         <spring_version>4.3.16.RELEASE</spring_version>
         <javassist_version>3.20.0-GA</javassist_version>
         <netty_version>3.2.5.Final</netty_version>
-        <netty4_version>4.0.35.Final</netty4_version>
+        <netty4_version>4.1.25.Final</netty4_version>
         <mina_version>1.1.7</mina_version>
         <grizzly_version>2.1.4</grizzly_version>
         <httpclient_version>4.5.3</httpclient_version>
-        <fastjson_version>1.2.46</fastjson_version>
+        <fastjson_version>1.2.70</fastjson_version>
         <zookeeper_version>3.4.9</zookeeper_version>
         <zkclient_version>0.2</zkclient_version>
         <curator_version>2.12.0</curator_version>
@@ -101,6 +116,7 @@
         <rs_api_version>2.0</rs_api_version>
         <resteasy_version>3.0.19.Final</resteasy_version>
         <tomcat_embed_version>8.5.31</tomcat_embed_version>
+
         <!-- Log libs -->
         <slf4j_version>1.7.25</slf4j_version>
         <jcl_version>1.2</jcl_version>
@@ -111,7 +127,9 @@
 
         <jaxb_version>2.2.7</jaxb_version>
         <activation_version>1.2.0</activation_version>
-        <hessian_lite_version>3.2.3</hessian_lite_version>
+        <hessian_lite_version>3.2.8</hessian_lite_version>
+        <alibaba_spring_context_support_version>1.0.2</alibaba_spring_context_support_version>
+        <yaml_version>1.17</yaml_version>
     </properties>
 
     <dependencyManagement>
@@ -300,6 +318,7 @@
                 <artifactId>tomcat-embed-logging-juli</artifactId>
                 <version>${tomcat_embed_version}</version>
             </dependency>
+
             <!-- Log libs -->
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -358,6 +377,16 @@
                 <artifactId>hessian-lite</artifactId>
                 <version>${hessian_lite_version}</version>
             </dependency>
+
+            <!-- Alibaba extensions -->
+
+            <!-- YAML -->
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${yaml_version}</version>
+            </dependency>
+
             <!-- Test lib -->
             <dependency>
                 <groupId>org.apache.curator</groupId>
@@ -371,6 +400,7 @@
                 <version>${embedded_redis_version}</version>
                 <scope>test</scope>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 

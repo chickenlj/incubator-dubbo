@@ -18,6 +18,7 @@ package com.alibaba.dubbo.config.spring.context.annotation.provider;
 
 import com.alibaba.dubbo.config.spring.api.Box;
 import com.alibaba.dubbo.config.spring.api.DemoService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 2.5.8
  */
 @com.alibaba.dubbo.config.annotation.Service(
-        version = "2.5.7",
+        version = "${demo.service.version}",
         application = "${demo.service.application}",
         protocol = "${demo.service.protocol}",
         registry = "${demo.service.registry}"
@@ -44,11 +45,6 @@ public class DemoServiceImpl implements DemoService {
 
     @Override
     public Box getBox() {
-        return new Box() {
-            @Override
-            public String getName() {
-                return "MyBox";
-            }
-        };
+        throw new UnsupportedOperationException("For Purposes!");
     }
 }

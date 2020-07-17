@@ -103,4 +103,24 @@ public class DemoServiceImpl implements DemoService {
     public NonSerialized returnNonSerialized() {
         return new NonSerialized();
     }
+
+    public long add(int a, long b) {
+        return a + b;
+    }
+
+    @Override
+    public int getPerson(Person person) {
+        return person.getAge();
+    }
+
+    @Override
+    public int getPerson(Person person1, Person perso2) {
+        return person1.getAge() + perso2.getAge();
+    }
+
+    @Override
+    public String getPerson(Man man) {
+        return man.getName();
+    }
+
 }
