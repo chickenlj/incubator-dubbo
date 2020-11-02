@@ -38,7 +38,7 @@
     <modules>
         <module>dubbo-demo-xml-provider</module>
         <module>dubbo-demo-xml-consumer</module>
-        <module>dubbo-demo-xml-provider-chain</module>
+        <module>dubbo-demo-xml-provider-backend</module>
     </modules>
 
     <dependencies>

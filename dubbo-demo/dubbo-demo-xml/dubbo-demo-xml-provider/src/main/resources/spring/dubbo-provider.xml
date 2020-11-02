@@ -26,14 +26,14 @@
 
     <dubbo:registry address="zookeeper://127.0.0.1:2181"/>
 
-    <dubbo:protocol name="dubbo"/>
+    <dubbo:protocol name="dubbo" port="-1"/>
 
-    <dubbo:reference id="chainService" interface="org.apache.dubbo.demo.ChainService" check="false"/>
+    <dubbo:reference id="chainService" group="g2" interface="org.apache.dubbo.demo.ChainService" check="false"/>
 
     <bean id="demoService" class="org.apache.dubbo.demo.provider.DemoServiceImpl">
         <property name="chainService" ref="chainService"/>
     </bean>
 
-    <dubbo:service interface="org.apache.dubbo.demo.DemoService" ref="demoService"/>
+    <dubbo:service group="g1" interface="org.apache.dubbo.demo.DemoService" ref="demoService"/>
 
 </beans>

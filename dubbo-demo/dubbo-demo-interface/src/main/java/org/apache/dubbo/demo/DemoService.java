@@ -26,6 +26,8 @@ public interface DemoService {
         return CompletableFuture.completedFuture(sayHello(name));
     }
 
-    String chain(String input);
+    default String chain(String input) {
+        return input;
+    }
 
 }
