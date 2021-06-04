@@ -16,6 +16,7 @@
  */
 package org.apache.dubbo.metadata;
 
+import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.SPI;
 
 @SPI
@@ -26,12 +27,12 @@ public interface MetadataParamsFilter {
     *
     * @return arrays of keys
     */
-   String[] serviceParamsIncluded();
+   String[] serviceParamsIncluded(URL url);
 
    /**
     * params that need to be sent to registry center
     *
     * @return arrays of keys
     */
-   String[] instanceParamsIncluded();
+   String[] instanceParamsIncluded(URL url);
 }

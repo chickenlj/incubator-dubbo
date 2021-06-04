@@ -16,6 +16,7 @@
  */
 package org.apache.dubbo.metadata;
 
+import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.Activate;
 
 import static org.apache.dubbo.common.constants.CommonConstants.CLUSTER_KEY;
@@ -39,7 +40,7 @@ import static org.apache.dubbo.rpc.cluster.Constants.WEIGHT_KEY;
 @Activate
 public class DefaultMetadataParamsFilter implements MetadataParamsFilter {
     @Override
-    public String[] serviceParamsIncluded() {
+    public String[] serviceParamsIncluded(URL url) {
         return new String[]{
                 CODEC_KEY, EXCHANGER_KEY, SERIALIZATION_KEY, CLUSTER_KEY, CONNECTIONS_KEY, DEPRECATED_KEY,
                 GROUP_KEY, LOADBALANCE_KEY, MOCK_KEY, PATH_KEY, TIMEOUT_KEY, TOKEN_KEY, VERSION_KEY, WARMUP_KEY,
@@ -49,7 +50,7 @@ public class DefaultMetadataParamsFilter implements MetadataParamsFilter {
 
 
     @Override
-    public String[] instanceParamsIncluded() {
+    public String[] instanceParamsIncluded(URL url) {
         return new String[0];
     }
 }
