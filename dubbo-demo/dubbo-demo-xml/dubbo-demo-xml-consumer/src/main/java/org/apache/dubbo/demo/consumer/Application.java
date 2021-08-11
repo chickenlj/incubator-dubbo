@@ -47,8 +47,8 @@ public class Application {
 //        }).start();
 
         while (true) {
-            CompletableFuture<String> hello = demoService.sayHelloAsync("world");
-            System.out.println("result: " + hello.get());
+            String hello = demoService.sayHello("world");
+            System.out.println("result: " + hello);
 
 //            String greetings = greetingService.hello();
 //            System.out.println("result: " + greetings);
