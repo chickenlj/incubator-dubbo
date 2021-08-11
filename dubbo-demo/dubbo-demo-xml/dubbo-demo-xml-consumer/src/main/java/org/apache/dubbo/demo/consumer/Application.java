@@ -47,13 +47,17 @@ public class Application {
 //        }).start();
 
         while (true) {
-            String hello = demoService.sayHello("world");
-            System.out.println("result: " + hello);
+            try{
+                String hello = demoService.sayHello("world");
+                System.out.println("result: " + hello);
 
 //            String greetings = greetingService.hello();
 //            System.out.println("result: " + greetings);
 
-            Thread.sleep(3000);
+                Thread.sleep(3000);
+            }catch (Exception e){
+                Thread.sleep(3000);
+            }
         }
     }
 }

@@ -12,7 +12,9 @@ public class YamlMain {
 
     public static void main(String[] args) {
         initClient();
-        generateAppLevelOverride(200);
+        // write provider weight
+        // generateAppLevelOverride(200);
+        generateAppLevelConsumerOverride(300);
     }
 
     public static void initClient() {
@@ -31,7 +33,7 @@ public class YamlMain {
                 "key: demo-provider\n" +
                 "enabled: true\n" +
                 "configs:\n" +
-                "- addresses: [\"0.0.0.0\"]\n" +
+                "- addresses: [\"0.0.0.0:20880\"]\n" +
                 "  side: provider\n" +
                 "  parameters:\n" +
                 "    weight: " + weight;
@@ -40,6 +42,35 @@ public class YamlMain {
 
         try {
             String path = "/dubbo/config/dubbo/demo-provider.configurators";
+            if (client.checkExists().forPath(path) == null) {
+                client.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(path);
+            }
+            setData(path, str);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void generateAppLevelConsumerOverride(int weight) {
+        String str = "" +
+                "# Execute on demo-consumer.\n" +
+                "# This will take effect on all services in demo-consumer.\n" +
+                "---\n"
+                + "configVersion: v2.7\n" +
+                "scope: application\n" +
+                "key: demo-consumer\n" +
+                "enabled: true\n" +
+                "configs:\n" +
+                "- addresses: [\"0.0.0.0\"]\n" +
+                "  providerAddresses: [\"30.55.89.172:20880\"]\n" +
+                "  side: consumer\n" +
+                "  parameters:\n" +
+                "    weight: " + weight;
+
+        System.out.println(str);
+
+        try {
+            String path = "/dubbo/config/dubbo/demo-consumer.configurators";
             if (client.checkExists().forPath(path) == null) {
                 client.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(path);
             }
