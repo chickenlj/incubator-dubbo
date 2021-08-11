@@ -53,7 +53,7 @@ public class Application {
 //            String greetings = greetingService.hello();
 //            System.out.println("result: " + greetings);
 
-            Thread.sleep(500);
+            Thread.sleep(3000);
         }
     }
 }

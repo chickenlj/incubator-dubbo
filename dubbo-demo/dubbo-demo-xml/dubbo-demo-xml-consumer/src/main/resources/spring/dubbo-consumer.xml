@@ -21,7 +21,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
        http://dubbo.apache.org/schema/dubbo http://dubbo.apache.org/schema/dubbo/dubbo.xsd">
 
-    <dubbo:application name="demo-consumer" >
+    <dubbo:application name="demo-consumer" metadata-type="remote">
         <dubbo:parameter key="mapping-type" value="metadata"/>
         <dubbo:parameter key="enable-auto-migration" value="true"/>
     </dubbo:application>
