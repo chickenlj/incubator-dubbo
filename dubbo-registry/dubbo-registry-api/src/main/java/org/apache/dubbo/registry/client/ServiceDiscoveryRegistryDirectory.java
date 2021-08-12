@@ -66,7 +66,6 @@ public class ServiceDiscoveryRegistryDirectory<T> extends DynamicDirectory<T> {
 
     @Override
     public void subscribe(URL url) {
-        super.subscribe(url);
         if (ApplicationModel.getEnvironment().getConfiguration().convert(Boolean.class, Constants.ENABLE_CONFIGURATION_LISTEN, true)) {
             enableConfigurationListen = true;
             CONSUMER_CONFIGURATION_LISTENER.addNotifyListener(this);
@@ -74,16 +73,17 @@ public class ServiceDiscoveryRegistryDirectory<T> extends DynamicDirectory<T> {
         } else {
             enableConfigurationListen = false;
         }
+        super.subscribe(url);
     }
 
     @Override
     public void unSubscribe(URL url) {
-        super.unSubscribe(url);
         this.originalUrls = null;
         if (ApplicationModel.getEnvironment().getConfiguration().convert(Boolean.class, Constants.ENABLE_CONFIGURATION_LISTEN, true)) {
             CONSUMER_CONFIGURATION_LISTENER.removeNotifyListener(this);
             referenceConfigurationListener.stop();
         }
+        super.unSubscribe(url);
     }
 
     @Override
@@ -277,6 +277,7 @@ public class ServiceDiscoveryRegistryDirectory<T> extends DynamicDirectory<T> {
                 }
             } else {
                 newUrlInvokerMap.put(instanceAddressURL.getAddress(), invoker);
+                // urlInvokerMap.remove(instanceAddressURL.getAddress(), invoker);
             }
         }
         return newUrlInvokerMap;
