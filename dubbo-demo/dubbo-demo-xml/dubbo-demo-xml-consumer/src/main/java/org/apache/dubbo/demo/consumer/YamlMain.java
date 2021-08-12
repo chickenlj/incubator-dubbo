@@ -14,8 +14,8 @@ public class YamlMain {
         initClient();
         // write provider weight
 //        generateAppLevelOverride(200);
-        generateAppLevelConsumerOverride(300);
-//        generateServiceLevelConsumerOverride(400);
+//        generateAppLevelConsumerOverride(300);
+        generateServiceLevelConsumerOverride(400);
     }
 
     public static void initClient() {
@@ -91,7 +91,8 @@ public class YamlMain {
                 "key: org.apache.dubbo.demo.DemoService\n" +
                 "enabled: true\n" +
                 "configs:\n" +
-                "- side: consumer\n" +
+                "- addresses: [\"0.0.0.0\"]\n" +
+                "  side: consumer\n" +
                 "  parameters:\n" +
                 "    weight: " + weight;
 
