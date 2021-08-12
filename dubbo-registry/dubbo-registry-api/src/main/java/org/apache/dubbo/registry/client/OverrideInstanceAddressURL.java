@@ -134,9 +134,76 @@ public class OverrideInstanceAddressURL extends InstanceAddressURL {
     @Override
     public String getMethodParameter(String method, String key) {
         String overrideParam = overrideParams.get(method + "." + key);
+
+        // failover search key from overrideParams
+        if (StringUtils.isEmpty(overrideParam)) {
+            overrideParam = overrideParams.get(key);
+        }
+
         return StringUtils.isNotEmpty(overrideParam) ?
                 overrideParam :
                 originUrl.getMethodParameter(method, key);
+    }
+
+    // ==  need to be override !!!
+    @Override
+    public int getMethodParameter(String method, String key, int defaultValue) {
+        String value = this.getMethodParameter(method, key);
+        if (StringUtils.isEmpty(value)) {
+            return defaultValue;
+        }
+        int i = Integer.parseInt(value);
+        return i;
+    }
+
+    @Override
+    public byte getMethodParameter(String method, String key, byte defaultValue) {
+        String value = this.getMethodParameter(method, key);
+        if (StringUtils.isEmpty(value)) {
+            return defaultValue;
+        }
+        byte b = Byte.parseByte(value);
+        return b;
+    }
+
+    @Override
+    public double getMethodParameter(String method, String key, double defaultValue) {
+        String value = this.getMethodParameter(method, key);
+        if (StringUtils.isEmpty(value)) {
+            return defaultValue;
+        }
+        double d = Double.parseDouble(value);
+        return d;
+    }
+
+    @Override
+    public float getMethodParameter(String method, String key, float defaultValue) {
+        String value = this.getMethodParameter(method, key);
+        if (StringUtils.isEmpty(value)) {
+            return defaultValue;
+        }
+        float f = Float.parseFloat(value);
+        return f;
+    }
+
+    @Override
+    public long getMethodParameter(String method, String key, long defaultValue) {
+        String value = this.getMethodParameter(method, key);
+        if (StringUtils.isEmpty(value)) {
+            return defaultValue;
+        }
+        long l = Long.parseLong(value);
+        return l;
+    }
+
+    @Override
+    public short getMethodParameter(String method, String key, short defaultValue) {
+        String value = this.getMethodParameter(method, key);
+        if (StringUtils.isEmpty(value)) {
+            return defaultValue;
+        }
+        short s = Short.parseShort(value);
+        return s;
     }
 
     @Override
@@ -153,12 +220,12 @@ public class OverrideInstanceAddressURL extends InstanceAddressURL {
 
     @Override
     public boolean hasServiceMethodParameter(String protocolServiceKey, String method) {
-        return overrideParams.keySet().stream().anyMatch((e)->e.startsWith(method) || originUrl.hasServiceMethodParameter(protocolServiceKey, method));
+        return overrideParams.keySet().stream().anyMatch((e) -> e.startsWith(method) || originUrl.hasServiceMethodParameter(protocolServiceKey, method));
     }
 
     @Override
     public boolean hasMethodParameter(String method) {
-        return overrideParams.keySet().stream().anyMatch((e)->e.startsWith(method) || originUrl.hasMethodParameter(method));
+        return overrideParams.keySet().stream().anyMatch((e) -> e.startsWith(method) || originUrl.hasMethodParameter(method));
     }
 
     @Override
