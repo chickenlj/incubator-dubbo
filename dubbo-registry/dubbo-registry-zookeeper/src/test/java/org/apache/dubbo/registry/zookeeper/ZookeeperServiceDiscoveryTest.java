@@ -131,7 +131,7 @@ public class ZookeeperServiceDiscoveryTest {
 
         // Add Listener
         discovery.addServiceInstancesChangedListener(
-                new ServiceInstancesChangedListener(Sets.newSet(SERVICE_NAME), discovery) {
+                new ServiceInstancesChangedListener(Sets.newSet(SERVICE_NAME), discovery, null) {
             @Override
             public void onEvent(ServiceInstancesChangedEvent event) {
                 serviceInstances.addAll(event.getServiceInstances());

@@ -404,7 +404,7 @@ public class MigrationInvoker<T> implements MigrationClusterInvoker<T> {
             if (logger.isInfoEnabled()) {
                 logger.info("Destroying instance address invokers, will not listen for address changes until re-subscribed, " + type.getName());
             }
-            serviceDiscoveryInvoker.destroy();
+//            registryProtocol.destroy(serviceDiscoveryInvoker);
             serviceDiscoveryInvoker = null;
         }
     }

@@ -41,7 +41,7 @@ public abstract class AbstractProxyTest {
 
         Invoker<DemoService> invoker = new MyInvoker<>(url);
 
-        DemoService proxy = factory.getProxy(invoker);
+        DemoService proxy = factory.getProxy(invoker, DemoService.class);
 
         Assertions.assertNotNull(proxy);
 

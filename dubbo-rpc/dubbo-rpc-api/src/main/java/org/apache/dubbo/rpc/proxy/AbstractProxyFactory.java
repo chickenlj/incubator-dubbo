@@ -40,26 +40,26 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
     };
 
     @Override
-    public <T> T getProxy(Invoker<T> invoker) throws RpcException {
-        return getProxy(invoker, false);
+    public <T> T getProxy(Invoker<?> invoker, Class<T> type) throws RpcException {
+        return getProxy(invoker, type, false);
     }
 
     @Override
-    public <T> T getProxy(Invoker<T> invoker, boolean generic) throws RpcException {
+    public <T> T getProxy(Invoker<?> invoker, Class<T> type, boolean generic) throws RpcException {
         // when compiling with native image, ensure that the order of the interfaces remains unchanged
         LinkedHashSet<Class<?>> interfaces = new LinkedHashSet<>();
 
         String config = invoker.getUrl().getParameter(INTERFACES);
         if (config != null && config.length() > 0) {
             String[] types = COMMA_SPLIT_PATTERN.split(config);
-            for (String type : types) {
+            for (String t : types) {
                 // TODO can we load successfully for a different classloader?.
-                interfaces.add(ReflectUtils.forName(type));
+                interfaces.add(ReflectUtils.forName(t));
             }
         }
 
         if (generic) {
-            if (GenericService.class.equals(invoker.getInterface()) || !GenericService.class.isAssignableFrom(invoker.getInterface())) {
+            if (GenericService.class.equals(type) || !GenericService.class.isAssignableFrom(type)) {
                 interfaces.add(com.alibaba.dubbo.rpc.service.GenericService.class);
             }
 
@@ -72,16 +72,16 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
             }
         }
 
-        interfaces.add(invoker.getInterface());
+        interfaces.add(type);
         interfaces.addAll(Arrays.asList(INTERNAL_INTERFACES));
 
-        return getProxy(invoker, interfaces.toArray(new Class<?>[0]));
+        return getProxy(invoker, type, interfaces.toArray(new Class<?>[0]));
     }
 
     public static Class<?>[] getInternalInterfaces() {
         return INTERNAL_INTERFACES.clone();
     }
 
-    public abstract <T> T getProxy(Invoker<T> invoker, Class<?>[] types);
+    public abstract <T> T getProxy(Invoker<?> invoker, Class<T> type, Class<?>[] types);
 
 }

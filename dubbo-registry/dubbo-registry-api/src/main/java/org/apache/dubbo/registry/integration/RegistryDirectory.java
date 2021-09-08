@@ -513,10 +513,6 @@ public class RegistryDirectory<T> extends DynamicDirectory<T> {
                     ", please check status of providers(disabled, not registered or in blacklist).");
         }
 
-        if (multiGroup) {
-            return this.invokers == null ? Collections.emptyList() : this.invokers;
-        }
-
         List<Invoker<T>> invokers = null;
         try {
             // Get invokers from cache, only runtime routers will be executed.

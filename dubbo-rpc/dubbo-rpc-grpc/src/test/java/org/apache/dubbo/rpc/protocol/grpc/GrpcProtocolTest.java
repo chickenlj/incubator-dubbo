@@ -76,7 +76,7 @@ public class GrpcProtocolTest {
         ApplicationModel.defaultModel().getApplicationServiceRepository().registerConsumer(consumerModel);
 
         protocol.export(proxy.getInvoker(serviceImpl, DubboGreeterGrpc.IGreeter.class, url));
-        serviceImpl = proxy.getProxy(protocol.refer(DubboGreeterGrpc.IGreeter.class, url));
+        serviceImpl = proxy.getProxy(protocol.refer(DubboGreeterGrpc.IGreeter.class, url), DubboGreeterGrpc.IGreeter.class);
 
         HelloReply hello = serviceImpl.sayHello(HelloRequest.newBuilder().setName("World").build());
         Assertions.assertEquals("Hello World", hello.getMessage());

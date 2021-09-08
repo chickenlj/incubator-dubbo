@@ -243,7 +243,7 @@ public interface ServiceDiscovery extends Prioritized {
     }
 
     default ServiceInstancesChangedListener createListener(Set<String> serviceNames) {
-        return new ServiceInstancesChangedListener(serviceNames, this);
+        return new ServiceInstancesChangedListener(serviceNames, this, null);
     }
 
     // ==================================================================================== //

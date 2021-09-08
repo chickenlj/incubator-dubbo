@@ -70,7 +70,6 @@ import static org.apache.dubbo.common.constants.CommonConstants.VERSION_KEY;
 import static org.apache.dubbo.remoting.Constants.CHANNEL_READONLYEVENT_SENT_KEY;
 import static org.apache.dubbo.remoting.Constants.CLIENT_KEY;
 import static org.apache.dubbo.remoting.Constants.CODEC_KEY;
-import static org.apache.dubbo.remoting.Constants.CONNECTIONS_KEY;
 import static org.apache.dubbo.remoting.Constants.DEFAULT_HEARTBEAT;
 import static org.apache.dubbo.remoting.Constants.DEFAULT_REMOTING_CLIENT;
 import static org.apache.dubbo.remoting.Constants.HEARTBEAT_KEY;
@@ -437,7 +436,9 @@ public class DubboProtocol extends AbstractProtocol {
 
         boolean useShareConnect = false;
 
-        int connections = url.getParameter(CONNECTIONS_KEY, 0);
+//        int connections = url.getParameter(CONNECTIONS_KEY, 0);
+        // FIXME
+        int connections = 0;
         List<ReferenceCountExchangeClient> shareClients = null;
         // if not configured, connection is shared, otherwise, one connection for one service
         if (connections == 0) {

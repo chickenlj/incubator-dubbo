@@ -62,8 +62,8 @@ public class StubProxyFactoryWrapper implements ProxyFactory {
     }
 
     @Override
-    public <T> T getProxy(Invoker<T> invoker, boolean generic) throws RpcException {
-        T proxy = proxyFactory.getProxy(invoker, generic);
+    public <T> T getProxy(Invoker<?> invoker, Class<T> type, boolean generic) throws RpcException {
+        T proxy = proxyFactory.getProxy(invoker, type, generic);
         if (GenericService.class != invoker.getInterface()) {
             URL url = invoker.getUrl();
             String stub = url.getParameter(STUB_KEY, url.getParameter(LOCAL_KEY));
@@ -110,8 +110,8 @@ public class StubProxyFactoryWrapper implements ProxyFactory {
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T> T getProxy(Invoker<T> invoker) throws RpcException {
-        return getProxy(invoker, false);
+    public <T> T getProxy(Invoker<?> invoker, Class<T> type) throws RpcException {
+        return getProxy(invoker, type,false);
     }
 
     @Override

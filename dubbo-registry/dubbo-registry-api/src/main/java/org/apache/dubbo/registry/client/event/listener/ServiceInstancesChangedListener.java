@@ -21,12 +21,14 @@ import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.common.threadpool.manager.ExecutorRepository;
+import org.apache.dubbo.common.utils.Assert;
 import org.apache.dubbo.common.utils.CollectionUtils;
+import org.apache.dubbo.common.utils.NetUtils;
 import org.apache.dubbo.metadata.MetadataInfo;
-import org.apache.dubbo.metadata.MetadataInfo.ServiceInfo;
 import org.apache.dubbo.metadata.MetadataService;
 import org.apache.dubbo.registry.NotifyListener;
 import org.apache.dubbo.registry.client.DefaultServiceInstance;
+import org.apache.dubbo.registry.client.InstanceAddressURL;
 import org.apache.dubbo.registry.client.RegistryClusterIdentifier;
 import org.apache.dubbo.registry.client.ServiceDiscovery;
 import org.apache.dubbo.registry.client.ServiceInstance;
@@ -35,6 +37,8 @@ import org.apache.dubbo.registry.client.event.ServiceInstancesChangedEvent;
 import org.apache.dubbo.registry.client.metadata.MetadataUtils;
 import org.apache.dubbo.registry.client.metadata.ServiceInstanceMetadataUtils;
 import org.apache.dubbo.registry.client.metadata.store.RemoteMetadataServiceImpl;
+import org.apache.dubbo.rpc.Invoker;
+import org.apache.dubbo.rpc.Protocol;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -53,7 +56,11 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.apache.dubbo.common.constants.CommonConstants.DISABLED_KEY;
+import static org.apache.dubbo.common.constants.CommonConstants.ENABLED_KEY;
+import static org.apache.dubbo.common.constants.CommonConstants.PROTOCOL_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.REMOTE_METADATA_STORAGE_TYPE;
+import static org.apache.dubbo.common.constants.RegistryConstants.EMPTY_PROTOCOL;
 import static org.apache.dubbo.metadata.RevisionResolver.EMPTY_REVISION;
 import static org.apache.dubbo.registry.client.metadata.ServiceInstanceMetadataUtils.getExportedServicesRevision;
 
@@ -74,7 +81,6 @@ public class ServiceInstancesChangedListener {
     protected AtomicBoolean destroyed = new AtomicBoolean(false);
 
     protected Map<String, List<ServiceInstance>> allInstances;
-    protected Map<String, Object> serviceUrls;
     protected Map<String, MetadataInfo> revisionToMetadata;
 
     private volatile long lastRefreshTime;
@@ -82,14 +88,17 @@ public class ServiceInstancesChangedListener {
     private volatile ScheduledFuture<?> retryFuture;
     private static ScheduledExecutorService scheduler = ExtensionLoader.getExtensionLoader(ExecutorRepository.class).getDefaultExtension().getMetadataRetryExecutor();
 
-    public ServiceInstancesChangedListener(Set<String> serviceNames, ServiceDiscovery serviceDiscovery) {
+    private Map<String, Invoker<?>> addressToInvoker;
+    private Protocol protocol;
+
+    public ServiceInstancesChangedListener(Set<String> serviceNames, ServiceDiscovery serviceDiscovery, Protocol protocol) {
         this.serviceNames = serviceNames;
         this.serviceDiscovery = serviceDiscovery;
         this.listeners = new ConcurrentHashMap<>();
         this.allInstances = new HashMap<>();
-        this.serviceUrls = new HashMap<>();
         this.revisionToMetadata = new HashMap<>();
         retryPermission = new Semaphore(1);
+        this.protocol = protocol;
     }
 
     /**
@@ -109,7 +118,6 @@ public class ServiceInstancesChangedListener {
         }
 
         Map<String, List<ServiceInstance>> revisionToInstances = new HashMap<>();
-        Map<String, Map<String, Set<String>>> localServiceToRevisions = new HashMap<>();
         Map<String, MetadataInfo> newRevisionToMetadata = new HashMap<>();
 
         // grouping all instances of this app(service name) by revision
@@ -133,7 +141,7 @@ public class ServiceInstancesChangedListener {
             String revision = entry.getKey();
             List<ServiceInstance> subInstances = entry.getValue();
             ServiceInstance instance = selectInstance(subInstances);
-            MetadataInfo metadata = getRemoteMetadata(revision, localServiceToRevisions, instance);
+            MetadataInfo metadata = getRemoteMetadata(revision, instance);
             // update metadata into each instance, in case new instance created.
             for (ServiceInstance tmpInstance : subInstances) {
                 ((DefaultServiceInstance) tmpInstance).setServiceMetadata(metadata);
@@ -157,31 +165,42 @@ public class ServiceInstancesChangedListener {
 
         this.revisionToMetadata = newRevisionToMetadata;
 
-        Map<String, Map<Set<String>, Object>> protocolRevisionsToUrls = new HashMap<>();
-        Map<String, Object> newServiceUrls = new HashMap<>();
-        for (Map.Entry<String, Map<String, Set<String>>> entry : localServiceToRevisions.entrySet()) {
-            String protocol = entry.getKey();
-            entry.getValue().forEach((protocolServiceKey, revisions) -> {
-                Map<Set<String>, Object> revisionsToUrls = protocolRevisionsToUrls.computeIfAbsent(protocol, k -> new HashMap<>());
-                Object urls = revisionsToUrls.get(revisions);
-                if (urls == null) {
-                    urls = getServiceUrlsCache(revisionToInstances, revisions, protocol);
-                    revisionsToUrls.put(revisions, urls);
+        List<URL> instanceAddressURLs = toUrls(revisionToInstances);
+        refreshInvoker(instanceAddressURLs);
+        this.notifyAddressChanged(instanceAddressURLs);
+    }
+
+    private List<URL> toUrls(Map<String, List<ServiceInstance>> revisionToInstances) {
+        List<URL> urls = new ArrayList<>();
+        for (Map.Entry<String, List<ServiceInstance>> entry : revisionToInstances.entrySet()) {
+            for (ServiceInstance instance : entry.getValue()) {
+                // different protocols may have ports specified in meta
+                if (ServiceInstanceMetadataUtils.hasEndpoints(instance)) {
+                    List<DefaultServiceInstance.Endpoint> endpoints = ((DefaultServiceInstance) instance).getEndpoints();
+                    for (DefaultServiceInstance.Endpoint endpoint : endpoints) {
+                        if (endpoint != null) {
+                            if (!endpoint.getPort().equals(instance.getPort())) {
+                                urls.add(((DefaultServiceInstance) instance).copyFrom(endpoint).toURL());
+                            } else {
+                                instance.getMetadata().put(PROTOCOL_KEY, endpoint.getProtocol());
+                                urls.add(instance.toURL());
+                            }
+                        }
+                    }
                 }
 
-                newServiceUrls.put(protocolServiceKey, urls);
-            });
+                // FIXME
+                instance.getExtendParams().putAll(url.getParameters());
+            }
         }
-
-        this.serviceUrls = newServiceUrls;
-        this.notifyAddressChanged();
+        return urls;
     }
 
     public synchronized void addListenerAndNotify(String serviceKey, NotifyListener listener) {
         this.listeners.put(serviceKey, listener);
-        List<URL> urls = getAddresses(serviceKey, listener.getConsumerUrl());
-        if (CollectionUtils.isNotEmpty(urls)) {
-            listener.notify(urls);
+        if (CollectionUtils.isNotEmptyMap(addressToInvoker)) {
+            List<Invoker<?>> invokers = Collections.unmodifiableList(new ArrayList<>(addressToInvoker.values()));
+            listener.notifyInvokers(invokers);
         }
     }
 
@@ -191,6 +210,7 @@ public class ServiceInstancesChangedListener {
         if (listeners.isEmpty()) {
             logger.info("No interface listeners exist, will stop instance listener for " + this.getServiceNames());
             serviceDiscovery.removeServiceInstancesChangedListener(this);
+            this.destroy();
         }
     }
 
@@ -275,7 +295,7 @@ public class ServiceInstancesChangedListener {
         return false;
     }
 
-    protected MetadataInfo getRemoteMetadata(String revision, Map<String, Map<String, Set<String>>> localServiceToRevisions, ServiceInstance instance) {
+    protected MetadataInfo getRemoteMetadata(String revision, ServiceInstance instance) {
         MetadataInfo metadata = revisionToMetadata.get(revision);
 
         if (metadata != null && metadata != MetadataInfo.EMPTY) {
@@ -283,7 +303,6 @@ public class ServiceInstancesChangedListener {
             if (logger.isDebugEnabled()) {
                 logger.debug("MetadataInfo for instance " + instance.getAddress() + "?revision=" + revision + "&cluster=" + instance.getRegistryCluster() + ", " + metadata);
             }
-            parseMetadata(revision, metadata, localServiceToRevisions);
             return metadata;
         }
 
@@ -293,7 +312,6 @@ public class ServiceInstancesChangedListener {
             metadata = doGetMetadataInfo(instance);
 
             if (metadata != MetadataInfo.EMPTY) {// succeeded
-                parseMetadata(revision, metadata, localServiceToRevisions);
                 break;
             } else {// failed
                 logger.error("Failed to get MetadataInfo for instance " + instance.getAddress() + "?revision=" + revision
@@ -308,19 +326,6 @@ public class ServiceInstancesChangedListener {
 
         revisionToMetadata.putIfAbsent(revision, metadata);
         return metadata;
-    }
-
-    protected Map<String, Map<String, Set<String>>> parseMetadata(String revision, MetadataInfo metadata, Map<String, Map<String, Set<String>>> localServiceToRevisions) {
-        Map<String, ServiceInfo> serviceInfos = metadata.getServices();
-        for (Map.Entry<String, ServiceInfo> entry : serviceInfos.entrySet()) {
-            String protocol = entry.getValue().getProtocol();
-            String protocolServiceKey = entry.getValue().getMatchKey();
-            Map<String, Set<String>> map = localServiceToRevisions.computeIfAbsent(protocol, _p -> new HashMap<>());
-            Set<String> set = map.computeIfAbsent(protocolServiceKey, _k -> new TreeSet<>());
-            set.add(revision);
-        }
-
-        return localServiceToRevisions;
     }
 
     protected MetadataInfo doGetMetadataInfo(ServiceInstance instance) {
@@ -361,43 +366,13 @@ public class ServiceInstancesChangedListener {
         return instances.get(ThreadLocalRandom.current().nextInt(0, instances.size()));
     }
 
-    protected Object getServiceUrlsCache(Map<String, List<ServiceInstance>> revisionToInstances, Set<String> revisions, String protocol) {
-        List<URL> urls;
-        urls = new ArrayList<>();
-        for (String r : revisions) {
-            for (ServiceInstance i : revisionToInstances.get(r)) {
-                // different protocols may have ports specified in meta
-                if (ServiceInstanceMetadataUtils.hasEndpoints(i)) {
-                    DefaultServiceInstance.Endpoint endpoint = ServiceInstanceMetadataUtils.getEndpoint(i, protocol);
-                    if (endpoint != null && !endpoint.getPort().equals(i.getPort())) {
-                        urls.add(((DefaultServiceInstance) i).copyFrom(endpoint).toURL());
-                        continue;
-                    }
-                }
-                urls.add(i.toURL());
-            }
-        }
-        return urls;
-    }
+    protected void notifyAddressChanged(List<URL> instanceAddressURLs) {
 
-    protected List<URL> getAddresses(String serviceProtocolKey, URL consumerURL) {
-        return (List<URL>) serviceUrls.get(serviceProtocolKey);
-    }
-
-    protected void notifyAddressChanged() {
+        List<Invoker<?>> invokers = Collections.unmodifiableList(new ArrayList<>(addressToInvoker.values()));
         listeners.forEach((key, notifyListener) -> {
-            //FIXME, group wildcard match
-            List<URL> urls = toUrlsWithEmpty(getAddresses(key, notifyListener.getConsumerUrl()));
-            logger.info("Notify service " + key + " with urls " + urls.size());
-            notifyListener.notify(urls);
+            notifyListener.notify(instanceAddressURLs);
+            notifyListener.notifyInvokers(invokers);
         });
-    }
-
-    protected List<URL> toUrlsWithEmpty(List<URL> urls) {
-        if (urls == null) {
-            urls = Collections.emptyList();
-        }
-        return urls;
     }
 
     /**
@@ -408,7 +383,6 @@ public class ServiceInstancesChangedListener {
             if (CollectionUtils.isEmptyMap(listeners)) {
                 if (destroyed.compareAndSet(false, true)) {
                     allInstances.clear();
-                    serviceUrls.clear();
                     revisionToMetadata.clear();
                     if (retryFuture != null && !retryFuture.isDone()) {
                         retryFuture.cancel(true);
@@ -454,4 +428,153 @@ public class ServiceInstancesChangedListener {
             ServiceInstancesChangedListener.this.onEvent(retryEvent);
         }
     }
+
+    private void refreshInvoker(List<URL> invokerUrls) {
+        Assert.notNull(invokerUrls, "invokerUrls should not be null, use empty url list to clear address.");
+
+        if (invokerUrls.size() == 0) {
+            logger.info("Received empty url list...");
+            this.addressToInvoker = Collections.emptyMap();
+            destroyAllInvokers(); // Close all invokers
+        } else {
+            Map<String, Invoker<?>> oldUrlInvokerMap = this.addressToInvoker; // local reference
+            if (CollectionUtils.isEmpty(invokerUrls)) {
+                return;
+            }
+
+            Map<String, Invoker<?>> newAddressInvokerMap = toInvokers(invokerUrls);// Translate url list to Invoker map
+            logger.info("Refreshed invoker size " + newAddressInvokerMap.size());
+
+            if (CollectionUtils.isEmptyMap(newAddressInvokerMap)) {
+                logger.error(new IllegalStateException("Cannot create invokers from url address list (total " + invokerUrls.size() + ")"));
+                return;
+            }
+            this.addressToInvoker = newAddressInvokerMap;
+
+            if (oldUrlInvokerMap != null) {
+                try {
+                    destroyUnusedInvokers(oldUrlInvokerMap, newAddressInvokerMap); // Close the unused Invoker
+                } catch (Exception e) {
+                    logger.warn("destroyUnusedInvokers error. ", e);
+                }
+            }
+        }
+
+        // notify invokers refreshed
+        this.invokersChanged();
+    }
+
+    protected void invokersChanged() {
+        // notify directory invokers changed
+    }
+
+    /**
+     * Turn urls into invokers, and if url has been refer, will not re-reference.
+     *
+     * @param urls
+     * @return invokers
+     */
+    private Map<String, Invoker<?>> toInvokers(List<URL> urls) {
+        Map<String, Invoker<?>> newAddressInvokerMap = new HashMap<>();
+        if (urls == null || urls.isEmpty()) {
+            return newAddressInvokerMap;
+        }
+        for (URL url : urls) {
+            InstanceAddressURL instanceAddressURL = (InstanceAddressURL) url;
+            if (EMPTY_PROTOCOL.equals(instanceAddressURL.getProtocol())) {
+                continue;
+            }
+            if (!ExtensionLoader.getExtensionLoader(Protocol.class).hasExtension(instanceAddressURL.getProtocol())) {
+                logger.error(new IllegalStateException("Unsupported protocol " + instanceAddressURL.getProtocol() +
+                    " in notified url: " + instanceAddressURL + " from registry " + getUrl().getAddress() +
+                    " to consumer " + NetUtils.getLocalHost() + ", supported protocol: " +
+                    ExtensionLoader.getExtensionLoader(Protocol.class).getSupportedExtensions()));
+                continue;
+            }
+
+            Invoker<?> invoker = addressToInvoker == null ? null : addressToInvoker.get(instanceAddressURL.getAddress());
+            if (invoker == null || urlChanged(invoker, instanceAddressURL)) { // Not in the cache, refer again
+                try {
+                    boolean enabled = true;
+                    if (instanceAddressURL.hasParameter(DISABLED_KEY)) {
+                        enabled = !instanceAddressURL.getParameter(DISABLED_KEY, false);
+                    } else {
+                        enabled = instanceAddressURL.getParameter(ENABLED_KEY, true);
+                    }
+                    if (enabled) {
+                        invoker = protocol.refer(Object.class, instanceAddressURL);// FIXME, multi protocol invoker
+                    }
+                } catch (Throwable t) {
+                    logger.error("Failed to refer invoker for url:(" + instanceAddressURL + ")" + t.getMessage(), t);
+                }
+                if (invoker != null) { // Put new invoker in cache
+                    newAddressInvokerMap.put(instanceAddressURL.getAddress(), invoker);
+                }
+            } else {
+                newAddressInvokerMap.put(instanceAddressURL.getAddress(), invoker);
+                addressToInvoker.remove(instanceAddressURL.getAddress(), invoker);
+            }
+        }
+        return newAddressInvokerMap;
+    }
+
+    /**
+     * Close all invokers
+     */
+    protected void destroyAllInvokers() {
+        Map<String, Invoker<?>> localUrlInvokerMap = this.addressToInvoker; // local reference
+        if (localUrlInvokerMap != null) {
+            for (Invoker<?> invoker : new ArrayList<>(localUrlInvokerMap.values())) {
+                try {
+                    invoker.destroy();
+                } catch (Throwable t) {
+                    logger.warn("Failed to destroy invoker to provider " + invoker.getUrl(), t);
+                }
+            }
+            localUrlInvokerMap.clear();
+        }
+
+        this.addressToInvoker = null;
+    }
+
+    /**
+     * Check whether the invoker in the cache needs to be destroyed
+     * If set attribute of url: refer.autodestroy=false, the invokers will only increase without decreasing,there may be a refer leak
+     *
+     * @param oldUrlInvokerMap
+     * @param newUrlInvokerMap
+     */
+    private void destroyUnusedInvokers(Map<String, Invoker<?>> oldUrlInvokerMap, Map<String, Invoker<?>> newUrlInvokerMap) {
+        if (newUrlInvokerMap == null || newUrlInvokerMap.size() == 0) {
+            destroyAllInvokers();
+            return;
+        }
+
+        if (oldUrlInvokerMap == null || oldUrlInvokerMap.size() == 0) {
+            return;
+        }
+
+        for (Map.Entry<String, Invoker<?>> entry : oldUrlInvokerMap.entrySet()) {
+            Invoker<?> invoker = entry.getValue();
+            if (invoker != null) {
+                try {
+                    invoker.destroy();
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("destroy invoker[" + invoker.getUrl() + "] success. ");
+                    }
+                } catch (Exception e) {
+                    logger.warn("destroy invoker[" + invoker.getUrl() + "] failed. " + e.getMessage(), e);
+                }
+            }
+        }
+        logger.info(oldUrlInvokerMap.size() + " deprecated invokers deleted.");
+    }
+
+    private boolean urlChanged(Invoker<?> invoker, InstanceAddressURL newURL) {
+        InstanceAddressURL oldURL = (InstanceAddressURL) invoker.getUrl();
+
+        return !newURL.getInstance().equals(oldURL.getInstance());
+    }
+
+
 }

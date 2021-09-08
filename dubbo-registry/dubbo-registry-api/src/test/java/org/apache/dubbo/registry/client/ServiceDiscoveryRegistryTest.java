@@ -52,7 +52,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -180,7 +179,6 @@ public class ServiceDiscoveryRegistryTest {
             doNothing().when(multiAppsInstanceListener).onEvent(any());
             List<URL> urls = new ArrayList<>();
             urls.add(URL.valueOf("dubbo://127.0.0.1:20880/TestService"));
-            doReturn(urls).when(multiAppsInstanceListener).getAddresses(any(), any());
             when(serviceDiscovery.createListener(multiApps)).thenReturn(multiAppsInstanceListener);
             when(serviceDiscovery.getInstances(APP_NAME1)).thenReturn(instanceList1);
             when(serviceDiscovery.getInstances(APP_NAME2)).thenReturn(instanceList2);

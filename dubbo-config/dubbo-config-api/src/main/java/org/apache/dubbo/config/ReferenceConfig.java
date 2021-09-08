@@ -392,7 +392,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
         MetadataUtils.publishServiceDefinition(consumerUrl);
 
         // create service proxy
-        return (T) proxyFactory.getProxy(invoker, ProtocolUtils.isGeneric(generic));
+        return (T) proxyFactory.getProxy(invoker, getServiceInterfaceClass(), ProtocolUtils.isGeneric(generic));
     }
 
     /**
@@ -466,14 +466,14 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void createInvokerForRemote() {
         if (urls.size() == 1) {
-            invoker = protocolSPI.refer(interfaceClass, urls.get(0));
+            invoker = protocolSPI.refer(Object.class, urls.get(0));
         } else {
             List<Invoker<?>> invokers = new ArrayList<>();
             URL registryUrl = null;
             for (URL url : urls) {
                 // For multi-registry scenarios, it is not checked whether each referInvoker is available.
                 // Because this invoker may become available later.
-                invokers.add(protocolSPI.refer(interfaceClass, url));
+                invokers.add(protocolSPI.refer(Object.class, url));
 
                 if (UrlUtils.isRegistry(url)) {
                     // use last registry url

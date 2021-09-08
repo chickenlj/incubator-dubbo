@@ -14,25 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.dubbo.rpc.model;
+package org.apache.dubbo.rpc;
 
-/**
- * An accessor for scope model, it can be use in interface default methods to get scope model.
- */
-public interface ScopeModelAccessor {
-
-    ScopeModel getScopeModel();
-
-    default FrameworkModel getFrameworkModel() {
-        return ScopeModelUtil.getFrameworkModel(getScopeModel());
+public interface InstanceInvoker<T> extends Invoker<T> {
+    default boolean hasService(Invocation invocation) {
+        return true;
     }
-
-    default ApplicationModel getApplicationModel() {
-        return ScopeModelUtil.getApplicationModel(getScopeModel());
-    }
-
-    default ModuleModel getModulxeModel() {
-        return ScopeModelUtil.getModuleModel(getScopeModel());
-    }
-
 }

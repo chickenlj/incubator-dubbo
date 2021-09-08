@@ -68,7 +68,7 @@ public class RestProtocolTest {
         Invoker<DemoService> invoker = protocol.refer(DemoService.class, url);
         Assertions.assertFalse(server.isCalled());
 
-        DemoService client = proxy.getProxy(invoker);
+        DemoService client = proxy.getProxy(invoker, DemoService.class);
         String result = client.sayHello("haha");
         Assertions.assertTrue(server.isCalled());
         Assertions.assertEquals("Hello, haha", result);
@@ -98,7 +98,7 @@ public class RestProtocolTest {
 
         url = URL.valueOf("rest://127.0.0.1:" + port + "/a/b/c/?version=1.0.0&interface=org.apache.dubbo.rpc.protocol.rest.DemoService");
         Invoker<DemoService> invoker = protocol.refer(DemoService.class, url);
-        DemoService client = proxy.getProxy(invoker);
+        DemoService client = proxy.getProxy(invoker, DemoService.class);
         String result = client.sayHello("haha");
         Assertions.assertTrue(server.isCalled());
         Assertions.assertEquals("Hello, haha", result);
@@ -115,7 +115,7 @@ public class RestProtocolTest {
         RpcContext.getClientAttachment().setAttachment("timeout", "200");
         Exporter<DemoService> exporter = protocol.export(proxy.getInvoker(server, DemoService.class, exportUrl));
 
-        DemoService demoService = this.proxy.getProxy(protocol.refer(DemoService.class, exportUrl));
+        DemoService demoService = this.proxy.getProxy(protocol.refer(DemoService.class, exportUrl), DemoService.class);
 
         Integer echoString = demoService.hello(1, 2);
         assertThat(echoString, is(3));
@@ -132,7 +132,7 @@ public class RestProtocolTest {
         URL nettyUrl = exportUrl.addParameter(SERVER_KEY, "netty");
         Exporter<DemoService> exporter = protocol.export(proxy.getInvoker(new DemoServiceImpl(), DemoService.class, nettyUrl));
 
-        DemoService demoService = this.proxy.getProxy(protocol.refer(DemoService.class, nettyUrl));
+        DemoService demoService = this.proxy.getProxy(protocol.refer(DemoService.class, nettyUrl), DemoService.class);
 
         Integer echoString = demoService.hello(10, 10);
         assertThat(echoString, is(20));
@@ -163,7 +163,7 @@ public class RestProtocolTest {
             URL nettyUrl = exportUrl.addParameter(SERVER_KEY, "netty");
             Exporter<DemoService> exporter = protocol.export(proxy.getInvoker(server, DemoService.class, nettyUrl));
 
-            DemoService demoService = this.proxy.getProxy(protocol.refer(DemoService.class, nettyUrl));
+            DemoService demoService = this.proxy.getProxy(protocol.refer(DemoService.class, nettyUrl), DemoService.class);
 
             demoService.error();
         });
@@ -193,7 +193,7 @@ public class RestProtocolTest {
                 .addParameter(EXTENSION_KEY, "org.apache.dubbo.rpc.protocol.rest.support.LoggingFilter");
         Exporter<DemoService> exporter = protocol.export(proxy.getInvoker(server, DemoService.class, nettyUrl));
 
-        DemoService demoService = this.proxy.getProxy(protocol.refer(DemoService.class, nettyUrl));
+        DemoService demoService = this.proxy.getProxy(protocol.refer(DemoService.class, nettyUrl), DemoService.class);
 
         Integer result = demoService.hello(1, 2);
 
@@ -213,7 +213,7 @@ public class RestProtocolTest {
                 .addParameter(EXTENSION_KEY, "org.apache.dubbo.rpc.protocol.rest.RpcContextFilter");
         Exporter<DemoService> exporter = protocol.export(proxy.getInvoker(server, DemoService.class, nettyUrl));
 
-        DemoService demoService = this.proxy.getProxy(protocol.refer(DemoService.class, nettyUrl));
+        DemoService demoService = this.proxy.getProxy(protocol.refer(DemoService.class, nettyUrl), DemoService.class);
 
         // make sure null and base64 encoded string can work
         RpcContext.getClientAttachment().setAttachment("key1", null);

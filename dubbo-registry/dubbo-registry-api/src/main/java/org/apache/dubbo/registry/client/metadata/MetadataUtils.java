@@ -104,7 +104,7 @@ public class MetadataUtils {
         Invoker<MetadataService> invoker = protocol.refer(MetadataService.class, urls.get(0));
         metadataServiceInvokers.put(key, invoker);
 
-        return proxyFactory.getProxy(invoker);
+        return proxyFactory.getProxy(invoker, MetadataService.class);
     }
 
 }

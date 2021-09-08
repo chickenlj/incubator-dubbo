@@ -55,7 +55,7 @@ public class TripleProtocolTest {
         );
 
         protocol.export(proxy.getInvoker(serviceImpl, IGreeter.class, url));
-        serviceImpl = proxy.getProxy(protocol.refer(IGreeter.class, url));
+        serviceImpl = proxy.getProxy(protocol.refer(IGreeter.class, url), IGreeter.class);
         Thread.sleep(1000);
         Assertions.assertEquals("hello world", serviceImpl.echo("hello world"));
         // fixme will throw exception

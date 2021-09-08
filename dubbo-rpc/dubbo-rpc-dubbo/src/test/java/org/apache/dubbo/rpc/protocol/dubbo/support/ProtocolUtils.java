@@ -40,7 +40,7 @@ public class ProtocolUtils {
     }
 
     public static <T> T refer(Class<T> type, URL url) {
-        return proxy.getProxy(protocol.refer(type, url));
+        return proxy.getProxy(protocol.refer(type, url), type);
     }
 
     public static Invoker<?> referInvoker(Class<?> type, URL url) {

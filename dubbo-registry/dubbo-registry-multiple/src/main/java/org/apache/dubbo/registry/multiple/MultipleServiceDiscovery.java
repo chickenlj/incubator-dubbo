@@ -18,6 +18,7 @@ package org.apache.dubbo.registry.multiple;
 
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.constants.CommonConstants;
+import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.common.utils.DefaultPage;
 import org.apache.dubbo.common.utils.Page;
 import org.apache.dubbo.registry.client.ServiceDiscovery;
@@ -25,6 +26,7 @@ import org.apache.dubbo.registry.client.ServiceDiscoveryFactory;
 import org.apache.dubbo.registry.client.ServiceInstance;
 import org.apache.dubbo.registry.client.event.ServiceInstancesChangedEvent;
 import org.apache.dubbo.registry.client.event.listener.ServiceInstancesChangedListener;
+import org.apache.dubbo.rpc.Protocol;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -108,7 +110,7 @@ public class MultipleServiceDiscovery implements ServiceDiscovery {
 
     @Override
     public ServiceInstancesChangedListener createListener(Set<String> serviceNames) {
-        return new MultiServiceInstancesChangedListener(serviceNames, this);
+        return new MultiServiceInstancesChangedListener(serviceNames, this, ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension());
     }
 
     @Override
@@ -140,8 +142,8 @@ public class MultipleServiceDiscovery implements ServiceDiscovery {
     protected static class MultiServiceInstancesChangedListener extends ServiceInstancesChangedListener {
         private final Map<String, SingleServiceInstancesChangedListener> singleListenerMap;
 
-        public MultiServiceInstancesChangedListener(Set<String> serviceNames, ServiceDiscovery serviceDiscovery) {
-            super(serviceNames, serviceDiscovery);
+        public MultiServiceInstancesChangedListener(Set<String> serviceNames, ServiceDiscovery serviceDiscovery, Protocol protocol) {
+            super(serviceNames, serviceDiscovery, protocol);
             this.singleListenerMap = new ConcurrentHashMap<>();
         }
 
@@ -175,7 +177,7 @@ public class MultipleServiceDiscovery implements ServiceDiscovery {
         volatile ServiceInstancesChangedEvent event;
 
         public SingleServiceInstancesChangedListener(Set<String> serviceNames, ServiceDiscovery serviceDiscovery, MultiServiceInstancesChangedListener multiListener) {
-            super(serviceNames, serviceDiscovery);
+            super(serviceNames, serviceDiscovery, ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension());
             this.multiListener = multiListener;
         }
 

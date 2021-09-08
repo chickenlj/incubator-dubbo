@@ -29,7 +29,9 @@ import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import static org.apache.dubbo.common.constants.CommonConstants.PROTOCOL_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.SCOPE_MODEL;
+import static org.apache.dubbo.common.utils.CollectionUtils.isEmptyMap;
 import static org.apache.dubbo.registry.client.metadata.ServiceInstanceMetadataUtils.ENDPOINTS;
 import static org.apache.dubbo.registry.client.metadata.ServiceInstanceMetadataUtils.EXPORTED_SERVICES_REVISION_PROPERTY_NAME;
 
@@ -73,13 +75,16 @@ public class DefaultServiceInstance implements ServiceInstance {
         this.port = other.port;
         this.enabled = other.enabled;
         this.healthy = other.healthy;
-        this.metadata = other.metadata;
-        this.serviceMetadata = other.serviceMetadata;
         this.registryCluster = other.registryCluster;
-        this.extendParams = other.extendParams;
-        this.endpoints = other.endpoints;
+
         this.address = null;
-        this.attributes = other.attributes;
+
+        this.endpoints = other.endpoints;
+        this.serviceMetadata = other.serviceMetadata;
+
+        this.extendParams = isEmptyMap(other.getExtendParams()) ? other.getExtendParams() : new HashMap<>(other.getExtendParams());
+        this.metadata = new HashMap<>(other.metadata);
+        this.attributes = new HashMap<>(other.attributes);
     }
 
     public DefaultServiceInstance(String serviceName, String host, Integer port, ApplicationModel applicationModel) {
@@ -196,6 +201,7 @@ public class DefaultServiceInstance implements ServiceInstance {
     public DefaultServiceInstance copyFrom(Endpoint endpoint) {
         DefaultServiceInstance copyOfInstance = new DefaultServiceInstance(this);
         copyOfInstance.setPort(endpoint.getPort());
+        copyOfInstance.getMetadata().put(PROTOCOL_KEY, endpoint.getProtocol());
         return copyOfInstance;
     }
 

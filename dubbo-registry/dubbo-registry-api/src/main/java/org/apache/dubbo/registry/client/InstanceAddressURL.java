@@ -22,6 +22,7 @@ import org.apache.dubbo.common.url.component.URLParam;
 import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.metadata.MetadataInfo;
 import org.apache.dubbo.rpc.RpcContext;
+import org.apache.dubbo.rpc.model.ApplicationModel;
 import org.apache.dubbo.rpc.model.ScopeModel;
 import org.apache.dubbo.rpc.model.ServiceModel;
 
@@ -32,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.apache.dubbo.common.constants.CommonConstants.CONSUMER_SIDE;
 import static org.apache.dubbo.common.constants.CommonConstants.GROUP_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.INTERFACE_KEY;
+import static org.apache.dubbo.common.constants.CommonConstants.PROTOCOL_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.REMOTE_APPLICATION_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.SIDE_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.VERSION_KEY;
@@ -79,7 +81,7 @@ public class InstanceAddressURL extends URL {
 
     @Override
     public String getProtocol() {
-        return RpcContext.getServiceContext().getProtocol();
+        return instance.getMetadata().get(PROTOCOL_KEY);
     }
 
     @Override
@@ -407,7 +409,8 @@ public class InstanceAddressURL extends URL {
 
     @Override
     public ScopeModel getScopeModel() {
-        return RpcContext.getServiceContext().getConsumerUrl().getScopeModel();
+        // FIXME
+        return ApplicationModel.defaultModel();
     }
 
     @Override

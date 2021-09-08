@@ -14,25 +14,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.dubbo.rpc.model;
+package org.apache.dubbo.rpc.cluster.router;
+
+import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.extension.Activate;
+import org.apache.dubbo.rpc.cluster.Router;
+import org.apache.dubbo.rpc.cluster.RouterFactory;
 
 /**
- * An accessor for scope model, it can be use in interface default methods to get scope model.
+ * Make sure this router works as the first router
  */
-public interface ScopeModelAccessor {
+@Activate(order = -1)
+public class ServiceDiscoveryRouterFactory implements RouterFactory {
+    private volatile Router router;
 
-    ScopeModel getScopeModel();
-
-    default FrameworkModel getFrameworkModel() {
-        return ScopeModelUtil.getFrameworkModel(getScopeModel());
+    @Override
+    public Router getRouter(URL url) {
+        if (router != null) {
+            return router;
+        }
+        synchronized (this) {
+            if (router == null) {
+                router = createRouter(url);
+            }
+        }
+        return router;
     }
 
-    default ApplicationModel getApplicationModel() {
-        return ScopeModelUtil.getApplicationModel(getScopeModel());
+    private Router createRouter(URL url) {
+        return new ServiceDiscoveryRouter();
     }
-
-    default ModuleModel getModulxeModel() {
-        return ScopeModelUtil.getModuleModel(getScopeModel());
-    }
-
 }

@@ -17,16 +17,30 @@
 package org.apache.dubbo.registry.client;
 
 import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.extension.ExtensionLoader;
+import org.apache.dubbo.registry.client.event.listener.ServiceInstancesChangedListener;
 import org.apache.dubbo.registry.client.metadata.ServiceInstanceMetadataUtils;
+import org.apache.dubbo.rpc.Protocol;
+import org.apache.dubbo.rpc.model.ApplicationModel;
+import org.apache.dubbo.rpc.model.ScopeModelAware;
+
+import java.util.Set;
 
 import static org.apache.dubbo.registry.client.metadata.ServiceInstanceMetadataUtils.isInstanceUpdated;
 import static org.apache.dubbo.registry.client.metadata.ServiceInstanceMetadataUtils.resetInstanceUpdateKey;
 
-public abstract class AbstractServiceDiscovery implements ServiceDiscovery {
+public abstract class AbstractServiceDiscovery implements ServiceDiscovery, ScopeModelAware {
 
     private volatile boolean isDestroy;
 
     protected ServiceInstance serviceInstance;
+
+    protected ApplicationModel applicationModel;
+
+    @Override
+    public void setApplicationModel(ApplicationModel applicationModel) {
+        this.applicationModel = applicationModel;
+    }
 
     @Override
     public final ServiceInstance getLocalInstance() {
@@ -86,5 +100,11 @@ public abstract class AbstractServiceDiscovery implements ServiceDiscovery {
     @Override
     public final boolean isDestroy() {
         return isDestroy;
+    }
+
+    @Override
+    public ServiceInstancesChangedListener createListener(Set<String> serviceNames) {
+//        Protocol protocol = applicationModel.getExtensionLoader(Protocol.class).getAdaptiveExtension();
+        return new ServiceInstancesChangedListener(serviceNames, this, ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension());
     }
 }

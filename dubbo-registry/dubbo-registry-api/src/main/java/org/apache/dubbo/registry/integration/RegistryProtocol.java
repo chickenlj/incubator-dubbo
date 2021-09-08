@@ -30,7 +30,6 @@ import org.apache.dubbo.common.utils.UrlUtils;
 import org.apache.dubbo.registry.NotifyListener;
 import org.apache.dubbo.registry.Registry;
 import org.apache.dubbo.registry.RegistryFactory;
-import org.apache.dubbo.registry.RegistryService;
 import org.apache.dubbo.registry.client.ServiceDiscoveryRegistryDirectory;
 import org.apache.dubbo.registry.client.migration.MigrationClusterInvoker;
 import org.apache.dubbo.registry.client.migration.ServiceDiscoveryMigrationInvoker;
@@ -461,10 +460,6 @@ public class RegistryProtocol implements Protocol, ScopeModelAware {
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
         url = getRegistryUrl(url);
         Registry registry = getRegistry(url);
-        if (RegistryService.class.equals(type)) {
-            return proxyFactory.getInvoker((T) registry, type, url);
-        }
-
         // group="a,b" or group="*"
         Map<String, String> qs = (Map<String, String>) url.getAttribute(REFER_KEY);
         String group = qs.get(GROUP_KEY);

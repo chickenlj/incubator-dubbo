@@ -16,28 +16,23 @@
  */
 package org.apache.dubbo.registry.client.event.listener;
 
-import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.registry.NotifyListener;
 import org.apache.dubbo.registry.client.ServiceDiscovery;
 import org.apache.dubbo.registry.client.event.ServiceInstancesChangedEvent;
+import org.apache.dubbo.rpc.Protocol;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class MockServiceInstancesChangedListener extends ServiceInstancesChangedListener {
     public MockServiceInstancesChangedListener(Set<String> serviceNames, ServiceDiscovery serviceDiscovery) {
-        super(serviceNames, serviceDiscovery);
+        super(serviceNames, serviceDiscovery, ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension());
     }
 
     @Override
     public synchronized void onEvent(ServiceInstancesChangedEvent event) {
         // do nothing
-    }
-
-    @Override
-    public List<URL> getAddresses(String serviceProtocolKey, URL consumerURL) {
-        return super.getAddresses(serviceProtocolKey, consumerURL);
     }
 
     public Map<String, NotifyListener> getServiceListeners () {

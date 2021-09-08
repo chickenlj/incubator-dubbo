@@ -71,7 +71,7 @@ public class InjvmProtocolTest {
         assertTrue(invoker.isAvailable());
         Exporter<?> exporter = protocol.export(invoker);
         exporters.add(exporter);
-        service = proxy.getProxy(protocol.refer(DemoService.class, URL.valueOf("injvm://127.0.0.1/TestService").addParameter(INTERFACE_KEY, DemoService.class.getName())));
+        service = proxy.getProxy(protocol.refer(DemoService.class, URL.valueOf("injvm://127.0.0.1/TestService").addParameter(INTERFACE_KEY, DemoService.class.getName())), DemoService.class);
         assertEquals(service.getSize(new String[]{"", "", ""}), 3);
         service.invoke("injvm://127.0.0.1/TestService", "invoke");
 
@@ -87,7 +87,7 @@ public class InjvmProtocolTest {
         assertTrue(invoker.isAvailable());
         Exporter<?> exporter = protocol.export(invoker);
         exporters.add(exporter);
-        service = proxy.getProxy(protocol.refer(DemoService.class, URL.valueOf("injvm://127.0.0.1/TestService").addParameter(INTERFACE_KEY, DemoService.class.getName())));
+        service = proxy.getProxy(protocol.refer(DemoService.class, URL.valueOf("injvm://127.0.0.1/TestService").addParameter(INTERFACE_KEY, DemoService.class.getName())), DemoService.class);
         assertEquals(service.getSize(new String[]{"", "", ""}), 3);
     }
 
@@ -132,7 +132,7 @@ public class InjvmProtocolTest {
         assertTrue(invoker.isAvailable());
         Exporter<?> exporter = protocol.export(invoker);
         exporters.add(exporter);
-        service = proxy.getProxy(protocol.refer(DemoService.class, url));
+        service = proxy.getProxy(protocol.refer(DemoService.class, url), DemoService.class);
         assertNull(service.getAsyncResult());
     }
 

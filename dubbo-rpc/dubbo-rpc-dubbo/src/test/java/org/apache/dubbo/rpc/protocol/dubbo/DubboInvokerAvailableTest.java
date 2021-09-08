@@ -146,7 +146,7 @@ public class DubboInvokerAvailableTest {
 
         }
         //invoke method --> init client
-        IDemoService service = (IDemoService) proxy.getProxy(invoker);
+        IDemoService service = (IDemoService) proxy.getProxy(invoker, IDemoService.class);
         Assertions.assertEquals("ok", service.get());
 
         Assertions.assertTrue(invoker.isAvailable());

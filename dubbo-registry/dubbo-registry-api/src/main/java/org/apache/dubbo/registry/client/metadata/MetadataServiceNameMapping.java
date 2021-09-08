@@ -78,15 +78,17 @@ public class MetadataServiceNameMapping extends AbstractServiceNameMapping imple
                 if (StringUtils.isNotEmpty(oldConfigContent)) {
                     boolean contains = StringUtils.isContains(oldConfigContent, appName);
                     if (contains) {
+                        succeeded = true;
                         break;
                     }
                     newConfigContent = oldConfigContent + COMMA_SEPARATOR + appName;
                 }
                 succeeded = metadataReport.registerServiceAppMapping(serviceInterface, DEFAULT_MAPPING_GROUP, newConfigContent, configItem.getTicket());
             } while (!succeeded && currentRetryTimes++ <= CAS_RETRY_TIMES);
+
             if (!succeeded) {
-            throw new RuntimeException();
-        }
+                throw new RuntimeException();
+            }
 
         return true;
     }

@@ -193,7 +193,7 @@ class CallbackServiceCodec {
                     ScopeModelUtil.getApplicationModel(url.getScopeModel()).getApplicationServiceRepository().registerService(clazz);
                     @SuppressWarnings("rawtypes")
                     Invoker<?> invoker = new ChannelWrappedInvoker(clazz, channel, referurl, String.valueOf(instid));
-                    proxy = PROXY_FACTORY.getProxy(invoker);
+                    proxy = PROXY_FACTORY.getProxy(invoker, clazz);
                     channel.setAttribute(proxyCacheKey, proxy);
                     channel.setAttribute(invokerCacheKey, invoker);
                     increaseInstanceCount(channel, countkey);

@@ -47,10 +47,10 @@ public class RpcFilterTest {
         URL url = URL.valueOf("dubbo://127.0.0.1:" + port + "/org.apache.dubbo.rpc.protocol.dubbo.support.DemoService?service.filter=echo");
         ApplicationModel.defaultModel().getApplicationServiceRepository().registerService(DemoService.class);
         protocol.export(proxy.getInvoker(service, DemoService.class, url));
-        service = proxy.getProxy(protocol.refer(DemoService.class, url));
+        service = proxy.getProxy(protocol.refer(DemoService.class, url), DemoService.class);
         Assertions.assertEquals("123", service.echo("123"));
         // cast to EchoService
-        EchoService echo = proxy.getProxy(protocol.refer(EchoService.class, url));
+        EchoService echo = proxy.getProxy(protocol.refer(EchoService.class, url), EchoService.class);
         Assertions.assertEquals(echo.$echo("test"), "test");
         Assertions.assertEquals(echo.$echo("abcdefg"), "abcdefg");
         Assertions.assertEquals(echo.$echo(1234), 1234);

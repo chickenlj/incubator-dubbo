@@ -218,11 +218,11 @@ public class ReferenceCountExchangeClientTest {
         helloExporter = export(new HelloServiceImpl(), IHelloService.class, helloUrl);
 
         demoServiceInvoker = (Invoker<IDemoService>) referInvoker(IDemoService.class, demoUrl);
-        demoService = proxy.getProxy(demoServiceInvoker);
+        demoService = proxy.getProxy(demoServiceInvoker, IDemoService.class);
         Assertions.assertEquals("demo", demoService.demo());
 
         helloServiceInvoker = (Invoker<IHelloService>) referInvoker(IHelloService.class, helloUrl);
-        helloService = proxy.getProxy(helloServiceInvoker);
+        helloService = proxy.getProxy(helloServiceInvoker, IHelloService.class);
         Assertions.assertEquals("hello", helloService.hello());
 
         demoClient = getClient(demoServiceInvoker);

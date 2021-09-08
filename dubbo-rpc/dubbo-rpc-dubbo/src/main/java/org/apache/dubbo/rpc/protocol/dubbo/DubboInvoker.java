@@ -19,6 +19,9 @@ package org.apache.dubbo.rpc.protocol.dubbo;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.config.ConfigurationUtils;
 import org.apache.dubbo.common.utils.AtomicPositiveInteger;
+import org.apache.dubbo.common.utils.CollectionUtils;
+import org.apache.dubbo.metadata.MetadataInfo;
+import org.apache.dubbo.registry.client.InstanceAddressURL;
 import org.apache.dubbo.remoting.Constants;
 import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.TimeoutException;
@@ -26,6 +29,7 @@ import org.apache.dubbo.remoting.exchange.ExchangeClient;
 import org.apache.dubbo.rpc.AppResponse;
 import org.apache.dubbo.rpc.AsyncRpcResult;
 import org.apache.dubbo.rpc.FutureContext;
+import org.apache.dubbo.rpc.InstanceInvoker;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.Result;
@@ -36,6 +40,7 @@ import org.apache.dubbo.rpc.TimeoutCountDown;
 import org.apache.dubbo.rpc.protocol.AbstractInvoker;
 import org.apache.dubbo.rpc.support.RpcUtils;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -57,7 +62,7 @@ import static org.apache.dubbo.rpc.Constants.TOKEN_KEY;
 /**
  * DubboInvoker
  */
-public class DubboInvoker<T> extends AbstractInvoker<T> {
+public class DubboInvoker<T> extends AbstractInvoker<T> implements InstanceInvoker<T> {
 
     private final ExchangeClient[] clients;
 
@@ -180,5 +185,22 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
             invocation.setObjectAttachment(TIMEOUT_ATTACHMENT_KEY, timeout);// pass timeout to remote server
         }
         return timeout;
+    }
+
+    @Override
+    public boolean hasService(Invocation invocation) {
+        String key = invocation.getProtocolServiceKey();
+        InstanceAddressURL instanceAddressURL = (InstanceAddressURL)this.getUrl();
+        MetadataInfo metadataInfo = instanceAddressURL.getMetadataInfo();
+        Map<String, MetadataInfo.ServiceInfo> services = metadataInfo.getServices();
+        if (CollectionUtils.isEmptyMap(services)) {
+            return false;
+        }
+        for (Map.Entry<String, MetadataInfo.ServiceInfo> entry : services.entrySet()) {
+            if (entry.getValue().getMatchKey().equals(key)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

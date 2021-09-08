@@ -54,7 +54,7 @@ public class EnumBak {
 
         URL consumerurl = serviceurl;
         Invoker<DemoService> reference = protocol.refer(DemoService.class, consumerurl);
-        DemoService demoProxy = (DemoService) proxy.getProxy(reference);
+        DemoService demoProxy = (DemoService) proxy.getProxy(reference, DemoService.class);
 //        System.out.println(demoProxy.getThreadName());
         System.out.println(demoProxy.getInt(Integer.MIN_VALUE));
         Assertions.assertEquals(Integer.MIN_VALUE, demoProxy.getInt(Integer.MIN_VALUE));
@@ -100,7 +100,7 @@ public class EnumBak {
 
         URL consumerurl = serviceurl;
         Invoker<DemoService> reference = protocol.refer(DemoService.class, consumerurl);
-        DemoService demoProxy = (DemoService) proxy.getProxy(reference);
+        DemoService demoProxy = (DemoService) proxy.getProxy(reference, DemoService.class);
         Type type = demoProxy.enumlength(Type.High);
         System.out.println(type);
         Assertions.assertEquals(Type.High, type);
@@ -120,7 +120,7 @@ public class EnumBak {
         ApplicationModel.defaultModel().getApplicationServiceRepository().registerService(DemoService.class);
 
         Invoker<DemoService> reference = protocol.refer(DemoService.class, consumerurl);
-        DemoService demoProxy = (DemoService) proxy.getProxy(reference);
+        DemoService demoProxy = (DemoService) proxy.getProxy(reference, DemoService.class);
         Type type = demoProxy.enumlength(Type.High);
         System.out.println(type);
         Assertions.assertEquals(Type.High, type);
@@ -136,7 +136,7 @@ public class EnumBak {
         );
         Invoker<GenericService> reference = protocol.refer(GenericService.class, consumerurl);
 
-        GenericService demoProxy = (GenericService) proxy.getProxy(reference);
+        GenericService demoProxy = (GenericService) proxy.getProxy(reference, GenericService.class);
         Object obj = demoProxy.$invoke("enumlength", new String[]{Type[].class.getName()}, new Object[]{new Type[]{Type.High, Type.High}});
         System.out.println("obj---------->" + obj);
         reference.destroy();
@@ -152,7 +152,7 @@ public class EnumBak {
         );
         Invoker<GenericService> reference = protocol.refer(GenericService.class, consumerurl);
 
-        GenericService demoProxy = (GenericService) proxy.getProxy(reference);
+        GenericService demoProxy = (GenericService) proxy.getProxy(reference, GenericService.class);
         Map<String, Object> arg = new HashMap<String, Object>();
         arg.put("type", "High");
         arg.put("name", "hi");
@@ -191,7 +191,7 @@ public class EnumBak {
 
         Invoker<GenericService> reference = protocol.refer(GenericService.class, consumerurl);
 
-        GenericService demoProxy = (GenericService) proxy.getProxy(reference);
+        GenericService demoProxy = (GenericService) proxy.getProxy(reference, GenericService.class);
         Object obj = demoProxy.$invoke("enumlength", new String[]{Type[].class.getName()}, new Object[]{new Type[]{Type.High, Type.High}});
         System.out.println("obj---------->" + obj);
 
