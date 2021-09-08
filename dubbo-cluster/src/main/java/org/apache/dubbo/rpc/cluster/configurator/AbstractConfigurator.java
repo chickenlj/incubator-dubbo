@@ -21,6 +21,7 @@ import org.apache.dubbo.common.utils.NetUtils;
 import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.remoting.Constants;
 import org.apache.dubbo.rpc.cluster.Configurator;
+import org.apache.dubbo.rpc.cluster.configurator.parser.model.ConfiguratorConfig;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -39,6 +40,7 @@ import static org.apache.dubbo.common.constants.CommonConstants.VERSION_KEY;
 import static org.apache.dubbo.common.constants.RegistryConstants.CATEGORY_KEY;
 import static org.apache.dubbo.common.constants.RegistryConstants.COMPATIBLE_CONFIG_KEY;
 import static org.apache.dubbo.common.constants.RegistryConstants.DYNAMIC_KEY;
+import static org.apache.dubbo.rpc.Constants.SCOPE_KEY;
 import static org.apache.dubbo.rpc.cluster.Constants.CONFIG_VERSION_KEY;
 import static org.apache.dubbo.rpc.cluster.Constants.OVERRIDE_PROVIDERS_KEY;
 
@@ -69,6 +71,12 @@ public abstract class AbstractConfigurator implements Configurator {
         if (!configuratorUrl.getParameter(ENABLED_KEY, true) || configuratorUrl.getHost() == null || url == null || url.getHost() == null) {
             return url;
         }
+
+        // The check 'scope=application' level specifies whether the interface is valid or not.
+        if (ConfiguratorConfig.SCOPE_APPLICATION.equals(configuratorUrl.getParameter(SCOPE_KEY, ConfiguratorConfig.SCOPE_APPLICATION))) {
+            if (!configureShouldMatch(url)) return url;
+        }
+
         /*
          * This if branch is created since 2.7.0.
          */
@@ -90,6 +98,33 @@ public abstract class AbstractConfigurator implements Configurator {
             url = configureDeprecated(url);
         }
         return url;
+    }
+
+    private boolean configureShouldMatch(URL url) {
+        String configService = this.configuratorUrl.getServiceInterface();
+        String currentService = url.getServiceInterface();
+        if (!ANY_VALUE.equals(configService)) {
+            // match application level interface
+            if (!StringUtils.isEquals(configService, currentService)) {
+                return false;
+            }
+
+            // match application level interface version
+            String configVersion = this.configuratorUrl.getParameter(VERSION_KEY);
+            String currentVersion = url.getParameter(VERSION_KEY);
+            if (!ANY_VALUE.equals(configVersion) && !"0.0.0".equals(currentVersion)
+                    && !StringUtils.isEquals(configVersion, currentVersion)) {
+                return false;
+            }
+
+            // match application level interface group
+            String configGroup = this.configuratorUrl.getParameter(GROUP_KEY);
+            String currentGroup = url.getParameter(GROUP_KEY);
+            if (!ANY_VALUE.equals(configGroup) && !StringUtils.isEquals(configGroup, currentGroup)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Deprecated

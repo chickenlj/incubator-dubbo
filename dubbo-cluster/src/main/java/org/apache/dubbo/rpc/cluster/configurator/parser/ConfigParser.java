@@ -93,6 +93,8 @@ public class ConfigParser {
 
             urlBuilder.append("&configVersion=").append(config.getConfigVersion());
 
+            urlBuilder.append("&scope=").append(ConfiguratorConfig.SCOPE_SERVICE); // record interface configurator
+
             List<String> apps = item.getApplications();
             if (CollectionUtils.isNotEmpty(apps)) {
                 apps.forEach(app -> {
