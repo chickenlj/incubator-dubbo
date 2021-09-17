@@ -260,6 +260,7 @@ public class ServiceDiscoveryRegistry implements Registry {
         writableMetadataService.subscribeURL(url);
 
         Set<String> serviceNames = getServices(url, listener);
+        notifyAppConfiguratorListener(listener);
 
         if (CollectionUtils.isEmpty(serviceNames)) {
             logger.warn("Should has at least one way to know which services this interface belongs to, subscription url: " + url);
@@ -317,7 +318,7 @@ public class ServiceDiscoveryRegistry implements Registry {
     }
 
     protected void subscribeURLs(URL url, NotifyListener listener, Set<String> serviceNames) {
-        String serviceNamesKey = serviceNames.toString();
+        String serviceNamesKey = toAppString(serviceNames);
         String protocolServiceKey = url.getServiceKey() + GROUP_CHAR_SEPARATOR + url.getParameter(PROTOCOL_KEY, DUBBO);
         serviceToAppsMapping.put(protocolServiceKey, serviceNamesKey);
 
@@ -361,6 +362,18 @@ public class ServiceDiscoveryRegistry implements Registry {
         return listener.getServiceNames() + ":" + url.toString(VERSION_KEY, GROUP_KEY, PROTOCOL_KEY);
     }
 
+    private String toAppString(Set<String> apps) {
+        if (CollectionUtils.isEmpty(apps)) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        for (String app : apps) {
+            builder.append(app);
+            builder.append(",");
+        }
+        builder.deleteCharAt(builder.length() - 1);
+        return builder.toString();
+    }
     /**
      * 1.developer explicitly specifies the application name this interface belongs to
      * 2.check Interface-App mapping
@@ -427,6 +440,10 @@ public class ServiceDiscoveryRegistry implements Registry {
         return supports(registryURL) ? new ServiceDiscoveryRegistry(registryURL) : null;
     }
 
+    public Map<String, String> getServiceToAppsMapping() {
+        return serviceToAppsMapping;
+    }
+
     /**
      * Supports or not ?
      *
@@ -464,6 +481,12 @@ public class ServiceDiscoveryRegistry implements Registry {
                 || Objects.equals(protocol, targetURL.getProtocol());
     }
 
+    protected void notifyAppConfiguratorListener(NotifyListener listener) {
+        if (listener instanceof ServiceDiscoveryRegistryDirectory) {
+            ((ServiceDiscoveryRegistryDirectory)listener).tryStartProviderAppListener();
+        }
+    }
+
     private class DefaultMappingListener implements MappingListener {
         private URL url;
         private Set<String> oldApps;
@@ -486,16 +509,19 @@ public class ServiceDiscoveryRegistry implements Registry {
             }
 
             if (CollectionUtils.isEmpty(tempOldApps) && newApps.size() > 0) {
+                notifyAppConfiguratorListener(listener);
                 subscribeURLs(url, listener, newApps);
                 return;
             }
 
             for (String newAppName : newApps) {
                 if (!tempOldApps.contains(newAppName)) {
+                    notifyAppConfiguratorListener(listener);
                     subscribeURLs(url, listener, newApps);
                     return;
                 }
             }
+
         }
     }
 }

@@ -46,8 +46,10 @@ public abstract class AbstractConfiguratorListener implements ConfigurationListe
     protected List<Configurator> configurators = Collections.emptyList();
     protected GovernanceRuleRepository ruleRepository = ExtensionLoader.getExtensionLoader(
             GovernanceRuleRepository.class).getDefaultExtension();
+    private String key;
 
     protected final void initWith(String key) {
+        this.key = key;
         ruleRepository.addListener(key, this);
         String rawConfig = ruleRepository.getRule(key, DynamicConfiguration.DEFAULT_GROUP);
         if (!StringUtils.isEmpty(rawConfig)) {
@@ -55,7 +57,7 @@ public abstract class AbstractConfiguratorListener implements ConfigurationListe
         }
     }
 
-    protected final void stopListen(String key) {
+    public void stopListen() {
         ruleRepository.removeListener(key, this);
     }
 
