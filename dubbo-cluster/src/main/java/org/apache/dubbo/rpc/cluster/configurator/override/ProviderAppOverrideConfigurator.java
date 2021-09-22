@@ -14,13 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.dubbo.rpc.cluster.configurator;
+package org.apache.dubbo.rpc.cluster.configurator.override;
 
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.utils.NetUtils;
 import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.remoting.Constants;
-import org.apache.dubbo.rpc.cluster.Configurator;
+import org.apache.dubbo.rpc.cluster.configurator.AbstractConfigurator;
 import org.apache.dubbo.rpc.cluster.configurator.parser.model.ConfiguratorConfig;
 
 import java.util.HashSet;
@@ -45,25 +45,15 @@ import static org.apache.dubbo.rpc.cluster.Constants.CONFIG_VERSION_KEY;
 import static org.apache.dubbo.rpc.cluster.Constants.OVERRIDE_PROVIDERS_KEY;
 
 /**
- * AbstractOverrideConfigurator
+ * OverrideConfigurator
+ *
  */
-public abstract class AbstractConfigurator implements Configurator {
+public class ProviderAppOverrideConfigurator extends AbstractConfigurator {
 
-    protected static final String TILDE = "~";
-
-    protected final URL configuratorUrl;
-
-    public AbstractConfigurator(URL url) {
-        if (url == null) {
-            throw new IllegalArgumentException("configurator url == null");
-        }
-        this.configuratorUrl = url;
+    public ProviderAppOverrideConfigurator(URL url) {
+        super(url);
     }
 
-    @Override
-    public URL getUrl() {
-        return configuratorUrl;
-    }
 
     @Override
     public URL configure(URL url) {
@@ -77,26 +67,13 @@ public abstract class AbstractConfigurator implements Configurator {
             if (!configureShouldMatch(url)) return url;
         }
 
-        /*
-         * This if branch is created since 2.7.0.
-         */
-        String apiVersion = configuratorUrl.getParameter(CONFIG_VERSION_KEY);
-        if (StringUtils.isNotEmpty(apiVersion)) {
-            String currentSide = url.getParameter(SIDE_KEY);
-            String configuratorSide = configuratorUrl.getParameter(SIDE_KEY);
-            if (currentSide.equals(configuratorSide) && CONSUMER.equals(configuratorSide) && 0 == configuratorUrl.getPort()) {
-                url = configureIfMatch(NetUtils.getLocalHost(), url);
-            } else if (currentSide.equals(configuratorSide) && PROVIDER.equals(configuratorSide) &&
-                    url.getPort() == configuratorUrl.getPort()) {
-                url = configureIfMatch(url.getHost(), url);
-            }
+
+        String currentSide = url.getParameter(SIDE_KEY);
+        String configuratorSide = configuratorUrl.getParameter(SIDE_KEY);
+        if (currentSide.equals(configuratorSide) && CONSUMER.equals(configuratorSide) && url.getPort() == configuratorUrl.getPort()) {
+            url = configureIfMatch(url.getHost(), url);
         }
-        /*
-         * This else branch is deprecated and is left only to keep compatibility with versions before 2.7.0
-         */
-        else {
-            url = configureDeprecated(url);
-        }
+
         return url;
     }
 
@@ -156,51 +133,60 @@ public abstract class AbstractConfigurator implements Configurator {
             // TODO, to support wildcards
             String providers = configuratorUrl.getParameter(OVERRIDE_PROVIDERS_KEY);
             if (StringUtils.isEmpty(providers) || providers.contains(url.getAddress()) || providers.contains(ANYHOST_VALUE)) {
-                String configApplication = configuratorUrl.getParameter(APPLICATION_KEY,
-                        configuratorUrl.getUsername());
-                String currentApplication = url.getParameter(APPLICATION_KEY, url.getUsername());
-                if (configApplication == null || ANY_VALUE.equals(configApplication)
-                        || configApplication.equals(currentApplication)) {
+                // unnecessary to compare app for app-level configurations because the listening key has covered the same meaning.
+                String scope = configuratorUrl.getParameter(SCOPE_KEY, ConfiguratorConfig.SCOPE_APPLICATION);
+                if (scope.equals(ConfiguratorConfig.SCOPE_SERVICE)) {
+                    String configApplication = configuratorUrl.getParameter(APPLICATION_KEY,
+                            configuratorUrl.getUsername());
+                    String currentApplication = url.getParameter(APPLICATION_KEY, url.getUsername());
+                    if (configApplication != null && !ANY_VALUE.equals(configApplication)
+                            && !configApplication.equals(currentApplication)) {
+                        return url;
+                    }
+                }
 
-                    Set<String> tildeKeys = new HashSet<>();
-                    for (Map.Entry<String, String> entry : configuratorUrl.getParameters().entrySet()) {
-                        String key = entry.getKey();
-                        String value = entry.getValue();
-                        String tildeKey = StringUtils.isNotEmpty(key) && key.startsWith(TILDE) ? key : null;
+                Set<String> tildeKeys = new HashSet<>();
+                for (Map.Entry<String, String> entry : configuratorUrl.getParameters().entrySet()) {
+                    String key = entry.getKey();
+                    String value = entry.getValue();
+                    String tildeKey = StringUtils.isNotEmpty(key) && key.startsWith(TILDE) ? key : null;
 
-                        if (tildeKey != null || APPLICATION_KEY.equals(key) || SIDE_KEY.equals(key)) {
-                            if (value != null && !ANY_VALUE.equals(value)
-                                    && !value.equals(url.getParameter(tildeKey != null ? key.substring(1) : key))) {
-                                return url;
-                            }
-                        }
-
-                        if (tildeKey != null) {
-                            tildeKeys.add(tildeKey);
+                    if (tildeKey != null || SIDE_KEY.equals(key)) {
+                        if (value != null && !ANY_VALUE.equals(value)
+                                && !value.equals(url.getParameter(tildeKey != null ? key.substring(1) : key))) {
+                            return url;
                         }
                     }
 
-                    Set<String> conditionKeys = new HashSet<>();
-                    conditionKeys.add(CATEGORY_KEY);
-                    conditionKeys.add(Constants.CHECK_KEY);
-                    conditionKeys.add(DYNAMIC_KEY);
-                    conditionKeys.add(ENABLED_KEY);
-                    conditionKeys.add(GROUP_KEY);
-                    conditionKeys.add(VERSION_KEY);
-                    conditionKeys.add(APPLICATION_KEY);
-                    conditionKeys.add(SIDE_KEY);
-                    conditionKeys.add(CONFIG_VERSION_KEY);
-                    conditionKeys.add(COMPATIBLE_CONFIG_KEY);
-                    conditionKeys.add(INTERFACES);
-                    conditionKeys.addAll(tildeKeys);
-
-                    return doConfigure(url, configuratorUrl.removeParameters(conditionKeys));
+                    if (tildeKey != null) {
+                        tildeKeys.add(tildeKey);
+                    }
                 }
+
+                Set<String> conditionKeys = new HashSet<>();
+                conditionKeys.add(CATEGORY_KEY);
+                conditionKeys.add(Constants.CHECK_KEY);
+                conditionKeys.add(DYNAMIC_KEY);
+                conditionKeys.add(ENABLED_KEY);
+                conditionKeys.add(GROUP_KEY);
+                conditionKeys.add(VERSION_KEY);
+                conditionKeys.add(APPLICATION_KEY);
+                conditionKeys.add(SIDE_KEY);
+                conditionKeys.add(CONFIG_VERSION_KEY);
+                conditionKeys.add(COMPATIBLE_CONFIG_KEY);
+                conditionKeys.add(INTERFACES);
+                conditionKeys.addAll(tildeKeys);
+
+                return doConfigure(url, configuratorUrl.removeParameters(conditionKeys));
             }
         }
         return url;
     }
 
-    protected abstract URL doConfigure(URL currentUrl, URL configUrl);
+
+    @Override
+    public URL doConfigure(URL currentUrl, URL configUrl) {
+        return currentUrl.addParameters(configUrl.getParameters());
+    }
 
 }

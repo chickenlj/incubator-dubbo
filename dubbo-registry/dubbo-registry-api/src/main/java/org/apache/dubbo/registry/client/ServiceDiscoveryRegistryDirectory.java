@@ -279,8 +279,8 @@ public class ServiceDiscoveryRegistryDirectory<T> extends DynamicDirectory<T> {
 
             Invoker<T> invoker = urlInvokerMap == null ? null : urlInvokerMap.get(instanceAddressURL.getAddress());
             if (invoker == null || urlChanged(invoker, instanceAddressURL)) { // Not in the cache, refer again
+                boolean enabled = true;
                 try {
-                    boolean enabled = true;
                     if (instanceAddressURL.hasParameter(DISABLED_KEY)) {
                         enabled = !instanceAddressURL.getParameter(DISABLED_KEY, false);
                     } else {
@@ -292,7 +292,7 @@ public class ServiceDiscoveryRegistryDirectory<T> extends DynamicDirectory<T> {
                 } catch (Throwable t) {
                     logger.error("Failed to refer invoker for interface:" + serviceType + ",url:(" + instanceAddressURL + ")" + t.getMessage(), t);
                 }
-                if (invoker != null) { // Put new invoker in cache
+                if (invoker != null && enabled) { // Put new invoker in cache
                     newUrlInvokerMap.put(instanceAddressURL.getAddress(), invoker);
                 }
             } else {
@@ -502,6 +502,7 @@ public class ServiceDiscoveryRegistryDirectory<T> extends DynamicDirectory<T> {
         private String appName;
 
         ProviderSideAppConfigurationListener(String appName) {
+            super("provider-override");
             this.appName = appName;
         }
 

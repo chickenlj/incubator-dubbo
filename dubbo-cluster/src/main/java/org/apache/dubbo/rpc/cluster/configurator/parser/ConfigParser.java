@@ -42,7 +42,7 @@ import static org.apache.dubbo.rpc.cluster.Constants.OVERRIDE_PROVIDERS_KEY;
  */
 public class ConfigParser {
 
-    public static List<URL> parseConfigurators(String rawConfig) throws Exception {
+    public static List<URL> parseConfigurators(String rawConfig, String overrideProtocol) throws Exception {
         // compatible url JsonArray, such as [ "override://xxx", "override://xxx" ]
         if (isJsonArray(rawConfig)) {
             return parseJsonArray(rawConfig);
@@ -55,10 +55,10 @@ public class ConfigParser {
         List<ConfigItem> items = configuratorConfig.getConfigs();
 
         if (ConfiguratorConfig.SCOPE_APPLICATION.equals(scope)) {
-            items.forEach(item -> urls.addAll(appItemToUrls(item, configuratorConfig)));
+            items.forEach(item -> urls.addAll(appItemToUrls(item, configuratorConfig, overrideProtocol)));
         } else {
             // service scope by default.
-            items.forEach(item -> urls.addAll(serviceItemToUrls(item, configuratorConfig)));
+            items.forEach(item -> urls.addAll(serviceItemToUrls(item, configuratorConfig, overrideProtocol)));
         }
         return urls;
     }
@@ -78,13 +78,13 @@ public class ConfigParser {
         return (T) PojoUtils.mapToPojo(map, ConfiguratorConfig.class);
     }
 
-    private static List<URL> serviceItemToUrls(ConfigItem item, ConfiguratorConfig config) {
+    private static List<URL> serviceItemToUrls(ConfigItem item, ConfiguratorConfig config, String overrideProtocol) {
         List<URL> urls = new ArrayList<>();
         List<String> addresses = parseAddresses(item);
 
         addresses.forEach(addr -> {
             StringBuilder urlBuilder = new StringBuilder();
-            urlBuilder.append("override://").append(addr).append("/");
+            urlBuilder.append(overrideProtocol).append("://").append(addr).append("/");
 
             urlBuilder.append(appendService(config.getKey()));
             urlBuilder.append(toParameterString(item));
@@ -109,12 +109,12 @@ public class ConfigParser {
         return urls;
     }
 
-    private static List<URL> appItemToUrls(ConfigItem item, ConfiguratorConfig config) {
+    private static List<URL> appItemToUrls(ConfigItem item, ConfiguratorConfig config, String overrideProtocol) {
         List<URL> urls = new ArrayList<>();
         List<String> addresses = parseAddresses(item);
         for (String addr : addresses) {
             StringBuilder urlBuilder = new StringBuilder();
-            urlBuilder.append("override://").append(addr).append("/");
+            urlBuilder.append(overrideProtocol).append("://").append(addr).append("/");
             List<String> services = item.getServices();
             if (services == null) {
                 services = new ArrayList<>();

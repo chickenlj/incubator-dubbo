@@ -1,2 +1,3 @@
 override=org.apache.dubbo.rpc.cluster.configurator.override.OverrideConfiguratorFactory
 absent=org.apache.dubbo.rpc.cluster.configurator.absent.AbsentConfiguratorFactory
+provider-override=org.apache.dubbo.rpc.cluster.configurator.override.ProviderAppOverrideConfiguratorFactory

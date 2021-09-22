@@ -47,7 +47,15 @@ public abstract class AbstractConfiguratorListener implements ConfigurationListe
     protected GovernanceRuleRepository ruleRepository = ExtensionLoader.getExtensionLoader(
             GovernanceRuleRepository.class).getDefaultExtension();
     private String key;
+    private String overrideProtocol;
 
+    protected AbstractConfiguratorListener() {
+        this.overrideProtocol = "override";
+    }
+
+    protected AbstractConfiguratorListener(String overrideProtocol) {
+        this.overrideProtocol = overrideProtocol;
+    }
     protected final void initWith(String key) {
         this.key = key;
         ruleRepository.addListener(key, this);
@@ -83,7 +91,7 @@ public abstract class AbstractConfiguratorListener implements ConfigurationListe
         boolean parseSuccess = true;
         try {
             // parseConfigurators will recognize app/service config automatically.
-            configurators = Configurator.toConfigurators(ConfigParser.parseConfigurators(rawConfig))
+            configurators = Configurator.toConfigurators(ConfigParser.parseConfigurators(rawConfig, overrideProtocol))
                     .orElse(configurators);
 
             // remove invalid configurators
