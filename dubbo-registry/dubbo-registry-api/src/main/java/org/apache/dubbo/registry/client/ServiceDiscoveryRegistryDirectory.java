@@ -24,9 +24,9 @@ import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.common.utils.Assert;
 import org.apache.dubbo.common.utils.CollectionUtils;
 import org.apache.dubbo.common.utils.NetUtils;
-import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.registry.AddressListener;
 import org.apache.dubbo.registry.Constants;
+import org.apache.dubbo.registry.ListenerRegistryWrapper;
 import org.apache.dubbo.registry.client.event.listener.ServiceInstancesChangedListener;
 import org.apache.dubbo.registry.integration.AbstractConfiguratorListener;
 import org.apache.dubbo.registry.integration.DynamicDirectory;
@@ -49,6 +49,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.apache.dubbo.common.constants.CommonConstants.DISABLED_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.ENABLED_KEY;
 import static org.apache.dubbo.common.constants.RegistryConstants.EMPTY_PROTOCOL;
+import static org.apache.dubbo.common.utils.UrlUtils.getProtocolServiceKey;
 import static org.apache.dubbo.registry.Constants.CONFIGURATORS_SUFFIX;
 
 public class ServiceDiscoveryRegistryDirectory<T> extends DynamicDirectory<T> {
@@ -395,13 +396,12 @@ public class ServiceDiscoveryRegistryDirectory<T> extends DynamicDirectory<T> {
 
     public void tryStartProviderAppListener() {
         // listen to provider apps
-        ServiceDiscoveryRegistry serviceDiscoveryRegistry = (ServiceDiscoveryRegistry)registry;
-        Map<String, String> serviceToApps = serviceDiscoveryRegistry.getServiceToAppsMapping();
+        ServiceDiscoveryRegistry serviceDiscoveryRegistry = getServiceDiscoveryRegistry();
+        Map<String, Set<String>> serviceToApps = serviceDiscoveryRegistry.getServiceToAppsMapping();
         if (CollectionUtils.isNotEmptyMap(serviceToApps)) {
-            String apps = serviceToApps.get(consumerUrl.getProtocolServiceKey());
-            if (StringUtils.isNotEmpty(apps)) {
-                String[] appArr = apps.split(",");
-                for (String key : appArr) {
+            Set<String> apps = serviceToApps.get(getProtocolServiceKey(consumerUrl));
+            if (CollectionUtils.isNotEmpty(apps)) {
+                for (String key : apps) {
                     PROVIDER_CONFIGURATION_LISTENERS.computeIfAbsent(key, appName -> {
                         ProviderSideAppConfigurationListener l = new ProviderSideAppConfigurationListener(appName);
                         l.addNotifyListener(ServiceDiscoveryRegistryDirectory.this);
@@ -412,15 +412,24 @@ public class ServiceDiscoveryRegistryDirectory<T> extends DynamicDirectory<T> {
         }
     }
 
+    private ServiceDiscoveryRegistry getServiceDiscoveryRegistry() {
+        ServiceDiscoveryRegistry serviceDiscoveryRegistry;
+        if (registry instanceof ListenerRegistryWrapper) {
+            serviceDiscoveryRegistry = (ServiceDiscoveryRegistry)((ListenerRegistryWrapper)registry).getRegistry();
+        } else {
+            serviceDiscoveryRegistry = (ServiceDiscoveryRegistry) registry;
+        }
+        return serviceDiscoveryRegistry;
+    }
+
     private void tryStopProviderAppListener(URL url) {
         // listen to provider apps
-        ServiceDiscoveryRegistry serviceDiscoveryRegistry = (ServiceDiscoveryRegistry)registry;
-        Map<String, String> serviceToApps = serviceDiscoveryRegistry.getServiceToAppsMapping();
+        ServiceDiscoveryRegistry serviceDiscoveryRegistry = getServiceDiscoveryRegistry();
+        Map<String, Set<String>> serviceToApps = serviceDiscoveryRegistry.getServiceToAppsMapping();
         if (CollectionUtils.isNotEmptyMap(serviceToApps)) {
-            String apps = serviceToApps.get(url.getProtocolServiceKey());
-            if (StringUtils.isNotEmpty(apps)) {
-                String[] appArr = apps.split(",");
-                for (String key : appArr) {
+            Set<String> apps = serviceToApps.get(getProtocolServiceKey(url));
+            if (CollectionUtils.isNotEmpty(apps)) {
+                for (String key : apps) {
                     ProviderSideAppConfigurationListener l = PROVIDER_CONFIGURATION_LISTENERS.get(key);
                     l.removeNotifyListener(ServiceDiscoveryRegistryDirectory.this);
                     if (!l.hasListeners()) {

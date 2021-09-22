@@ -52,8 +52,6 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.of;
-import static org.apache.dubbo.common.constants.CommonConstants.DUBBO;
-import static org.apache.dubbo.common.constants.CommonConstants.GROUP_CHAR_SEPARATOR;
 import static org.apache.dubbo.common.constants.CommonConstants.GROUP_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.INTERFACE_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.MAPPING_KEY;
@@ -69,6 +67,7 @@ import static org.apache.dubbo.common.constants.RegistryConstants.SUBSCRIBED_SER
 import static org.apache.dubbo.common.function.ThrowableAction.execute;
 import static org.apache.dubbo.common.utils.CollectionUtils.isEmpty;
 import static org.apache.dubbo.common.utils.StringUtils.isBlank;
+import static org.apache.dubbo.common.utils.UrlUtils.getProtocolServiceKey;
 import static org.apache.dubbo.registry.client.ServiceDiscoveryFactory.getExtension;
 import static org.apache.dubbo.rpc.Constants.ID_KEY;
 
@@ -111,7 +110,7 @@ public class ServiceDiscoveryRegistry implements Registry {
 
     /* apps - listener */
     private final Map<String, ServiceInstancesChangedListener> serviceListeners = new HashMap<>();
-    private final Map<String, String> serviceToAppsMapping = new HashMap<>();
+    private final Map<String, Set<String>> serviceToAppsMapping = new HashMap<>();
 
     private URL registryURL;
 
@@ -260,6 +259,8 @@ public class ServiceDiscoveryRegistry implements Registry {
         writableMetadataService.subscribeURL(url);
 
         Set<String> serviceNames = getServices(url, listener);
+        String protocolServiceKey = getProtocolServiceKey(url);
+        serviceToAppsMapping.put(protocolServiceKey, serviceNames);
         notifyAppConfiguratorListener(listener);
 
         if (CollectionUtils.isEmpty(serviceNames)) {
@@ -284,12 +285,12 @@ public class ServiceDiscoveryRegistry implements Registry {
 
     public void doUnsubscribe(URL url, NotifyListener listener) {
         writableMetadataService.unsubscribeURL(url);
-        String protocolServiceKey = url.getServiceKey() + GROUP_CHAR_SEPARATOR + url.getParameter(PROTOCOL_KEY, DUBBO);
-        String serviceNamesKey = serviceToAppsMapping.remove(protocolServiceKey);
+        String protocolServiceKey = getProtocolServiceKey(url);
+        Set<String> serviceNamesKey = serviceToAppsMapping.remove(protocolServiceKey);
         if (serviceNamesKey == null) {
             return;
         }
-        ServiceInstancesChangedListener instancesChangedListener = serviceListeners.get(serviceNamesKey);
+        ServiceInstancesChangedListener instancesChangedListener = serviceListeners.get(toAppString(serviceNamesKey));
         instancesChangedListener.removeListener(protocolServiceKey);
     }
 
@@ -319,8 +320,7 @@ public class ServiceDiscoveryRegistry implements Registry {
 
     protected void subscribeURLs(URL url, NotifyListener listener, Set<String> serviceNames) {
         String serviceNamesKey = toAppString(serviceNames);
-        String protocolServiceKey = url.getServiceKey() + GROUP_CHAR_SEPARATOR + url.getParameter(PROTOCOL_KEY, DUBBO);
-        serviceToAppsMapping.put(protocolServiceKey, serviceNamesKey);
+        String protocolServiceKey = getProtocolServiceKey(url);
 
         // register ServiceInstancesChangedListener
         ServiceInstancesChangedListener serviceListener = serviceListeners.computeIfAbsent(serviceNamesKey,
@@ -440,7 +440,7 @@ public class ServiceDiscoveryRegistry implements Registry {
         return supports(registryURL) ? new ServiceDiscoveryRegistry(registryURL) : null;
     }
 
-    public Map<String, String> getServiceToAppsMapping() {
+    public Map<String, Set<String>> getServiceToAppsMapping() {
         return serviceToAppsMapping;
     }
 

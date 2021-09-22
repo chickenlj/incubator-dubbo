@@ -84,7 +84,7 @@ public abstract class AbstractConfigurator implements Configurator {
         if (StringUtils.isNotEmpty(apiVersion)) {
             String currentSide = url.getParameter(SIDE_KEY);
             String configuratorSide = configuratorUrl.getParameter(SIDE_KEY);
-            if (currentSide.equals(configuratorSide) && CONSUMER.equals(configuratorSide) && 0 == configuratorUrl.getPort()) {
+            if (currentSide.equals(configuratorSide) && CONSUMER.equals(configuratorSide)) {
                 url = configureIfMatch(NetUtils.getLocalHost(), url);
             } else if (currentSide.equals(configuratorSide) && PROVIDER.equals(configuratorSide) &&
                     url.getPort() == configuratorUrl.getPort()) {
