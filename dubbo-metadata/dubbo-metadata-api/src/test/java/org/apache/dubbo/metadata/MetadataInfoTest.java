@@ -135,7 +135,7 @@ public class MetadataInfoTest {
         // export normal url again
         metadataInfo2.addService(new MetadataInfo.ServiceInfo(url));
         metadataInfo2.addService(new MetadataInfo.ServiceInfo(url2));
-        System.out.println(gson.toJson(metadataInfo2));
+        System.out.println(metadataInfo2);
 
     }
 }
