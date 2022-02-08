@@ -38,7 +38,7 @@ public class ModuleServiceRepository {
     private final ModuleModel moduleModel;
 
     /**
-     * services
+     * services ( key - interface name without group and version - descriptor list)
      */
     private ConcurrentMap<String, List<ServiceDescriptor>> services = new ConcurrentHashMap<>();
 

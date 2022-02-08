@@ -65,7 +65,7 @@ public class MetadataUtils {
         return metadataServiceProxies.computeIfAbsent(computeKey(instance), k -> referProxy(k, instance));
     }
 
-    public static void publishServiceDefinition(String serviceName, URL url, ModuleModel scopeModel, ApplicationModel applicationModel) {
+    public static void publishServiceDefinition(String interfaceName, URL url, ModuleModel scopeModel, ApplicationModel applicationModel) {
         if (getMetadataReports(applicationModel).size() == 0) {
             String msg = "Remote Metadata Report Server not hasn't been configured or unavailable . Unable to get Metadata from remote!";
             logger.warn(msg);
@@ -74,19 +74,20 @@ public class MetadataUtils {
         try {
             String side = url.getSide();
             if (PROVIDER_SIDE.equalsIgnoreCase(side)) {
-                ServiceDescriptor serviceDescriptor = scopeModel.getServiceRepository().getService(serviceName);
+                ServiceDescriptor serviceDescriptor = scopeModel.getServiceRepository().getService(interfaceName);
                 if (serviceDescriptor == null) {
+                    logger.warn("No service descriptor found for service name " + interfaceName);
                     return;
                 }
-                FullServiceDefinition serviceDefinition = serviceDescriptor.getServiceDefinition(serviceName);
+                FullServiceDefinition serviceDefinition = serviceDescriptor.getServiceDefinition();
 
-                if (StringUtils.isNotEmpty(serviceName) && serviceDefinition != null) {
+                if (StringUtils.isNotEmpty(interfaceName) && serviceDefinition != null) {
                     serviceDefinition.setParameters(url.getParameters());
                     for (Map.Entry<String, MetadataReport> entry : getMetadataReports(applicationModel).entrySet()) {
                         MetadataReport metadataReport = entry.getValue();
                         metadataReport.storeProviderMetadata(
                             new MetadataIdentifier(
-                                serviceName,
+                                interfaceName,
                                 url.getVersion() == null ? "" : url.getVersion(),
                                 url.getGroup() == null ? "" : url.getGroup(),
                                 PROVIDER_SIDE,
@@ -99,7 +100,7 @@ public class MetadataUtils {
                     MetadataReport metadataReport = entry.getValue();
                     metadataReport.storeConsumerMetadata(
                         new MetadataIdentifier(
-                            serviceName,
+                            interfaceName,
                             url.getVersion() == null ? "" : url.getVersion(),
                             url.getGroup() == null ? "" : url.getGroup(),
                             CONSUMER_SIDE,

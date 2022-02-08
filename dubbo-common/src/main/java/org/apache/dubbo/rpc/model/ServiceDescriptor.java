@@ -30,30 +30,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentNavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * ServiceModel and ServiceMetadata are to some extend duplicated with each other. We should merge them in the future.
  */
 public class ServiceDescriptor {
-    private final String serviceName;
+    private final String inerfaceName;
     private final Class<?> serviceInterfaceClass;
     // to accelerate search
     private final Map<String, List<MethodDescriptor>> methods = new HashMap<>();
     private final Map<String, Map<String, MethodDescriptor>> descToMethods = new HashMap<>();
-    private ConcurrentNavigableMap<String, FullServiceDefinition> serviceDefinitions = new ConcurrentSkipListMap<>();
 
     public ServiceDescriptor(Class<?> interfaceClass) {
         this.serviceInterfaceClass = interfaceClass;
-        this.serviceName = interfaceClass.getName();
+        this.inerfaceName = interfaceClass.getName();
         initMethods();
-        initServiceDefinition(interfaceClass);
-    }
-
-    private void initServiceDefinition(Class<?> interfaceClass) {
-        FullServiceDefinition fullServiceDefinition = ServiceDefinitionBuilder.buildFullDefinition(interfaceClass, Collections.emptyMap());
-        serviceDefinitions.put(serviceName, fullServiceDefinition);
     }
 
     private void initMethods() {
@@ -77,7 +68,7 @@ public class ServiceDescriptor {
     }
 
     public String getServiceName() {
-        return serviceName;
+        return inerfaceName;
     }
 
     public Class<?> getServiceInterfaceClass() {
@@ -128,12 +119,8 @@ public class ServiceDescriptor {
         return methods.get(methodName);
     }
 
-    public ConcurrentNavigableMap<String, FullServiceDefinition> getServiceDefinitions() {
-        return serviceDefinitions;
-    }
-
-    public FullServiceDefinition getServiceDefinition(String serviceName) {
-        return serviceDefinitions.get(serviceName);
+    public FullServiceDefinition getServiceDefinition() {
+        return ServiceDefinitionBuilder.buildFullDefinition(serviceInterfaceClass, Collections.emptyMap());
     }
 
     @Override
@@ -145,7 +132,7 @@ public class ServiceDescriptor {
             return false;
         }
         ServiceDescriptor that = (ServiceDescriptor) o;
-        return Objects.equals(serviceName, that.serviceName)
+        return Objects.equals(inerfaceName, that.inerfaceName)
             && Objects.equals(serviceInterfaceClass, that.serviceInterfaceClass)
             && Objects.equals(methods, that.methods)
             && Objects.equals(descToMethods, that.descToMethods);
@@ -153,6 +140,6 @@ public class ServiceDescriptor {
 
     @Override
     public int hashCode() {
-        return Objects.hash(serviceName, serviceInterfaceClass, methods, descToMethods);
+        return Objects.hash(inerfaceName, serviceInterfaceClass, methods, descToMethods);
     }
 }

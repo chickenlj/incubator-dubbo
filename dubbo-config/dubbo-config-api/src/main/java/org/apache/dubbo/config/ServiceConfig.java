@@ -54,6 +54,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -103,7 +105,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
     /**
      * A random port cache, the different protocols who have no port specified have different random port
      */
-    private static final Map<String, Integer> RANDOM_PORT_MAP = new HashMap<String, Integer>();
+    private static final ConcurrentMap<String, Integer> RANDOM_PORT_MAP = new ConcurrentHashMap<>();
 
     private Protocol protocolSPI;
 
@@ -569,7 +571,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
             if (!SCOPE_LOCAL.equalsIgnoreCase(scope)) {
                 url = exportRemote(url, registryURLs);
                 if (!isGeneric(generic) && !isMetadataService(interfaceName)) {
-                    ServiceDescriptor descriptor = getScopeModel().getServiceRepository().getService(interfaceName);
+                    ServiceDescriptor descriptor = serviceMetadata.getServiceModel().getServiceModel();
                     if (descriptor != null) {
                         MetadataUtils.publishServiceDefinition(interfaceName, url, getScopeModel(), getApplicationModel());
                     }
