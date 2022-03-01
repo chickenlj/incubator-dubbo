@@ -18,6 +18,14 @@ option objc_class_prefix = "HLW";
 
 package helloworld;
 
+// The demo service definition.
+service DemoService {
+  rpc SayHello (HelloRequest) returns (HelloReply) {}
+  rpc requestStream (stream HelloRequest) returns (HelloReply) {}
+  rpc responseStream (HelloRequest) returns (stream HelloReply) {}
+  rpc biStream (stream HelloRequest) returns (stream HelloReply) {}
+}
+
 // The request message containing the user's name.
 message HelloRequest {
   string name = 1;
