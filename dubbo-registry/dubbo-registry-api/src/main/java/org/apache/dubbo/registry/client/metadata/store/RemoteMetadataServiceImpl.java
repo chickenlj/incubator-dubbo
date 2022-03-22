@@ -37,6 +37,7 @@ import java.util.Map;
 
 import static org.apache.dubbo.common.constants.CommonConstants.APPLICATION_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.CONSUMER_SIDE;
+import static org.apache.dubbo.common.constants.CommonConstants.GENERIC_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.GROUP_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.INTERFACE_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.PID_KEY;
@@ -45,6 +46,7 @@ import static org.apache.dubbo.common.constants.CommonConstants.SIDE_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.TIMESTAMP_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.VERSION_KEY;
 import static org.apache.dubbo.common.constants.RegistryConstants.REGISTRY_CLUSTER_KEY;
+import static org.apache.dubbo.rpc.support.ProtocolUtils.isGeneric;
 
 public class RemoteMetadataServiceImpl {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
@@ -110,7 +112,7 @@ public class RemoteMetadataServiceImpl {
 
         try {
             String interfaceName = providerUrl.getParameter(INTERFACE_KEY);
-            if (StringUtils.isNotEmpty(interfaceName)) {
+            if (StringUtils.isNotEmpty(interfaceName) && !isGeneric(providerUrl.getParameter(GENERIC_KEY))) {
                 Class interfaceClass = Class.forName(interfaceName);
                 FullServiceDefinition fullServiceDefinition = ServiceDefinitionBuilder.buildFullDefinition(interfaceClass,
                         providerUrl.getParameters());
@@ -122,7 +124,6 @@ public class RemoteMetadataServiceImpl {
                 }
                 return;
             }
-            logger.error("publishProvider interfaceName is empty . providerUrl: " + providerUrl.toFullString());
         } catch (ClassNotFoundException e) {
             //ignore error
             logger.error("publishProvider getServiceDescriptor error. providerUrl: " + providerUrl.toFullString(), e);
