@@ -106,6 +106,7 @@ public abstract class ScopeModel implements ExtensionAccessor {
 
     public void destroy() {
         if (destroyed.compareAndSet(false, true)) {
+            LOGGER.info("Start destroying of scope model " + getDesc());
             try {
                 onDestroy();
                 HashSet<ClassLoader> copyOfClassLoaders = new HashSet<>(classLoaders);

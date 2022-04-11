@@ -155,7 +155,7 @@ public class ExtensionDirector implements ExtensionAccessor {
 
     private void checkDestroyed() {
         if (destroyed.get()) {
-            throw new IllegalStateException("ExtensionDirector is destroyed");
+            throw new IllegalStateException("ExtensionDirector of " + scopeModel + " with scope " + scope + "  has been destroyed");
         }
     }
 }
