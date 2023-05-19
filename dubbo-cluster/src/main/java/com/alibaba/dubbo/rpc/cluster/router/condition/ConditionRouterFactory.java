@@ -17,19 +17,19 @@
 package com.alibaba.dubbo.rpc.cluster.router.condition;
 
 import com.alibaba.dubbo.common.URL;
+import com.alibaba.dubbo.rpc.cluster.CacheableRouterFactory;
 import com.alibaba.dubbo.rpc.cluster.Router;
-import com.alibaba.dubbo.rpc.cluster.RouterFactory;
 
 /**
  * ConditionRouterFactory
- *
+ * Load when "override://" is configured {@link ConditionRouter}
  */
-public class ConditionRouterFactory implements RouterFactory {
+public class ConditionRouterFactory extends CacheableRouterFactory {
 
     public static final String NAME = "condition";
 
-    public Router getRouter(URL url) {
+    @Override
+    protected Router createRouter(URL url) {
         return new ConditionRouter(url);
     }
-
 }

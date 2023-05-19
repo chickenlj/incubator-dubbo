@@ -1,0 +1,4 @@
+attachment=com.alibaba.dubbo.rpc.cluster.router.condition.matcher.attachment.AttachmentConditionMatcherFactory
+argument=com.alibaba.dubbo.rpc.cluster.router.condition.matcher.argument.ArgumentConditionMatcherFactory
+param=com.alibaba.dubbo.rpc.cluster.router.condition.matcher.param.UrlParamConditionMatcherFactory
+

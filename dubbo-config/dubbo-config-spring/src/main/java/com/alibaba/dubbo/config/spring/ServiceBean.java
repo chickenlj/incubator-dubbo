@@ -24,8 +24,8 @@ import com.alibaba.dubbo.config.ProviderConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
 import com.alibaba.dubbo.config.ServiceConfig;
 import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.dubbo.config.configcenter.ConfigCenterConfig;
 import com.alibaba.dubbo.config.spring.extension.SpringExtensionFactory;
-
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
@@ -256,6 +256,24 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
                 setPath(beanName);
             }
         }
+
+        if (getConfigCenterConfig() == null
+                && (getProvider() == null || getProvider().getConfigCenterConfig() == null)) {
+            Map<String, ConfigCenterConfig> configCenterConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, ConfigCenterConfig.class, false, false);
+            if (configCenterConfigMap != null && configCenterConfigMap.size() > 0) {
+                ConfigCenterConfig configCenterConfig = null;
+                for (ConfigCenterConfig config : configCenterConfigMap.values()) {
+                    if (configCenterConfig != null) {
+                        throw new IllegalStateException("Duplicate config center: " + configCenterConfig + " and " + config);
+                    }
+                    configCenterConfig = config;
+                }
+                if (configCenterConfig != null) {
+                    setConfigCenterConfig(configCenterConfig);
+                }
+            }
+        }
+
         if (!isDelay()) {
             export();
         }

@@ -22,9 +22,11 @@ import com.alibaba.dubbo.common.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.alibaba.dubbo.common.Constants.APPLICATION_KEY;
+import static com.alibaba.dubbo.common.Constants.REMOTE_APPLICATION_KEY;
+
 /**
  * ClusterUtils
- *
  */
 public class ClusterUtils {
 
@@ -66,6 +68,8 @@ public class ClusterUtils {
             map.putAll(localMap);
         }
         if (remoteMap != null && remoteMap.size() > 0) {
+            map.put(REMOTE_APPLICATION_KEY, remoteMap.get(APPLICATION_KEY));
+
             // Use version passed from provider side
             String dubbo = remoteMap.get(Constants.DUBBO_VERSION_KEY);
             if (dubbo != null && dubbo.length() > 0) {

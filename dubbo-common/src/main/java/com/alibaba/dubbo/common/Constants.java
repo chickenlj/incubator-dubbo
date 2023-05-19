@@ -615,6 +615,32 @@ public class Constants {
 
     public static final String ACCEPT_FOREIGN_IP = "qos.accept.foreign.ip";
 
+    public static final String CONFIG_CONFIGFILE_KEY = "config-file";
+    public static final String CONFIG_ENABLE_KEY = "highest-priority";
+    public static final String CONFIG_NAMESPACE_KEY = "namespace";
+
+    public static final String CONFIG_APP_CONFIGFILE_KEY = "app-config-file";
+
+    public static final String ARGUMENTS = "arguments";
+
+    public static final String CONFIG_VERSION_KEY = "configVersion";
+
+    public static final String KEY_KEY = "key";
+
+    public static final String RAW_RULE_KEY = "rawRule";
+
+    public static final String VALID_KEY = "valid";
+
+    public static final String CONDITIONS_KEY = "conditions";
+
+    public static final String REMOTE_APPLICATION_KEY = "remote.application";
+
+    public static final String USERNAME_KEY = "username";
+    public static final String PASSWORD_KEY = "password";
+    public static final String HOST_KEY = "host";
+    public static final String PORT_KEY = "port";
+    public static final String ADDRESS_KEY = "address";
+
     /*
      * private Constants(){ }
      */

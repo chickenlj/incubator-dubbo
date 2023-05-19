@@ -1,0 +1,2 @@
+range=com.alibaba.dubbo.rpc.cluster.router.condition.matcher.pattern.range.RangeValuePattern
+wildcard=com.alibaba.dubbo.rpc.cluster.router.condition.matcher.pattern.wildcard.WildcardValuePattern

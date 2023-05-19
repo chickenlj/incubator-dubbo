@@ -18,9 +18,9 @@ package com.alibaba.dubbo.common.utils;
 
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.io.UnsafeStringWriter;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.dubbo.common.logger.Logger;
 import com.alibaba.dubbo.common.logger.LoggerFactory;
+import com.alibaba.fastjson.JSON;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static java.lang.String.valueOf;
 
 /**
  * StringUtils
@@ -43,6 +45,14 @@ public final class StringUtils {
     private static final Pattern KVP_PATTERN = Pattern.compile("([_.a-zA-Z0-9][-_.a-zA-Z0-9]*)[=](.*)"); //key value pair pattern.
 
     private static final Pattern INT_PATTERN = Pattern.compile("^\\d+$");
+
+    public static final char SLASH_CHAR = '/';
+
+    public static final String SLASH = valueOf(SLASH_CHAR);
+
+    public static final char HYPHEN_CHAR = '-';
+
+    public static final String HYPHEN = valueOf(HYPHEN_CHAR);
 
     private StringUtils() {
     }

@@ -29,6 +29,7 @@ import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.dubbo.config.model.ApplicationModel;
 import com.alibaba.dubbo.config.model.ConsumerModel;
 import com.alibaba.dubbo.config.support.Parameter;
+import com.alibaba.dubbo.configcenter.DynamicConfigurationInstance;
 import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.Protocol;
 import com.alibaba.dubbo.rpc.ProxyFactory;
@@ -193,6 +194,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         // get consumer's global configuration
         checkDefault();
         appendProperties(this);
+
         if (getGeneric() == null && getConsumer() != null) {
             setGeneric(getConsumer().getGeneric());
         }
@@ -258,6 +260,9 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
             if (monitor == null) {
                 monitor = consumer.getMonitor();
             }
+            if (configCenterConfig == null) {
+                configCenterConfig = consumer.getConfigCenterConfig();
+            }
         }
         if (module != null) {
             if (registries == null) {
@@ -275,6 +280,13 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
                 monitor = application.getMonitor();
             }
         }
+
+        if (configCenterConfig != null) {
+            DynamicConfigurationInstance.init(configCenterConfig.toUrl());
+        } else {
+            DynamicConfigurationInstance.init(null);
+        }
+
         checkApplication();
         checkStubAndMock(interfaceClass);
         Map<String, String> map = new HashMap<String, String>();

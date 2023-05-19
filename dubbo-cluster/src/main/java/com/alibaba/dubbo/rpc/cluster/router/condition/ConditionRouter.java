@@ -16,48 +16,91 @@
  */
 package com.alibaba.dubbo.rpc.cluster.router.condition;
 
-import com.alibaba.dubbo.common.Constants;
+
 import com.alibaba.dubbo.common.URL;
+import com.alibaba.dubbo.common.extension.ExtensionLoader;
 import com.alibaba.dubbo.common.logger.Logger;
 import com.alibaba.dubbo.common.logger.LoggerFactory;
 import com.alibaba.dubbo.common.utils.NetUtils;
 import com.alibaba.dubbo.common.utils.StringUtils;
-import com.alibaba.dubbo.common.utils.UrlUtils;
+import com.alibaba.dubbo.configcenter.CollectionUtils;
 import com.alibaba.dubbo.rpc.Invocation;
 import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.RpcException;
-import com.alibaba.dubbo.rpc.cluster.Router;
+import com.alibaba.dubbo.rpc.cluster.router.AbstractRouter;
+import com.alibaba.dubbo.rpc.cluster.router.condition.matcher.ConditionMatcher;
+import com.alibaba.dubbo.rpc.cluster.router.condition.matcher.ConditionMatcherFactory;
+import com.alibaba.dubbo.rpc.cluster.router.condition.matcher.pattern.ValuePattern;
 
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.alibaba.dubbo.common.Constants.ENABLED_KEY;
+import static com.alibaba.dubbo.common.Constants.FORCE_KEY;
+import static com.alibaba.dubbo.common.Constants.RULE_KEY;
+import static com.alibaba.dubbo.common.Constants.RUNTIME_KEY;
+
 /**
- * ConditionRouter
- *
+ * Condition Router directs traffics matching the 'when condition' to a particular address subset determined by the 'then condition'.
+ * One typical condition rule is like below, with
+ * 1. the 'when condition' on the left side of '=>' contains matching rule like 'method=sayHello' and 'method=sayHi'
+ * 2. the 'then condition' on the right side of '=>' contains matching rule like 'region=hangzhou' and 'address=*:20881'
+ * <p>
+ * By default, condition router support matching rules like 'foo=bar', 'foo=bar*', 'arguments[0]=bar', 'attachments[foo]=bar', 'attachments[foo]=1~100', etc.
+ * It's also very easy to add customized matching rules by extending {@link ConditionMatcherFactory}
+ * and {@link ValuePattern}
+ * <p>
+ * ---
+ * scope: service
+ * force: true
+ * runtime: true
+ * enabled: true
+ * key: org.apache.dubbo.samples.governance.api.DemoService
+ * conditions:
+ * - method=sayHello => region=hangzhou
+ * - method=sayHi => address=*:20881
+ * ...
  */
-public class ConditionRouter implements Router, Comparable<Router> {
+public class ConditionRouter extends AbstractRouter {
+    public static final String NAME = "condition";
 
     private static final Logger logger = LoggerFactory.getLogger(ConditionRouter.class);
-    private static Pattern ROUTE_PATTERN = Pattern.compile("([&!=,]*)\\s*([^&!=,\\s]+)");
-    private final URL url;
-    private final int priority;
-    private final boolean force;
-    private final Map<String, MatchPair> whenCondition;
-    private final Map<String, MatchPair> thenCondition;
+    protected static final Pattern ROUTE_PATTERN = Pattern.compile("([&!=,]*)\\s*([^&!=,\\s]+)");
+    protected Map<String, ConditionMatcher> whenCondition;
+    protected Map<String, ConditionMatcher> thenCondition;
+    protected List<ConditionMatcherFactory> matcherFactories;
+
+    private final boolean enabled;
+
+    public ConditionRouter(URL url, String rule, boolean force, boolean enabled) {
+        super(url);
+        this.setForce(force);
+        this.enabled = enabled;
+        matcherFactories = ExtensionLoader.getExtensionLoader(ConditionMatcherFactory.class).getActivateExtensions();
+        if (enabled) {
+            this.init(rule);
+        }
+    }
 
     public ConditionRouter(URL url) {
-        this.url = url;
-        this.priority = url.getParameter(Constants.PRIORITY_KEY, 0);
-        this.force = url.getParameter(Constants.FORCE_KEY, false);
+        super(url);
+        this.setUrl(url);
+        this.setForce(url.getParameter(FORCE_KEY, false));
+        matcherFactories = ExtensionLoader.getExtensionLoader(ConditionMatcherFactory.class).getActivateExtensions();
+        this.enabled = url.getParameter(ENABLED_KEY, true);
+        if (enabled) {
+            init(url.getParameterAndDecoded(RULE_KEY));
+        }
+    }
+
+    public void init(String rule) {
         try {
-            String rule = url.getParameterAndDecoded(Constants.RULE_KEY);
             if (rule == null || rule.trim().length() == 0) {
                 throw new IllegalArgumentException("Illegal route rule!");
             }
@@ -65,8 +108,8 @@ public class ConditionRouter implements Router, Comparable<Router> {
             int i = rule.indexOf("=>");
             String whenRule = i < 0 ? null : rule.substring(0, i).trim();
             String thenRule = i < 0 ? rule.trim() : rule.substring(i + 2).trim();
-            Map<String, MatchPair> when = StringUtils.isBlank(whenRule) || "true".equals(whenRule) ? new HashMap<String, MatchPair>() : parseRule(whenRule);
-            Map<String, MatchPair> then = StringUtils.isBlank(thenRule) || "false".equals(thenRule) ? null : parseRule(thenRule);
+            Map<String, ConditionMatcher> when = StringUtils.isBlank(whenRule) || "true".equals(whenRule) ? new HashMap<String, ConditionMatcher>() : parseRule(whenRule);
+            Map<String, ConditionMatcher> then = StringUtils.isBlank(thenRule) || "false".equals(thenRule) ? null : parseRule(thenRule);
             // NOTE: It should be determined on the business level whether the `When condition` can be empty or not.
             this.whenCondition = when;
             this.thenCondition = then;
@@ -75,14 +118,14 @@ public class ConditionRouter implements Router, Comparable<Router> {
         }
     }
 
-    private static Map<String, MatchPair> parseRule(String rule)
+    private Map<String, ConditionMatcher> parseRule(String rule)
             throws ParseException {
-        Map<String, MatchPair> condition = new HashMap<String, MatchPair>();
+        Map<String, ConditionMatcher> condition = new HashMap<String, ConditionMatcher>();
         if (StringUtils.isBlank(rule)) {
             return condition;
         }
         // Key-Value pair, stores both match and mismatch conditions
-        MatchPair pair = null;
+        ConditionMatcher matcherPair = null;
         // Multiple values
         Set<String> values = null;
         final Matcher matcher = ROUTE_PATTERN.matcher(rule);
@@ -90,48 +133,51 @@ public class ConditionRouter implements Router, Comparable<Router> {
             String separator = matcher.group(1);
             String content = matcher.group(2);
             // Start part of the condition expression.
-            if (separator == null || separator.length() == 0) {
-                pair = new MatchPair();
-                condition.put(content, pair);
+            if (StringUtils.isEmpty(separator)) {
+                matcherPair = this.getMatcher(content);
+                condition.put(content, matcherPair);
             }
             // The KV part of the condition expression
             else if ("&".equals(separator)) {
                 if (condition.get(content) == null) {
-                    pair = new MatchPair();
-                    condition.put(content, pair);
+                    matcherPair = this.getMatcher(content);
+                    condition.put(content, matcherPair);
                 } else {
-                    pair = condition.get(content);
+                    matcherPair = condition.get(content);
                 }
             }
             // The Value in the KV part.
             else if ("=".equals(separator)) {
-                if (pair == null)
+                if (matcherPair == null) {
                     throw new ParseException("Illegal route rule \""
                             + rule + "\", The error char '" + separator
                             + "' at index " + matcher.start() + " before \""
                             + content + "\".", matcher.start());
+                }
 
-                values = pair.matches;
+                values = matcherPair.getMatches();
                 values.add(content);
             }
             // The Value in the KV part.
             else if ("!=".equals(separator)) {
-                if (pair == null)
+                if (matcherPair == null) {
                     throw new ParseException("Illegal route rule \""
                             + rule + "\", The error char '" + separator
                             + "' at index " + matcher.start() + " before \""
                             + content + "\".", matcher.start());
+                }
 
-                values = pair.mismatches;
+                values = matcherPair.getMismatches();
                 values.add(content);
             }
             // The Value in the KV part, if Value have more than one items.
-            else if (",".equals(separator)) { // Should be seperateed by ','
-                if (values == null || values.size() == 0)
+            else if (",".equals(separator)) { // Should be separated by ','
+                if (values == null || values.isEmpty()) {
                     throw new ParseException("Illegal route rule \""
                             + rule + "\", The error char '" + separator
                             + "' at index " + matcher.start() + " before \""
                             + content + "\".", matcher.start());
+                }
                 values.add(content);
             } else {
                 throw new ParseException("Illegal route rule \"" + rule
@@ -142,9 +188,14 @@ public class ConditionRouter implements Router, Comparable<Router> {
         return condition;
     }
 
+    @Override
     public <T> List<Invoker<T>> route(List<Invoker<T>> invokers, URL url, Invocation invocation)
             throws RpcException {
-        if (invokers == null || invokers.size() == 0) {
+        if (!enabled) {
+            return invokers;
+        }
+
+        if (CollectionUtils.isEmpty(invokers)) {
             return invokers;
         }
         try {
@@ -161,10 +212,10 @@ public class ConditionRouter implements Router, Comparable<Router> {
                     result.add(invoker);
                 }
             }
-            if (result.size() > 0) {
+            if (!result.isEmpty()) {
                 return result;
             } else if (force) {
-                logger.warn("The route result is empty and force execute. consumer: " + NetUtils.getLocalHost() + ", service: " + url.getServiceKey() + ", router: " + url.getParameterAndDecoded(Constants.RULE_KEY));
+                logger.warn("The route result is empty and force execute. consumer: " + NetUtils.getLocalHost() + ", service: " + url.getServiceKey() + ", router: " + url.getParameterAndDecoded(RULE_KEY));
                 return result;
             }
         } catch (Throwable t) {
@@ -173,97 +224,46 @@ public class ConditionRouter implements Router, Comparable<Router> {
         return invokers;
     }
 
-    public URL getUrl() {
-        return url;
+    @Override
+    public boolean isRuntime() {
+        // We always return true for previously defined Router, that is, old Router doesn't support cache anymore.
+//        return true;
+        return this.getUrl().getParameter(RUNTIME_KEY, false);
     }
 
-    public int compareTo(Router o) {
-        if (o == null || o.getClass() != ConditionRouter.class) {
-            return 1;
+    private ConditionMatcher getMatcher(String key) {
+        for (ConditionMatcherFactory factory : matcherFactories) {
+            if (factory.shouldMatch(key)) {
+                return factory.createMatcher(key);
+            }
         }
-        ConditionRouter c = (ConditionRouter) o;
-        return this.priority == c.priority ? url.toFullString().compareTo(c.url.toFullString()) : (this.priority > c.priority ? 1 : -1);
+        return ExtensionLoader.getExtensionLoader(ConditionMatcherFactory.class).getExtension("param").createMatcher(key);
     }
 
     boolean matchWhen(URL url, Invocation invocation) {
-        return whenCondition == null || whenCondition.isEmpty() || matchCondition(whenCondition, url, null, invocation);
+        if (CollectionUtils.isEmptyMap(whenCondition)) {
+            return true;
+        }
+
+        return doMatch(url, null, invocation, whenCondition, true);
     }
 
     private boolean matchThen(URL url, URL param) {
-        return !(thenCondition == null || thenCondition.isEmpty()) && matchCondition(thenCondition, url, param, null);
-    }
-
-    private boolean matchCondition(Map<String, MatchPair> condition, URL url, URL param, Invocation invocation) {
-        Map<String, String> sample = url.toMap();
-        boolean result = false;
-        for (Map.Entry<String, MatchPair> matchPair : condition.entrySet()) {
-            String key = matchPair.getKey();
-            String sampleValue;
-            //get real invoked method name from invocation
-            if (invocation != null && (Constants.METHOD_KEY.equals(key) || Constants.METHODS_KEY.equals(key))) {
-                sampleValue = invocation.getMethodName();
-            } else {
-                sampleValue = sample.get(key);
-                if (sampleValue == null) {
-                    sampleValue = sample.get(Constants.DEFAULT_KEY_PREFIX + key);
-                }
-            }
-            if (sampleValue != null) {
-                if (!matchPair.getValue().isMatch(sampleValue, param)) {
-                    return false;
-                } else {
-                    result = true;
-                }
-            } else {
-                //not pass the condition
-                if (matchPair.getValue().matches.size() > 0) {
-                    return false;
-                } else {
-                    result = true;
-                }
-            }
-        }
-        return result;
-    }
-
-    private static final class MatchPair {
-        final Set<String> matches = new HashSet<String>();
-        final Set<String> mismatches = new HashSet<String>();
-
-        private boolean isMatch(String value, URL param) {
-            if (matches.size() > 0 && mismatches.size() == 0) {
-                for (String match : matches) {
-                    if (UrlUtils.isMatchGlobPattern(match, value, param)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            if (mismatches.size() > 0 && matches.size() == 0) {
-                for (String mismatch : mismatches) {
-                    if (UrlUtils.isMatchGlobPattern(mismatch, value, param)) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            if (matches.size() > 0 && mismatches.size() > 0) {
-                //when both mismatches and matches contain the same value, then using mismatches first
-                for (String mismatch : mismatches) {
-                    if (UrlUtils.isMatchGlobPattern(mismatch, value, param)) {
-                        return false;
-                    }
-                }
-                for (String match : matches) {
-                    if (UrlUtils.isMatchGlobPattern(match, value, param)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
+        if (CollectionUtils.isEmptyMap(thenCondition)) {
             return false;
         }
+
+        return doMatch(url, param, null, thenCondition, false);
+    }
+
+    private boolean doMatch(URL url, URL param, Invocation invocation, Map<String, ConditionMatcher> conditions, boolean isWhenCondition) {
+        Map<String, String> sample = url.toOriginalMap();
+        for (Map.Entry<String, ConditionMatcher> entry : conditions.entrySet()) {
+            ConditionMatcher matchPair = entry.getValue();
+            if (!matchPair.isMatch(sample, param, invocation, isWhenCondition)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

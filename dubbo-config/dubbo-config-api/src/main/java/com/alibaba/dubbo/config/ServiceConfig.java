@@ -30,6 +30,7 @@ import com.alibaba.dubbo.config.invoker.DelegateProviderMetaDataInvoker;
 import com.alibaba.dubbo.config.model.ApplicationModel;
 import com.alibaba.dubbo.config.model.ProviderModel;
 import com.alibaba.dubbo.config.support.Parameter;
+import com.alibaba.dubbo.configcenter.DynamicConfigurationInstance;
 import com.alibaba.dubbo.rpc.Exporter;
 import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.Protocol;
@@ -243,6 +244,9 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             if (protocols == null) {
                 protocols = provider.getProtocols();
             }
+            if (configCenterConfig == null) {
+                configCenterConfig = provider.getConfigCenterConfig();
+            }
         }
         if (module != null) {
             if (registries == null) {
@@ -312,6 +316,13 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         if (path == null || path.length() == 0) {
             path = interfaceName;
         }
+
+        if (configCenterConfig != null) {
+            DynamicConfigurationInstance.init(configCenterConfig.toUrl());
+        } else {
+            DynamicConfigurationInstance.init(null);
+        }
+
         doExportUrls();
         ProviderModel providerModel = new ProviderModel(getUniqueServiceName(), this, ref);
         ApplicationModel.initProviderModel(getUniqueServiceName(), providerModel);

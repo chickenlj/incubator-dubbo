@@ -1,0 +1,2 @@
+nop=com.alibaba.dubbo.configcenter.nop.NopDynamicConfigurationFactory
+nacos=com.alibaba.dubbo.configcenter.nacos.NacosDynamicConfigurationFactory

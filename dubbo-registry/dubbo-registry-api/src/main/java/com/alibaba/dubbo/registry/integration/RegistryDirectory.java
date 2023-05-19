@@ -235,6 +235,7 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
                 && Constants.EMPTY_PROTOCOL.equals(invokerUrls.get(0).getProtocol())) {
             this.forbidden = true; // Forbid to access
             this.methodInvokerMap = null; // Set the method invoker map to null
+            refreshRouters(Collections.<Invoker<T>>emptyList());
             destroyAllInvokers(); // Close all invokers
         } else {
             this.forbidden = false; // Allow to access
@@ -257,6 +258,7 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
                 return;
             }
             this.methodInvokerMap = multiGroup ? toMergeMethodInvokerMap(newMethodInvokerMap) : newMethodInvokerMap;
+            refreshRouters(new ArrayList<Invoker<T>>(newUrlInvokerMap.values()));
             this.urlInvokerMap = newUrlInvokerMap;
             try {
                 destroyUnusedInvokers(oldUrlInvokerMap, newUrlInvokerMap); // Close the unused Invoker

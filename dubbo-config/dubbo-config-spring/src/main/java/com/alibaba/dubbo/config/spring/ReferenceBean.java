@@ -23,9 +23,9 @@ import com.alibaba.dubbo.config.MonitorConfig;
 import com.alibaba.dubbo.config.ReferenceConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
 import com.alibaba.dubbo.config.annotation.Reference;
+import com.alibaba.dubbo.config.configcenter.ConfigCenterConfig;
 import com.alibaba.dubbo.config.spring.extension.SpringExtensionFactory;
 import com.alibaba.dubbo.config.support.Parameter;
-
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
@@ -164,6 +164,24 @@ public class ReferenceBean<T> extends ReferenceConfig<T> implements FactoryBean,
                 }
             }
         }
+
+        if (getConfigCenterConfig() == null
+                && (getConsumer() == null || getConsumer().getConfigCenterConfig() == null)) {
+            Map<String, ConfigCenterConfig> configCenterConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, ConfigCenterConfig.class, false, false);
+            if (configCenterConfigMap != null && configCenterConfigMap.size() > 0) {
+                ConfigCenterConfig configCenterConfig = null;
+                for (ConfigCenterConfig config : configCenterConfigMap.values()) {
+                    if (configCenterConfig != null) {
+                        throw new IllegalStateException("Duplicate config center: " + configCenterConfig + " and " + config);
+                    }
+                    configCenterConfig = config;
+                }
+                if (configCenterConfig != null) {
+                    setConfigCenterConfig(configCenterConfig);
+                }
+            }
+        }
+
         Boolean b = isInit();
         if (b == null && getConsumer() != null) {
             b = getConsumer().isInit();

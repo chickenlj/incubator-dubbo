@@ -36,6 +36,13 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.alibaba.dubbo.common.Constants.APPLICATION_KEY;
+import static com.alibaba.dubbo.common.Constants.GROUP_KEY;
+import static com.alibaba.dubbo.common.Constants.PROTOCOL_KEY;
+import static com.alibaba.dubbo.common.Constants.REMOTE_APPLICATION_KEY;
+import static com.alibaba.dubbo.common.Constants.VERSION_KEY;
+import static com.alibaba.dubbo.common.utils.StringUtils.isBlank;
+
 /**
  * URL - Uniform Resource Locator (Immutable, ThreadSafe)
  * <p>
@@ -1210,12 +1217,12 @@ public final class URL implements Serializable {
         String inf = getServiceInterface();
         if (inf == null) return null;
         StringBuilder buf = new StringBuilder();
-        String group = getParameter(Constants.GROUP_KEY);
+        String group = getParameter(GROUP_KEY);
         if (group != null && group.length() > 0) {
             buf.append(group).append("/");
         }
         buf.append(inf);
-        String version = getParameter(Constants.VERSION_KEY);
+        String version = getParameter(VERSION_KEY);
         if (version != null && version.length() > 0) {
             buf.append(":").append(version);
         }
@@ -1389,6 +1396,68 @@ public final class URL implements Serializable {
         } else if (!username.equals(other.username))
             return false;
         return true;
+    }
+
+    public String getColonSeparatedKey() {
+        StringBuilder serviceNameBuilder = new StringBuilder();
+        serviceNameBuilder.append(this.getServiceInterface());
+        append(serviceNameBuilder, VERSION_KEY, false);
+        append(serviceNameBuilder, GROUP_KEY, false);
+        return serviceNameBuilder.toString();
+    }
+
+    private void append(StringBuilder target, String parameterName, boolean first) {
+        String parameterValue = this.getParameter(parameterName);
+        if (!isBlank(parameterValue)) {
+            if (!first) {
+                target.append(':');
+            }
+            target.append(parameterValue);
+        } else {
+            target.append(':');
+        }
+    }
+
+    public String getApplication() {
+        return getParameter(APPLICATION_KEY);
+    }
+
+    public String getRemoteApplication() {
+        return getParameter(REMOTE_APPLICATION_KEY);
+    }
+
+    public Map<String, String> toOriginalMap() {
+        Map<String, String> map = new HashMap<String, String>(getOriginalParameters());
+        return addSpecialKeys(map);
+    }
+
+    public Map<String, String> getOriginalParameters() {
+        return this.getParameters();
+    }
+
+    private Map<String, String> addSpecialKeys(Map<String, String> map) {
+        if (getProtocol() != null) {
+            map.put(PROTOCOL_KEY, getProtocol());
+        }
+        if (getUsername() != null) {
+            map.put(Constants.USERNAME_KEY, getUsername());
+        }
+        if (getPassword() != null) {
+            map.put(Constants.PASSWORD_KEY, getPassword());
+        }
+        if (getHost() != null) {
+            map.put(Constants.HOST_KEY, getHost());
+        }
+        if (getPort() > 0) {
+            map.put(Constants.PORT_KEY, String.valueOf(getPort()));
+        }
+        if (getPath() != null) {
+            map.put(Constants.PATH_KEY, getPath());
+        }
+        if (getAddress() != null) {
+            map.put(Constants.ADDRESS_KEY, getAddress());
+        }
+        return map;
     }
 
 }

@@ -29,9 +29,8 @@ import java.util.List;
 /**
  * A specific Router designed to realize mock feature.
  * If a request is configured to use mock, then this router guarantees that only the invokers with protocol MOCK appear in final the invoker list, all other invokers will be excluded.
- *
  */
-public class MockInvokersSelector implements Router {
+public class MockInvokersSelector extends AbstractRouter {
 
     public <T> List<Invoker<T>> route(final List<Invoker<T>> invokers,
                                       URL url, final Invocation invocation) throws RpcException {

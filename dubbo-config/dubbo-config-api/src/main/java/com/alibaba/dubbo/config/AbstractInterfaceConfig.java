@@ -25,6 +25,7 @@ import com.alibaba.dubbo.common.utils.NetUtils;
 import com.alibaba.dubbo.common.utils.ReflectUtils;
 import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.common.utils.UrlUtils;
+import com.alibaba.dubbo.config.configcenter.ConfigCenterConfig;
 import com.alibaba.dubbo.config.support.Parameter;
 import com.alibaba.dubbo.monitor.MonitorFactory;
 import com.alibaba.dubbo.monitor.MonitorService;
@@ -36,12 +37,12 @@ import com.alibaba.dubbo.rpc.ProxyFactory;
 import com.alibaba.dubbo.rpc.cluster.Cluster;
 import com.alibaba.dubbo.rpc.support.MockInvoker;
 
-import static com.alibaba.dubbo.common.utils.NetUtils.isInvalidLocalHost;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.alibaba.dubbo.common.utils.NetUtils.isInvalidLocalHost;
 
 /**
  * AbstractDefaultConfig
@@ -85,6 +86,8 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
     // application info
     protected ApplicationConfig application;
+
+    protected ConfigCenterConfig configCenterConfig;
 
     // module info
     protected ModuleConfig module;
@@ -444,6 +447,14 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
     public void setApplication(ApplicationConfig application) {
         this.application = application;
+    }
+
+    public ConfigCenterConfig getConfigCenterConfig() {
+        return configCenterConfig;
+    }
+
+    public void setConfigCenterConfig(ConfigCenterConfig configCenterConfig) {
+        this.configCenterConfig = configCenterConfig;
     }
 
     public ModuleConfig getModule() {

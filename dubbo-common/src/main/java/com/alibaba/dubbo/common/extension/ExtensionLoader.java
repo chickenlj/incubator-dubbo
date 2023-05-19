@@ -19,6 +19,7 @@ package com.alibaba.dubbo.common.extension;
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.common.extension.support.ActivateComparator;
+import com.alibaba.dubbo.common.extension.support.ClassActivateComparator;
 import com.alibaba.dubbo.common.logger.Logger;
 import com.alibaba.dubbo.common.logger.LoggerFactory;
 import com.alibaba.dubbo.common.utils.ConcurrentHashSet;
@@ -38,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -93,9 +95,12 @@ public class ExtensionLoader<T> {
 
     private Map<String, IllegalStateException> exceptions = new ConcurrentHashMap<String, IllegalStateException>();
 
+    private final ClassActivateComparator classActivateComparator;
+
     private ExtensionLoader(Class<?> type) {
         this.type = type;
         objectFactory = (type == ExtensionFactory.class ? null : ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getAdaptiveExtension());
+        this.classActivateComparator = new ClassActivateComparator();
     }
 
     private static <T> boolean withExtensionAnnotation(Class<T> type) {
@@ -283,6 +288,21 @@ public class ExtensionLoader<T> {
      */
     public Set<String> getLoadedExtensions() {
         return Collections.unmodifiableSet(new TreeSet<String>(cachedInstances.keySet()));
+    }
+
+    public List<T> getActivateExtensions() {
+        List<T> activateExtensions = new ArrayList<T>();
+        TreeMap<Class<?>, T> activateExtensionsMap = new TreeMap<Class<?>, T>(classActivateComparator);
+        getExtensionClasses();
+        for (Map.Entry<String, Activate> entry : cachedActivates.entrySet()) {
+            String name = entry.getKey();
+            activateExtensionsMap.put(getExtensionClass(name), getExtension(name));
+        }
+        if (!activateExtensionsMap.isEmpty()) {
+            activateExtensions.addAll(activateExtensionsMap.values());
+        }
+
+        return activateExtensions;
     }
 
     /**

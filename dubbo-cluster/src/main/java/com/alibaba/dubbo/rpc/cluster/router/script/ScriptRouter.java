@@ -25,6 +25,7 @@ import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.RpcContext;
 import com.alibaba.dubbo.rpc.RpcException;
 import com.alibaba.dubbo.rpc.cluster.Router;
+import com.alibaba.dubbo.rpc.cluster.router.AbstractRouter;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -40,9 +41,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * ScriptRouter
- *
  */
-public class ScriptRouter implements Router {
+public class ScriptRouter extends AbstractRouter {
 
     private static final Logger logger = LoggerFactory.getLogger(ScriptRouter.class);
 

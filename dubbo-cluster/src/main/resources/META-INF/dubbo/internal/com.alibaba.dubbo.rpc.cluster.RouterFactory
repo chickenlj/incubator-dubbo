@@ -1,3 +1,6 @@
 file=com.alibaba.dubbo.rpc.cluster.router.file.FileRouterFactory
 script=com.alibaba.dubbo.rpc.cluster.router.script.ScriptRouterFactory
 condition=com.alibaba.dubbo.rpc.cluster.router.condition.ConditionRouterFactory
+service=com.alibaba.dubbo.rpc.cluster.router.condition.config.ServiceRouterFactory
+app=com.alibaba.dubbo.rpc.cluster.router.condition.config.AppRouterFactory
+provider-app=com.alibaba.dubbo.rpc.cluster.router.condition.config.ProviderAppRouterFactory

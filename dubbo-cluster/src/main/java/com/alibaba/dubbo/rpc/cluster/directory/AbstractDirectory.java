@@ -33,9 +33,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.alibaba.dubbo.common.Constants.ROUTER_KEY;
+import static com.alibaba.dubbo.common.Constants.RUNTIME_KEY;
+
 /**
  * Abstract implementation of Directory: Invoker list returned from this Directory's list method have been filtered by Routers
- *
  */
 public abstract class AbstractDirectory<T> implements Directory<T> {
 
@@ -63,7 +65,18 @@ public abstract class AbstractDirectory<T> implements Directory<T> {
             throw new IllegalArgumentException("url == null");
         this.url = url;
         this.consumerUrl = consumerUrl;
-        setRouters(routers);
+        List<Router> initRouters = new ArrayList<Router>();
+        if (routers != null) {
+            initRouters.addAll(routers);
+        }
+
+        List<RouterFactory> extensionFactories = ExtensionLoader.getExtensionLoader(RouterFactory.class)
+                .getActivateExtension(consumerUrl, ROUTER_KEY);
+
+        for (RouterFactory extensionFactory : extensionFactories) {
+            initRouters.add(extensionFactory.getRouter(consumerUrl.addParameter(RUNTIME_KEY, true)));
+        }
+        this.builtinRouters = initRouters;
     }
 
     public List<Invoker<T>> list(Invocation invocation) throws RpcException {
@@ -90,23 +103,32 @@ public abstract class AbstractDirectory<T> implements Directory<T> {
         return url;
     }
 
+    private List<Router> builtinRouters = Collections.emptyList();
+
     public List<Router> getRouters() {
         return routers;
     }
 
+    protected void refreshRouters(List<Invoker<T>> invokers) {
+        for (Router builtinRouter : builtinRouters) {
+            builtinRouter.notify(invokers);
+        }
+    }
+
     protected void setRouters(List<Router> routers) {
         // copy list
-        routers = routers == null ? new ArrayList<Router>() : new ArrayList<Router>(routers);
+        List<Router> finalRouters = routers == null ? new ArrayList<Router>() : new ArrayList<Router>(routers);
+        finalRouters.addAll(builtinRouters);
         // append url router
-        String routerkey = url.getParameter(Constants.ROUTER_KEY);
+        String routerkey = url.getParameter(ROUTER_KEY);
         if (routerkey != null && routerkey.length() > 0) {
             RouterFactory routerFactory = ExtensionLoader.getExtensionLoader(RouterFactory.class).getExtension(routerkey);
-            routers.add(routerFactory.getRouter(url));
+            finalRouters.add(routerFactory.getRouter(url));
         }
         // append mock invoker selector
-        routers.add(new MockInvokersSelector());
-        Collections.sort(routers);
-        this.routers = routers;
+        finalRouters.add(new MockInvokersSelector());
+        Collections.sort(finalRouters);
+        this.routers = finalRouters;
     }
 
     public URL getConsumerUrl() {
