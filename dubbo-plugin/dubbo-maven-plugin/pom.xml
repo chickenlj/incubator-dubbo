@@ -21,6 +21,7 @@
         <artifactId>dubbo-parent</artifactId>
         <groupId>org.apache.dubbo</groupId>
         <version>${revision}</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>dubbo-maven-plugin</artifactId>

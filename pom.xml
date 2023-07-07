@@ -141,34 +141,24 @@
     </properties>
 
     <modules>
-        <module>dubbo-annotation-processor</module>
         <module>dubbo-common</module>
-        <module>dubbo-container</module>
-        <module>dubbo-compiler</module>
         <module>dubbo-remoting</module>
         <module>dubbo-rpc</module>
         <module>dubbo-cluster</module>
         <module>dubbo-registry</module>
-        <module>dubbo-monitor</module>
         <module>dubbo-config</module>
-        <module>dubbo-filter</module>
         <module>dubbo-demo</module>
-        <module>dubbo-plugin</module>
         <module>dubbo-serialization</module>
-        <module>dubbo-compatible</module>
         <module>dubbo-dependencies-bom</module>
         <module>dubbo-distribution</module>
         <module>dubbo-configcenter</module>
-        <module>dubbo-dependencies</module>
         <module>dubbo-metadata</module>
         <module>dubbo-metrics</module>
-        <module>dubbo-build-tools</module>
         <module>dubbo-spring-boot</module>
         <module>dubbo-native</module>
         <module>dubbo-test</module>
         <module>dubbo-kubernetes</module>
         <module>dubbo-xds</module>
-        <module>dubbo-maven-plugin</module>
     </modules>
 
     <dependencyManagement>

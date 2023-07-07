@@ -36,6 +36,7 @@
                 <module>dubbo-apache-release</module>
                 <module>dubbo-bom</module>
                 <module>dubbo-core-spi</module>
+                <module>dubbo-dependencies</module>
             </modules>
         </profile>
         <profile>
@@ -46,6 +47,7 @@
             <modules>
                 <module>dubbo-all</module>
                 <module>dubbo-bom</module>
+                <module>dubbo-dependencies</module>
             </modules>
         </profile>
         <profile>

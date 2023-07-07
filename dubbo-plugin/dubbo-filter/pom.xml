@@ -20,17 +20,26 @@
         <groupId>org.apache.dubbo</groupId>
         <artifactId>dubbo-parent</artifactId>
         <version>${revision}</version>
-        <relativePath>../pom.xml</relativePath>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
-    <artifactId>dubbo-container</artifactId>
+    <artifactId>dubbo-filter</artifactId>
     <packaging>pom</packaging>
     <name>${project.artifactId}</name>
-    <description>The container module of dubbo project</description>
+    <description>The filter module of dubbo project</description>
     <properties>
         <skip_maven_deploy>false</skip_maven_deploy>
     </properties>
     <modules>
-        <module>dubbo-container-api</module>
-        <module>dubbo-container-spring</module>
+        <module>dubbo-filter-cache</module>
+        <module>dubbo-filter-validation</module>
     </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo-test-check</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>
