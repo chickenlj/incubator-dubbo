@@ -160,6 +160,7 @@
         <module>dubbo-test</module>
         <module>dubbo-kubernetes</module>
         <module>dubbo-xds</module>
+        <module>dubbo-plugin</module>
     </modules>
 
     <dependencyManagement>
