@@ -19,100 +19,55 @@ Visit [the official website](https://dubbo.apache.org/) for more information.
 ## Architecture
 ![Architecture](https://dubbo.apache.org/imgs/architecture.png)
 
-* **[RPC protocol]():** triple, tcp, rest and more.
-* **[Service Discovery]():** Nacos, Zookeeper, Kubernetes, etc.
-* **[Microservice solution]():** traffic routing, configuration, observability, tracing, deploying to Kubernetes, service mesh, etc.
+* **[RPC protocol](https://cn.dubbo.apache.org/zh-cn/overview/core-features/protocols/):** triple, tcp, rest and more.
+* **[Service Discovery](https://cn.dubbo.apache.org/zh-cn/overview/core-features/service-discovery/):** Nacos, Zookeeper, Kubernetes, etc.
+* **[Microservice solution](https://cn.dubbo.apache.org/zh-cn/overview/core-features/):** traffic routing, configuration, observability, tracing, deploying to Kubernetes, service mesh, etc.
 
 ## Getting started
-Following the instructions below to learn how to:
-* Programming with lightweight RPC API
-* Start a microservice application with Spring Boot
+Follow the instructions below to learn how to:
 
-### Lightweight RPC API
+### Programming with lightweight RPC API
 [5 minutes step-by-step guide](https://dubbo.apache.org/zh-cn/overview/quickstart/rpc/java)
 
-Dubbo supports building RPC services with only a few lines of code while depending only on a lightweight SDK (<10MB). The protocol on the wire can be [Triple(fully gRPC compatible and HTTP-friendly)](https://cn.dubbo.apache.org/zh-cn/overview/reference/protocols/triple/), Dubbo2(TCP), REST, or any protocol of your choice.
+Dubbo supports building RPC services with only a few lines of code while depending only on a lightweight SDK (<10MB). The protocol on the wire can be [Triple](https://cn.dubbo.apache.org/zh-cn/overview/reference/protocols/triple/)(fully gRPC compatible and HTTP-friendly), Dubbo2(TCP), REST, or any protocol of your choice.
 
-```java
-private void startServer() {
-    DubboBootstrap.getInstance()
-        .service(ServiceBuilder.newBuilder().ref(new GreetingsServiceImpl()).build())
-        .start()
-        .await();
-}
 
-private void startClient() {
-    DubboBootstrap.getInstance()
-        .service(ReferenceBuilder.newBuilder().interfaceClass(GreetingService.class).url("tri://localhost:50051").build())
-        .start()
-        .await();
-}
-```
-
-For triple protocol, you can easily use cURL to test the service works as expected:
-
-```shell
-curl \
-    --header "Content-Type: application/json" \
-    --data '[{"name": "Dubbo"}]' \
-    http://localhost:50052/org.apache.dubbo.samples.tri.unary.Greeter/greet/
-```
-
-### Start a microservice application with Spring Boot
+### Building a microservice application with Spring Boot
 [5 minutes step-by-step guide](https://dubbo.apache.org/zh-cn/overview/quickstart/microservice)
 
-It's highly recommended to start your microservice application with the Spring Boot Starter provided by Dubbo. 
+It's highly recommended to start your microservice application with the Spring Boot Starter `dubbo-spring-boot-starter` provided by Dubbo. With only a single dependency and yaml file, and optionally a bunch of other useful spring boot starters, you can enable all of the Dubo features like service discovery, observability, tracing, etc.
 
-`application.yml` configuration file
-```yaml
-dubbo:
-  application:
-    name: dubbo-demo-provider
-  protocol:
-    name: tri
-    port: -1
-  registry:
-    address: zookeeper://${zookeeper.address:127.0.0.1}:2181
-```
+Next, learn how to [deploy](https://cn.dubbo.apache.org/zh-cn/overview/tasks/deploy/), [monitor](https://cn.dubbo.apache.org/zh-cn/overview/tasks/observability/), and [manage the traffic](https://cn.dubbo.apache.org/zh-cn/overview/tasks/traffic-management/) of your Dubbo application and cluster.
 
-Add `dubbo-spring-boot-starter` and optionally a bunch of useful spring boot starters ready to enable features like service discovery, observability, tracing, etc.
-```xml
-<dependency>
-    <groupId>org.apache.dubbo</groupId>
-    <artifactId>dubbo-spring-boot-starter</artifactId>
-</dependency>
-```
+## Which Dubbo version should I use?
+| **Dubbo3** | **JDK** | **Dependencies** | **Description** |
+| --- | --- | --- | --- |
+| 3.3.0-beta| 1.8 ～ 17 | [dependency list](https://github.com/apache/dubbo/blob/3.3/dubbo-dependencies-bom/pom.xml#L94)  | **- Unstable version** <br/> **- Features** <br/> &nbsp;&nbsp;  - Triple - gRPC and cURL compatible.<br/>  &nbsp;&nbsp;  - Rest-style programming support.<br/>  &nbsp;&nbsp;  - Spring Boot Starters. |
+| 3.2.5 | 1.8 ～ 17 | [dependency list](https://github.com/apache/dubbo/blob/dubbo-3.2.5/dubbo-dependencies-bom/pom.xml#L94) | **- Stable version (active)** <br/> **- Features** <br/> &nbsp;&nbsp;- Out-of-box metrics and tracing support.<br/> &nbsp;&nbsp;- Threadpool Isolation<br/> &nbsp;&nbsp;- 30% performance<br/> &nbsp;&nbsp;- Native Image|
+| 3.1.11 | 1.8 ～ 11 | [dependency list](https://github.com/apache/dubbo/blob/dubbo-3.2.11/dubbo-dependencies-bom/pom.xml#L94) | **Stable version (not active)** |
 
-```xml
-<dependency>
-    <groupId>org.apache.dubbo</groupId>
-    <artifactId>dubbo-spring-boot-zookeeper-starter</artifactId>
-</dependency>
-```
+| **Dubbo2** | **JDK** | **Dependencies** | **Description** |
+| --- | --- | --- | --- |
+| 2.7.23 | 1.8 | [dependency list](https://github.com/apache/dubbo/blob/dubbo-2.7.23/dubbo-dependencies-bom/pom.xml#L92) | EOL |
+| 2.6.x, 2.5.x | 1.6 ～ 1.7 |  | EOL |
 
-```xml
-<dependency>
-    <groupId>org.apache.dubbo</groupId>
-    <artifactId>dubbo-spring-boot-observability-starter</artifactId>
-</dependency>
-```
 
-Next, learn how to [deploy](), [monitor](), and [manage]() your Dubbo application and cluster.
-
-## Features
+## More Features
 Get more details by visiting [the official website](https://cn.dubbo.apache.org/zh-cn/overview/tasks/) to get your hands dirty with some well-designed tasks.
 
-* gRPC compatible and http-friendly RPC protocol
-* IDL and non-IDL programming API
-* Traffic routing
-* Service discovery
-* Observability
-* Extensibility
-* Security
-* Visualized console and control plane
-* Kubernetes and Service mesh
+* [Launch a Dubbo project](https://cn.dubbo.apache.org/zh-cn/overview/tasks/develop/template/)
+* [RPC protocols](https://cn.dubbo.apache.org/zh-cn/overview/core-features/protocols/)
+* [Traffic management](https://cn.dubbo.apache.org/zh-cn/overview/core-features/traffic/)
+* [Service discovery](https://cn.dubbo.apache.org/zh-cn/overview/core-features/service-discovery/)
+* [Observability](https://cn.dubbo.apache.org/zh-cn/overview/core-features/observability/)
+* [Extensibility](https://cn.dubbo.apache.org/zh-cn/overview/core-features/extensibility/)
+* [Security](https://cn.dubbo.apache.org/zh-cn/overview/core-features/security/)
+* [Visualized console and control plane](https://cn.dubbo.apache.org/zh-cn/overview/reference/admin/)
+* [Kubernetes and Service mesh](https://cn.dubbo.apache.org/zh-cn/overview/core-features/service-mesh/)
 
 ## Contributing
+Add developer's guide, how to build from source.
+
 See [CONTRIBUTING](https://github.com/apache/dubbo/blob/master/CONTRIBUTING.md) for details on submitting patches and the contribution workflow.
 
 ## Contact
