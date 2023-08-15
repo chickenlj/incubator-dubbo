@@ -37,6 +37,7 @@ import org.apache.dubbo.config.annotation.Service;
 import org.apache.dubbo.config.invoker.DelegateProviderMetaDataInvoker;
 import org.apache.dubbo.config.support.Parameter;
 import org.apache.dubbo.config.utils.ConfigValidationUtils;
+import org.apache.dubbo.metadata.MetadataService;
 import org.apache.dubbo.metadata.ServiceNameMapping;
 import org.apache.dubbo.metrics.event.MetricsEventBus;
 import org.apache.dubbo.metrics.registry.event.RegistryEvent;
@@ -78,6 +79,8 @@ import static org.apache.dubbo.common.constants.CommonConstants.DUBBO;
 import static org.apache.dubbo.common.constants.CommonConstants.DUBBO_IP_TO_BIND;
 import static org.apache.dubbo.common.constants.CommonConstants.EXECUTOR_MANAGEMENT_MODE_ISOLATION;
 import static org.apache.dubbo.common.constants.CommonConstants.EXPORTER_LISTENER_KEY;
+import static org.apache.dubbo.common.constants.CommonConstants.EXT_PROTOCOL;
+import static org.apache.dubbo.common.constants.CommonConstants.IS_EXTRA;
 import static org.apache.dubbo.common.constants.CommonConstants.LOCALHOST_VALUE;
 import static org.apache.dubbo.common.constants.CommonConstants.METHODS_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.MONITOR_KEY;
@@ -86,6 +89,7 @@ import static org.apache.dubbo.common.constants.CommonConstants.REVISION_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.SERVICE_EXECUTOR;
 import static org.apache.dubbo.common.constants.CommonConstants.SERVICE_NAME_MAPPING_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.SIDE_KEY;
+import static org.apache.dubbo.common.constants.CommonConstants.TRIPLE;
 import static org.apache.dubbo.common.constants.LoggerCodeConstants.COMMON_ISOLATED_EXECUTOR_CONFIGURATION_ERROR;
 import static org.apache.dubbo.common.constants.LoggerCodeConstants.CONFIG_FAILED_EXPORT_SERVICE;
 import static org.apache.dubbo.common.constants.LoggerCodeConstants.CONFIG_NO_METHOD_FOUND;
@@ -368,7 +372,17 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                 mapServiceName(url, serviceNameMapping, scheduledExecutor);
             }
         });
+
         onExported();
+
+        if (hasRegistrySpecified()) {
+            getScopeModel().getDeployer().getApplicationDeployer().exportMetadataService();
+        }
+    }
+
+    public boolean hasRegistrySpecified() {
+        return CollectionUtils.isNotEmpty(this.getRegistries())
+            || CollectionUtils.isNotEmpty(getScopeModel().getApplicationModel().getApplicationConfigManager().getRegistries());
     }
 
     protected void mapServiceName(URL url, ServiceNameMapping serviceNameMapping, ScheduledExecutorService scheduledExecutor) {
@@ -746,14 +760,14 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
             // export to remote if the config is not local (export to local only when config is local)
             if (!SCOPE_LOCAL.equalsIgnoreCase(scope)) {
                 // export to extra protocol is used in remote export
-                String extProtocol = url.getParameter("ext.protocol", "");
+                URL newURl = appendExtraProtocols(url);
+                String extProtocol = newURl.getParameter(EXT_PROTOCOL, "");
                 List<String> protocols = new ArrayList<>();
 
                 if (StringUtils.isNotBlank(extProtocol)) {
                     // export original url
                     url = URLBuilder.from(url).
                         addParameter(IS_PU_SERVER_KEY, Boolean.TRUE.toString()).
-                        removeParameter("ext.protocol").
                         build();
                 }
 
@@ -771,6 +785,8 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                     if (StringUtils.isNotBlank(protocol)) {
                         URL localUrl = URLBuilder.from(url).
                             setProtocol(protocol).
+                            addParameter(IS_EXTRA, Boolean.TRUE.toString()).
+                            removeParameter(EXT_PROTOCOL).
                             build();
                         localUrl = exportRemote(localUrl, registryURLs, registerType);
                         if (!isGeneric(generic) && !getScopeModel().isInternal()) {
@@ -782,6 +798,27 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
             }
         }
         this.urls.add(url);
+    }
+
+    /**
+     * Automatically add 'rest' as extra protocol for triple.
+     * <p>
+     * FIXME, remove this step when triple fully supports http unary request
+     *
+     * @param url url to export
+     * @return url with extra protocols
+     */
+    private URL appendExtraProtocols(URL url) {
+        String ext = url.getParameter(EXT_PROTOCOL, "");
+        if (StringUtils.isEmpty(ext)
+            && url.getProtocol().equals(TRIPLE)
+            && !url.getServiceInterface().equals(MetadataService.class.getName())) {
+            String restProtocol = "rest";
+            if (this.getExtensionLoader(Protocol.class).hasExtension(restProtocol)) {
+                url = url.addParameter(EXT_PROTOCOL, restProtocol);
+            }
+        }
+        return url;
     }
 
     private URL exportRemote(URL url, List<URL> registryURLs, RegisterTypeEnum registerType) {
