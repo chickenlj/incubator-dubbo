@@ -14,3 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package org.apache.dubbo.metrics.listener;
+
+import org.apache.dubbo.metrics.event.MetricsEvent;
+
+
+/**
+ * Metrics Listener.
+ */
+public interface MetricsListener<E extends MetricsEvent> {
+
+
+    boolean isSupport(MetricsEvent event);
+
+    /**
+     * notify event.
+     *
+     * @param event BaseMetricsEvent
+     */
+    void onEvent(E event);
+
+}

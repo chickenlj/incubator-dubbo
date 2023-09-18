@@ -52,7 +52,7 @@ import static org.apache.dubbo.common.constants.CommonConstants.EXT_PROTOCOL;
 class PortUnificationServerTest {
 
     @Test
-    void testBind() throws RemotingException {
+    void testBind() throws Throwable {
         int port = NetUtils.getAvailablePort();
         URL url = URL.valueOf("empty://127.0.0.1:" + port + "?foo=bar&" + EXT_PROTOCOL + "=tri");
         ApplicationModel applicationModel = ApplicationModel.defaultModel();
