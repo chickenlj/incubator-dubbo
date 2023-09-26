@@ -32,7 +32,7 @@
         <!-- Dubbo -->
         <dependency>
             <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo</artifactId>
+            <artifactId>dubbo-rpc-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
