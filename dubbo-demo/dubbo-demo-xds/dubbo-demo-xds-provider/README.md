@@ -2,13 +2,15 @@
 Run the following command to deploy application to kubernetes.
 
 ```shell
-kubectl apply -f
+kubectl apply -f ./manifests/Deployment.yml
 ```
 
 ## Build your own image
 
+Run `./mvnw clean package -DskipTests` locally first, then run the following command to build image:
+
 ```shell
-docker build -f ./Dockerfile --build-arg APP_FILE=dubbo-demo-xds-provider-3.3.0-beta.5-SNAPSHOT.jar -t xds-provider:1.0 .
+docker build -f ./Dockerfile -t xds-provider:1.0 .
 ```
 
 ```shell
