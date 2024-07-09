@@ -1,0 +1,29 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dubbo-demo
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xds-demo-provider
+  namespace: dubbo-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: security-sca-c
+  template:
+    metadata:
+      labels:
+        app: "xds-demo-provider"
+    spec:
+      containers:
+        - name: xds-demo-provider
+          image: ""
+          imagePullPolicy: Always
+          ports:
+            - name: triple
+              containerPort: 50051
